@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazario — Checkout</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #2874f0;
+      --primary-dark: #1a5dc8;
+      --accent:       #ff6f00;
+      --bg:           #f1f3f6;
+      --surface:      #ffffff;
+      --text:         #212121;
+      --text-sec:     #666666;
+      --text-muted:   #999999;
+      --border:       #e0e0e0;
+      --success:      #388e3c;
+      --danger:       #d32f2f;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── NAVBAR ─── */
+    .navbar { position: sticky; top: 0; z-index: 100; background: var(--primary); height: 56px; display: flex; align-items: center; padding: 0 16px; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .nav-logo { display: flex; flex-direction: column; min-width: 120px; text-decoration: none; }
+    .nav-logo .brand { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+    .nav-logo .brand span { color: #ffe082; }
+    .nav-logo .tagline { font-size: 10px; color: rgba(255,255,255,0.75); font-style: italic; margin-top: 2px; }
+    .nav-secure { margin-left: auto; display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.8); font-size: 13px; }
+
+    /* ─── CHECKOUT STEPS ─── */
+    .checkout-steps { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .steps-inner { max-width: 900px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; justify-content: center; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); }
+    .step.active { color: var(--primary); }
+    .step.done   { color: var(--success); }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .step.active .step-num { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .step.done .step-num   { background: var(--success); border-color: var(--success); color: #fff; font-size: 13px; }
+    .step-line { flex: 1; height: 2px; background: var(--border); max-width: 80px; margin: 0 8px; }
+    .step-line.done { background: var(--success); }
+
+    /* ─── LAYOUT ─── */
+    .container { max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+    .checkout-layout { display: grid; grid-template-columns: 1fr 360px; gap: 12px; padding: 16px 0 32px; align-items: start; }
+
+    /* ─── PANELS ─── */
+    .panel { background: var(--surface); border-radius: 4px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+    .panel-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .panel-header.inactive { background: var(--bg); }
+
+    .panel-num {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin-right: 10px; flex-shrink: 0;
+    }
+
+    .panel-num.done { background: var(--success); }
+    .panel-num.inactive { background: var(--text-muted); }
+
+    .panel-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; }
+
+    .panel-edit { font-size: 13px; font-weight: 600; color: var(--primary); background: none; border: none; cursor: pointer; }
+
+    .panel-body { padding: 20px; }
+    .panel-body.hidden { display: none; }
+
+    /* ─── FORM ─── */
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .form-row.full { grid-template-columns: 1fr; }
+    .form-row.three { grid-template-columns: 1fr 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+
+    .form-label {
+      font-size: 12px; font-weight: 600;
+      color: var(--text-sec);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .form-label .req { color: var(--danger); margin-left: 2px; }
+
+    .form-input {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      color: var(--text);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: var(--surface);
+    }
+
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(40,116,240,0.1); }
+    .form-input.error { border-color: var(--danger); }
+    .form-input::placeholder { color: var(--text-muted); }
+
+    select.form-input { cursor: pointer; }
+
+    .form-error { font-size: 11px; color: var(--danger); margin-top: 2px; display: none; }
+    .form-error.show { display: block; }
+
+    /* Saved addresses */
+    .saved-addresses { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+    .address-card {
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+
+    .address-card.selected { border-color: var(--primary); background: #f0f4ff; }
+    .address-card:hover { border-color: var(--primary); }
+
+    .address-card input[type="radio"] { accent-color: var(--primary); margin-top: 3px; flex-shrink: 0; }
+
+    .address-info { flex: 1; }
+    .address-name { font-size: 13px; font-weight: 700; margin-bottom: 2px; }
+    .address-tag { display: inline-block; font-size: 10px; font-weight: 700; background: var(--bg); border: 1px solid var(--border); padding: 1px 7px; border-radius: 3px; margin-left: 6px; color: var(--text-muted); letter-spacing: 0.05em; }
+    .address-line { font-size: 12px; color: var(--text-sec); line-height: 1.6; }
+    .address-phone { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    .add-new-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 16px;
+      border: 2px dashed var(--border);
+      border-radius: 6px;
+      background: none;
+      color: var(--primary);
+      font-size: 13px; font-weight: 600;
+      width: 100%; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .add-new-btn:hover { border-color: var(--primary); background: #f0f4ff; }
+
+    .new-address-form { display: none; margin-top: 16px; }
+    .new-address-form.show { display: block; }
+
+    /* ─── PAYMENT ─── */
+    .payment-methods-list { display: flex; flex-direction: column; gap: 1px; }
+
+    .payment-method {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+      transition: border-color 0.15s;
+    }
+
+    .payment-method.selected { border-color: var(--primary); }
+
+    .payment-method-header {
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      cursor: pointer; background: var(--surface);
+      transition: background 0.15s;
+    }
+
+    .payment-method-header:hover { background: #fafbff; }
+    .payment-method.selected .payment-method-header { background: #f0f4ff; }
+
+    .payment-method-header input[type="radio"] { accent-color: var(--primary); flex-shrink: 0; }
+
+    .payment-icon { font-size: 20px; }
+    .payment-label { font-size: 14px; font-weight: 600; flex: 1; }
+    .payment-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+    .payment-badge { font-size: 10px; font-weight: 700; background: #e8f5e9; color: var(--success); padding: 2px 7px; border-radius: 3px; }
+
+    .payment-detail { display: none; padding: 16px; border-top: 1px solid var(--border); background: #fafbff; }
+    .payment-method.selected .payment-detail { display: block; }
+
+    /* UPI input */
+    .upi-row { display: flex; gap: 8px; }
+    .upi-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; outline: none; }
+    .upi-row input:focus { border-color: var(--primary); }
+    .btn-verify { padding: 10px 16px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-size: 13px; font-weight: 600; }
+
+    /* Card input */
+    .card-form { display: flex; flex-direction: column; gap: 12px; }
+    .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    /* Net banking */
+    .bank-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .bank-btn { padding: 10px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); font-size: 12px; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.15s; }
+    .bank-btn:hover { border-color: var(--primary); color: var(--primary); background: #f0f4ff; }
+    .bank-btn.active { border-color: var(--primary); color: var(--primary); background: #f0f4ff; font-weight: 700; }
+
+    /* COD */
+    .cod-note { font-size: 13px; color: var(--text-sec); line-height: 1.6; padding: 4px 0; }
+    .cod-fee { font-size: 12px; color: var(--accent); font-weight: 600; margin-top: 6px; }
+
+    /* ─── ORDER SUMMARY (right panel) ─── */
+    .order-summary { background: var(--surface); border-radius: 4px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); position: sticky; top: 72px; }
+    .summary-header { background: var(--bg); padding: 14px 20px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .summary-edit { font-size: 12px; font-weight: 600; color: var(--primary); background: none; border: none; cursor: pointer; text-transform: none; letter-spacing: 0; }
+    .summary-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 10px; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 13px; }
+    .summary-row .label { color: var(--text-sec); }
+    .summary-row .value { font-weight: 500; }
+    .summary-row .value.green { color: var(--success); }
+    .summary-divider { border: none; border-top: 1px dashed var(--border); margin: 4px 0; }
+    .summary-total { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; }
+
+    /* Cart items in summary */
+    .summary-items { padding: 0 20px 16px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--border); }
+    .summary-item { display: flex; gap: 10px; align-items: center; }
+    .summary-item-img { width: 44px; height: 44px; background: var(--bg); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .summary-item-name { font-size: 12px; color: var(--text); line-height: 1.4; flex: 1; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .summary-item-price { font-size: 13px; font-weight: 700; white-space: nowrap; }
+
+    /* Place order button */
+    .btn-place-order { width: 100%; padding: 14px; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 700; transition: background 0.2s, transform 0.1s; }
+    .btn-place-order:hover { background: #e65100; transform: translateY(-1px); }
+    .btn-place-order:active { transform: none; }
+
+    .order-note { font-size: 11px; color: var(--text-muted); text-align: center; padding: 10px 20px; line-height: 1.6; }
+
+    /* ─── TOAST ─── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #323232; color: #fff; padding: 12px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 9999; transition: transform 0.3s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 860px) {
+      .checkout-layout { grid-template-columns: 1fr; }
+      .order-summary { position: static; }
+      .form-row { grid-template-columns: 1fr; }
+      .form-row.three { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <a href="../ecommerce/index.html" class="nav-logo">
+      <span class="brand">Bazar<span>io</span></span>
+      <span class="tagline">India's Everything Store</span>
+    </a>
+    <div class="nav-secure">🔒 Secure Checkout</div>
+  </nav>
+
+  <!-- ─── CHECKOUT STEPS ─── -->
+  <div class="checkout-steps">
+    <div class="steps-inner">
+      <div class="step done">
+        <div class="step-num">✓</div>
+        <span>Cart</span>
+      </div>
+      <div class="step-line done"></div>
+      <div class="step active">
+        <div class="step-num">2</div>
+        <span>Address</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <span>Payment</span>
+      </div>
+      <div class="step-line"></div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <span>Summary</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MAIN ─── -->
+  <main>
+    <div class="container">
+      <div class="checkout-layout">
+
+        <!-- LEFT: STEPS -->
+        <div class="checkout-left">
+
+          <!-- ── STEP 1: LOGIN ── -->
+          <div class="panel">
+            <div class="panel-header" style="background:var(--bg)">
+              <div class="panel-title">
+                <div class="panel-num done">✓</div>
+                Login / Account
+              </div>
+              <button class="panel-edit" onclick="showToast('Already logged in')">CHANGE</button>
+            </div>
+            <div class="panel-body" style="padding:12px 20px; background:#f8fffe; border-top: 1px solid var(--border);">
+              <div style="font-size:13px; color:var(--text-sec);">
+                Logged in as &nbsp;<strong style="color:var(--text);" id="loggedInUser">Guest User</strong>
+                &nbsp;·&nbsp; <span style="color:var(--primary); cursor:pointer;" onclick="showToast('Change account')">Not you?</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── STEP 2: DELIVERY ADDRESS ── -->
+          <div class="panel" id="addressPanel">
+            <div class="panel-header">
+              <div class="panel-title">
+                <div class="panel-num" id="addressNum">2</div>
+                Delivery Address
+              </div>
+            </div>
+            <div class="panel-body" id="addressBody">
+
+              <!-- Saved addresses -->
+              <div class="saved-addresses">
+
+                <label class="address-card selected" onclick="selectAddress(this)">
+                  <input type="radio" name="address" checked />
+                  <div class="address-info">
+                    <div class="address-name">Rahul Sharma <span class="address-tag">HOME</span></div>
+                    <div class="address-line">42, Sector 14, Gurugram, Haryana — 122001</div>
+                    <div class="address-phone">📞 +91 98765 43210</div>
+                  </div>
+                </label>
+
+                <label class="address-card" onclick="selectAddress(this)">
+                  <input type="radio" name="address" />
+                  <div class="address-info">
+                    <div class="address-name">Rahul Sharma <span class="address-tag">OFFICE</span></div>
+                    <div class="address-line">Tower B, DLF Cyber City, Phase 2, Gurugram, Haryana — 122002</div>
+                    <div class="address-phone">📞 +91 98765 43210</div>
+                  </div>
+                </label>
+
+              </div>
+
+              <button class="add-new-btn" onclick="toggleNewAddressForm()">
+                + Add a new address
+              </button>
+
+              <!-- New address form (hidden by default) -->
+              <div class="new-address-form" id="newAddressForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Full Name <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="fullName" placeholder="Rahul Sharma" />
+                    <span class="form-error" id="fullNameError">Please enter your name</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Mobile Number <span class="req">*</span></label>
+                    <input type="tel" class="form-input" id="mobile" placeholder="+91 98765 43210" maxlength="13" />
+                    <span class="form-error" id="mobileError">Please enter a valid mobile number</span>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Pincode <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="pincode" placeholder="110001" maxlength="6" oninput="autoFillCity()" />
+                    <span class="form-error" id="pincodeError">Please enter a valid 6-digit pincode</span>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">State <span class="req">*</span></label>
+                    <select class="form-input" id="state">
+                      <option value="">Select State</option>
+                      <option>Andhra Pradesh</option><option>Assam</option>
+                      <option>Bihar</option><option>Delhi</option>
+                      <option selected>Haryana</option><option>Karnataka</option>
+                      <option>Kerala</option><option>Madhya Pradesh</option>
+                      <option>Maharashtra</option><option>Punjab</option>
+                      <option>Rajasthan</option><option>Tamil Nadu</option>
+                      <option>Telangana</option><option>Uttar Pradesh</option>
+                      <option>West Bengal</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row full">
+                  <div class="form-group">
+                    <label class="form-label">Flat, House No., Building, Street <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="address1" placeholder="Flat 4B, Sunshine Apartments, MG Road" />
+                    <span class="form-error" id="address1Error">Please enter your address</span>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Area / Locality <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="locality" placeholder="Sector 14, Gurugram" />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">City / District <span class="req">*</span></label>
+                    <input type="text" class="form-input" id="city" placeholder="Gurugram" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Address Type</label>
+                    <div style="display:flex; gap:12px; margin-top:4px">
+                      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                        <input type="radio" name="addrType" value="Home" checked style="accent-color:var(--primary)"> Home
+                      </label>
+                      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                        <input type="radio" name="addrType" value="Office" style="accent-color:var(--primary)"> Office
+                      </label>
+                      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+                        <input type="radio" name="addrType" value="Other" style="accent-color:var(--primary)"> Other
+                      </label>
+                    </div>
+                  </div>
+                </div>
+                <div style="margin-top:8px">
+                  <button style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:600;margin-right:10px;" onclick="saveNewAddress()">Save Address</button>
+                  <button style="padding:10px 18px;background:none;color:var(--text-sec);border:1px solid var(--border);border-radius:4px;font-size:14px;" onclick="toggleNewAddressForm()">Cancel</button>
+                </div>
+              </div>
+
+              <div style="margin-top:20px">
+                <button style="padding:11px 28px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:700;" onclick="confirmAddress()">
+                  Deliver to this Address
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── STEP 3: PAYMENT ── -->
+          <div class="panel" id="paymentPanel">
+            <div class="panel-header inactive" id="paymentHeader">
+              <div class="panel-title">
+                <div class="panel-num inactive" id="paymentNum">3</div>
+                Payment Options
+              </div>
+            </div>
+            <div class="panel-body hidden" id="paymentBody">
+
+              <div class="payment-methods-list">
+
+                <!-- UPI -->
+                <div class="payment-method selected" id="pm-upi" onclick="selectPayment('upi')">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment" checked />
+                    <span class="payment-icon">📱</span>
+                    <div>
+                      <div class="payment-label">UPI</div>
+                      <div class="payment-sub">PhonePe, GPay, Paytm, BHIM & more</div>
+                    </div>
+                    <span class="payment-badge">Instant</span>
+                  </div>
+                  <div class="payment-detail">
+                    <div style="margin-bottom:12px;font-size:13px;color:var(--text-sec);">Enter your UPI ID</div>
+                    <div class="upi-row">
+                      <input type="text" placeholder="yourname@upi" id="upiId" />
+                      <button class="btn-verify" onclick="verifyUPI()">Verify</button>
+                    </div>
+                    <div style="margin-top:12px;font-size:12px;color:var(--text-muted);">
+                      Or pay using UPI apps: &nbsp;
+                      <span style="cursor:pointer;color:var(--primary);" onclick="selectUPIApp('PhonePe')">📲 PhonePe</span> &nbsp;
+                      <span style="cursor:pointer;color:var(--primary);" onclick="selectUPIApp('GPay')">📲 GPay</span> &nbsp;
+                      <span style="cursor:pointer;color:var(--primary);" onclick="selectUPIApp('Paytm')">📲 Paytm</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Credit / Debit Card -->
+                <div class="payment-method" id="pm-card" onclick="selectPayment('card')">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment" />
+                    <span class="payment-icon">💳</span>
+                    <div>
+                      <div class="payment-label">Credit / Debit Card</div>
+                      <div class="payment-sub">Visa, Mastercard, RuPay, Amex</div>
+                    </div>
+                  </div>
+                  <div class="payment-detail">
+                    <div class="card-form">
+                      <div class="form-group">
+                        <label class="form-label">Card Number</label>
+                        <input type="text" class="form-input" placeholder="1234  5678  9012  3456" maxlength="19" id="cardNumber" oninput="formatCardNumber(this)" />
+                      </div>
+                      <div class="card-row">
+                        <div class="form-group">
+                          <label class="form-label">Expiry Date</label>
+                          <input type="text" class="form-input" placeholder="MM / YY" maxlength="7" id="cardExpiry" oninput="formatExpiry(this)" />
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">CVV</label>
+                          <input type="password" class="form-input" placeholder="•••" maxlength="4" />
+                        </div>
+                      </div>
+                      <div class="form-group">
+                        <label class="form-label">Name on Card</label>
+                        <input type="text" class="form-input" placeholder="RAHUL SHARMA" style="text-transform:uppercase" />
+                      </div>
+                      <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-sec);cursor:pointer">
+                        <input type="checkbox" checked style="accent-color:var(--primary)"> Save card securely for future payments
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Net Banking -->
+                <div class="payment-method" id="pm-netbanking" onclick="selectPayment('netbanking')">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment" />
+                    <span class="payment-icon">🏦</span>
+                    <div>
+                      <div class="payment-label">Net Banking</div>
+                      <div class="payment-sub">All Indian banks supported</div>
+                    </div>
+                  </div>
+                  <div class="payment-detail">
+                    <div style="margin-bottom:12px;font-size:13px;color:var(--text-sec);">Select your bank</div>
+                    <div class="bank-grid">
+                      <button class="bank-btn" onclick="selectBank(this, 'HDFC')">HDFC</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'SBI')">SBI</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'ICICI')">ICICI</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'Axis')">Axis</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'Kotak')">Kotak</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'Yes Bank')">Yes</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'PNB')">PNB</button>
+                      <button class="bank-btn" onclick="selectBank(this, 'BOB')">BOB</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- EMI -->
+                <div class="payment-method" id="pm-emi" onclick="selectPayment('emi')">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment" />
+                    <span class="payment-icon">🏛️</span>
+                    <div>
+                      <div class="payment-label">EMI</div>
+                      <div class="payment-sub">No cost EMI available on select cards</div>
+                    </div>
+                    <span class="payment-badge">No Cost</span>
+                  </div>
+                  <div class="payment-detail">
+                    <div style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Choose EMI tenure</div>
+                    <div id="emiOptions" style="display:flex;flex-direction:column;gap:8px"></div>
+                  </div>
+                </div>
+
+                <!-- Cash on Delivery -->
+                <div class="payment-method" id="pm-cod" onclick="selectPayment('cod')">
+                  <div class="payment-method-header">
+                    <input type="radio" name="payment" />
+                    <span class="payment-icon">💰</span>
+                    <div>
+                      <div class="payment-label">Cash on Delivery</div>
+                      <div class="payment-sub">Pay when your order arrives</div>
+                    </div>
+                  </div>
+                  <div class="payment-detail">
+                    <div class="cod-note">Pay with cash when your order is delivered at your doorstep. No online transaction needed.</div>
+                    <div class="cod-fee">⚠️ ₹40 COD handling charge applies to this order</div>
+                  </div>
+                </div>
+
+              </div>
+
+              <div style="margin-top:20px">
+                <button style="padding:12px 28px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:700;" onclick="confirmPayment()">
+                  Continue to Review Order
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- ── STEP 4: REVIEW & PLACE ORDER ── -->
+          <div class="panel" id="reviewPanel">
+            <div class="panel-header inactive" id="reviewHeader">
+              <div class="panel-title">
+                <div class="panel-num inactive" id="reviewNum">4</div>
+                Review & Place Order
+              </div>
+            </div>
+            <div class="panel-body hidden" id="reviewBody">
+              <div style="font-size:14px;color:var(--text-sec);margin-bottom:20px;line-height:1.7">
+                Review your order details, delivery address, and payment method before placing your order.
+              </div>
+
+              <!-- Review summary -->
+              <div style="background:var(--bg);border-radius:6px;padding:16px;margin-bottom:16px;font-size:13px;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:var(--text-muted)">Delivering to</span>
+                  <span id="reviewAddress" style="font-weight:600;text-align:right;max-width:60%">42, Sector 14, Gurugram</span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:var(--text-muted)">Payment via</span>
+                  <span id="reviewPayment" style="font-weight:600">UPI</span>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:var(--text-muted)">Order total</span>
+                  <span id="reviewTotal" style="font-weight:700;color:var(--text);font-size:15px">₹0</span>
+                </div>
+              </div>
+
+              <button class="btn-place-order" onclick="handlePlaceOrder()" id="placeOrderBtn">
+                🛒 &nbsp; Place Order & Pay
+              </button>
+              <div style="font-size:11px;color:var(--text-muted);margin-top:10px;text-align:center">
+                By placing your order, you agree to Bazario's <a href="#" style="color:var(--primary)">Terms of Use</a> & <a href="#" style="color:var(--primary)">Privacy Policy</a>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /checkout-left -->
+
+        <!-- RIGHT: ORDER SUMMARY -->
+        <div>
+          <div class="order-summary">
+            <div class="summary-header">
+              Order Summary
+              <button class="summary-edit" onclick="window.location.href='cart.html'">← Edit Cart</button>
+            </div>
+
+            <!-- Cart items -->
+            <div class="summary-items" id="summaryItems"></div>
+
+            <!-- Price breakdown -->
+            <div class="summary-body">
+              <div class="summary-row">
+                <span class="label">Price (<span id="summaryItemCount">0</span> items)</span>
+                <span class="value" id="summaryMRP">₹0</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Discount</span>
+                <span class="value green" id="summaryDiscount">−₹0</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Delivery</span>
+                <span class="value green" id="summaryDelivery">FREE</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Packaging fee</span>
+                <span class="value">₹49</span>
+              </div>
+              <hr class="summary-divider" />
+              <div class="summary-total">
+                <span>Total</span>
+                <span id="summaryTotal">₹0</span>
+              </div>
+            </div>
+
+            <div style="padding:0 20px 20px">
+              <div style="background:#e8f5e9;border-radius:4px;padding:10px 14px;font-size:12px;color:var(--success);font-weight:600;text-align:center;" id="summarySavings">
+                You will save ₹0 on this order
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ─── STATE ───
+    const cartItems     = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    let selectedPayment = 'upi';
+    let selectedBank    = '';
+    let selectedAddress = '42, Sector 14, Gurugram, Haryana — 122001';
+    let addressConfirmed  = false;
+
+    // ─── INIT ───
+    function init() {
+      renderSummary();
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Checkout Page Viewed"
+      // Fires when the user lands on the checkout page.
+      //
+      // clevertap.event.push("Checkout Page Viewed", {
+      //   item_count:   cartItems.reduce((s, i) => s + i.qty, 0),
+      //   cart_value:   getCartTotal(),
+      //   step:         "address"
+      // });
+      // ─────────────────────────────────────────────────────────────
+    }
+
+    // ─── RENDER ORDER SUMMARY ───
+    function renderSummary() {
+      const itemsEl = document.getElementById('summaryItems');
+      itemsEl.innerHTML = cartItems.map(item => `
+        <div class="summary-item">
+          <div class="summary-item-img">${item.emoji || '📦'}</div>
+          <div class="summary-item-name">${item.name} ${item.variant ? `<span style="color:var(--text-muted)">(${item.variant})</span>` : ''} × ${item.qty}</div>
+          <div class="summary-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+        </div>
+      `).join('') || '<div style="font-size:13px;color:var(--text-muted);padding:4px 0">Cart is empty</div>';
+
+      const totalItems = cartItems.reduce((s, i) => s + i.qty, 0);
+      const mrp        = cartItems.reduce((s, i) => s + ((i.originalPrice || i.price) * i.qty), 0);
+      const total      = getCartTotal();
+      const discount   = mrp - total;
+      const grand      = total + 49;
+
+      document.getElementById('summaryItemCount').textContent = totalItems;
+      document.getElementById('summaryMRP').textContent       = `₹${mrp.toLocaleString('en-IN')}`;
+      document.getElementById('summaryDiscount').textContent  = `−₹${discount.toLocaleString('en-IN')}`;
+      document.getElementById('summaryTotal').textContent     = `₹${grand.toLocaleString('en-IN')}`;
+      document.getElementById('summarySavings').textContent   = `You will save ₹${discount.toLocaleString('en-IN')} on this order`;
+      document.getElementById('reviewTotal').textContent      = `₹${grand.toLocaleString('en-IN')}`;
+
+      if (total >= 499) {
+        document.getElementById('summaryDelivery').textContent = 'FREE';
+      } else {
+        document.getElementById('summaryDelivery').textContent = '₹40';
+        document.getElementById('summaryDelivery').style.color = 'var(--text)';
+      }
+
+      // EMI options
+      const emiMonths = [3, 6, 9, 12];
+      document.getElementById('emiOptions').innerHTML = emiMonths.map(m => {
+        const emi = Math.round(grand / m);
+        return `
+          <label style="display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:4px;cursor:pointer;font-size:13px">
+            <input type="radio" name="emi" style="accent-color:var(--primary)" ${m === 3 ? 'checked' : ''}>
+            <span><strong>${m} months</strong> × ₹${emi.toLocaleString('en-IN')}/mo</span>
+            ${m <= 6 ? '<span style="font-size:10px;background:#e8f5e9;color:var(--success);padding:2px 6px;border-radius:3px;font-weight:700">No Cost</span>' : ''}
+          </label>
+        `;
+      }).join('');
+    }
+
+    function getCartTotal() {
+      return cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
+    }
+
+    // ─── ADDRESS ───
+    function selectAddress(card) {
+      document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
+      card.classList.add('selected');
+      selectedAddress = card.querySelector('.address-line')?.textContent || selectedAddress;
+    }
+
+    function toggleNewAddressForm() {
+      const form = document.getElementById('newAddressForm');
+      form.classList.toggle('show');
+    }
+
+    function autoFillCity() {
+      const pin = document.getElementById('pincode').value;
+      if (pin.length === 6) {
+        // Simulate pincode lookup
+        const cityMap = { '11': 'New Delhi', '12': 'Gurugram', '40': 'Mumbai', '56': 'Bengaluru', '60': 'Chennai' };
+        const prefix  = pin.substring(0, 2);
+        if (cityMap[prefix]) document.getElementById('city').value = cityMap[prefix];
+      }
+    }
+
+    function saveNewAddress() {
+      const name = document.getElementById('fullName').value.trim();
+      const mob  = document.getElementById('mobile').value.trim();
+      const pin  = document.getElementById('pincode').value.trim();
+      const addr = document.getElementById('address1').value.trim();
+
+      let valid = true;
+      if (!name) { showError('fullNameError'); valid = false; } else { hideError('fullNameError'); }
+      if (!mob || mob.length < 10) { showError('mobileError'); valid = false; } else { hideError('mobileError'); }
+      if (!pin || pin.length !== 6) { showError('pincodeError'); valid = false; } else { hideError('pincodeError'); }
+      if (!addr) { showError('address1Error'); valid = false; } else { hideError('address1Error'); }
+
+      if (!valid) return;
+
+      showToast('New address saved!');
+      toggleNewAddressForm();
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap User Property update — "Address Added"
+      // When a user saves a new address, update their profile.
+      //
+      // clevertap.onUserLogin.push({
+      //   "Site": {
+      //     "City":    document.getElementById('city').value || '',
+      //     "State":   document.getElementById('state').value || ''
+      //   }
+      // });
+      // ─────────────────────────────────────────────────────────────
+    }
+
+    function confirmAddress() {
+      addressConfirmed  = true;
+      selectedAddress   = document.querySelector('.address-card.selected .address-line')?.textContent || selectedAddress;
+      document.getElementById('reviewAddress').textContent = selectedAddress;
+
+      // Activate payment step
+      document.getElementById('paymentHeader').classList.remove('inactive');
+      document.getElementById('paymentNum').classList.remove('inactive');
+      document.getElementById('paymentBody').classList.remove('hidden');
+      document.getElementById('addressBody').classList.add('hidden');
+      document.getElementById('addressNum').classList.add('done');
+      document.getElementById('addressNum').textContent = '✓';
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Address Selected"
+      //
+      // clevertap.event.push("Address Selected", {
+      //   address_type: document.querySelector('input[name="addrType"]:checked')?.value || 'Home',
+      //   city:         document.getElementById('city')?.value || 'Gurugram',
+      //   state:        document.getElementById('state')?.value || 'Haryana',
+      //   is_new:       document.getElementById('newAddressForm').classList.contains('show'),
+      //   cart_value:   getCartTotal()
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      showToast('Address confirmed ✓');
+      document.getElementById('paymentPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ─── PAYMENT ───
+    function selectPayment(method) {
+      selectedPayment = method;
+      document.querySelectorAll('.payment-method').forEach(m => m.classList.remove('selected'));
+      document.querySelectorAll('.payment-method input[type="radio"]').forEach(r => r.checked = false);
+      const el = document.getElementById(`pm-${method}`);
+      if (el) {
+        el.classList.add('selected');
+        el.querySelector('input[type="radio"]').checked = true;
+      }
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Payment Method Selected"
+      //
+      // clevertap.event.push("Payment Method Selected", {
+      //   payment_method: method,
+      //   cart_value:     getCartTotal()
+      // });
+      // ─────────────────────────────────────────────────────────────
+    }
+
+    function verifyUPI() {
+      const id = document.getElementById('upiId').value.trim();
+      if (!id.includes('@')) { showToast('Please enter a valid UPI ID (e.g. name@upi)'); return; }
+      showToast(`UPI ID verified: ${id}`);
+    }
+
+    function selectUPIApp(app) {
+      showToast(`Opening ${app}...`);
+    }
+
+    function selectBank(btn, bank) {
+      document.querySelectorAll('.bank-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedBank = bank;
+    }
+
+    function confirmPayment() {
+      const label = {
+        upi: 'UPI',
+        card: 'Credit/Debit Card',
+        netbanking: selectedBank ? `Net Banking (${selectedBank})` : 'Net Banking',
+        emi: 'EMI',
+        cod: 'Cash on Delivery'
+      }[selectedPayment] || 'UPI';
+
+      document.getElementById('reviewPayment').textContent = label;
+
+      // Activate review step
+      document.getElementById('reviewHeader').classList.remove('inactive');
+      document.getElementById('reviewNum').classList.remove('inactive');
+      document.getElementById('reviewBody').classList.remove('hidden');
+      document.getElementById('paymentBody').classList.add('hidden');
+      document.getElementById('paymentNum').classList.add('done');
+      document.getElementById('paymentNum').textContent = '✓';
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Payment Step Completed"
+      //
+      // clevertap.event.push("Payment Step Completed", {
+      //   payment_method: selectedPayment,
+      //   cart_value:     getCartTotal()
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      showToast('Payment method confirmed ✓');
+      document.getElementById('reviewPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // ─── PLACE ORDER ───
+    function handlePlaceOrder() {
+      if (cartItems.length === 0) {
+        showToast('Your cart is empty');
+        return;
+      }
+
+      const orderId    = 'BZ-' + Date.now().toString().slice(-8);
+      const grandTotal = getCartTotal() + 49;
+
+      // Save order details for confirmation page
+      const orderData = {
+        orderId,
+        items:          cartItems,
+        total:          grandTotal,
+        paymentMethod:  selectedPayment,
+        address:        selectedAddress,
+        placedAt:       new Date().toISOString()
+      };
+      localStorage.setItem('bazario_last_order', JSON.stringify(orderData));
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap reserved event — "Charged"
+      // This is CleverTap's purchase event. It is the ONLY event that
+      // supports an Items array for line items. All other properties
+      // must be scalars. Note the Title Case property names — these
+      // are CleverTap reserved property names for the Charged event.
+      //
+      // clevertap.event.push("Charged", {
+      //   "Amount":         grandTotal,
+      //   "Payment mode":   selectedPayment,
+      //   "Order ID":       orderId,
+      //   "Items": cartItems.map(i => ({
+      //     "Product name": i.name,
+      //     "Category":     i.category,
+      //     "Brand":        i.brand,
+      //     "Price":        i.price,
+      //     "Quantity":     i.qty
+      //   }))
+      // });
+      //
+      // Additionally update user properties on purchase:
+      // clevertap.profile.push({
+      //   "Site": {
+      //     "Total Orders":    1,   // increment server-side ideally
+      //     "Last Order Date": new Date().toISOString(),
+      //     "Last Order Value": grandTotal
+      //   }
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      // Clear cart
+      localStorage.removeItem('bazario_cart');
+
+      // Navigate to confirmation
+      window.location.href = `confirmation.html?order=${orderId}&total=${grandTotal}&payment=${selectedPayment}`;
+    }
+
+    // ─── CARD FORMATTING ───
+    function formatCardNumber(input) {
+      let v = input.value.replace(/\D/g, '').substring(0, 16);
+      input.value = v.replace(/(.{4})/g, '$1  ').trim();
+    }
+
+    function formatExpiry(input) {
+      let v = input.value.replace(/\D/g, '').substring(0, 4);
+      if (v.length >= 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+      input.value = v;
+    }
+
+    // ─── FORM HELPERS ───
+    function showError(id) { document.getElementById(id).classList.add('show'); }
+    function hideError(id) { document.getElementById(id).classList.remove('show'); }
+
+    // ─── TOAST ───
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    init();
+  </script>
+</body>
+</html>
