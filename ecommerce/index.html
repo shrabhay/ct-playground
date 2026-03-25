@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazario — India's Everything Store</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:       #2874f0;
+      --primary-dark:  #1a5dc8;
+      --accent:        #ff6f00;
+      --accent-light:  #fff3e0;
+      --bg:            #f1f3f6;
+      --surface:       #ffffff;
+      --text:          #212121;
+      --text-sec:      #666666;
+      --text-muted:    #999999;
+      --border:        #e0e0e0;
+      --success:       #388e3c;
+      --tag-bg:        #e8f5e9;
+      --nav-h:         56px;
+      --subnav-h:      44px;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── TOP NAVBAR ─── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--primary);
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .nav-logo {
+      display: flex;
+      flex-direction: column;
+      min-width: 120px;
+    }
+
+    .nav-logo .brand {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .nav-logo .brand span { color: #ffe082; }
+
+    .nav-logo .tagline {
+      font-size: 10px;
+      color: rgba(255,255,255,0.75);
+      font-style: italic;
+      margin-top: 2px;
+    }
+
+    .nav-search {
+      flex: 1;
+      display: flex;
+      max-width: 600px;
+    }
+
+    .nav-search input {
+      flex: 1;
+      height: 36px;
+      padding: 0 14px;
+      border: none;
+      border-radius: 4px 0 0 4px;
+      font-size: 14px;
+      outline: none;
+      color: var(--text);
+    }
+
+    .nav-search button {
+      width: 44px;
+      height: 36px;
+      background: var(--accent);
+      border: none;
+      border-radius: 0 4px 4px 0;
+      color: #fff;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .nav-search button:hover { background: #e65100; }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: auto;
+    }
+
+    .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 14px;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 12px;
+      transition: background 0.15s;
+      white-space: nowrap;
+      cursor: pointer;
+      background: none;
+      border: none;
+      gap: 2px;
+    }
+
+    .nav-btn .label { font-size: 11px; color: rgba(255,255,255,0.8); }
+    .nav-btn .value { font-size: 13px; font-weight: 600; }
+    .nav-btn:hover { background: rgba(255,255,255,0.15); }
+
+    .nav-btn-login {
+      background: #fff;
+      color: var(--primary);
+      font-weight: 600;
+      font-size: 13px;
+      border-radius: 4px;
+      padding: 7px 20px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .nav-btn-login:hover { background: #f0f4ff; }
+
+    .cart-count {
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 50%;
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-left: 2px;
+      vertical-align: middle;
+    }
+
+    /* ─── SUBNAV ─── */
+    .subnav {
+      background: var(--primary-dark);
+      height: var(--subnav-h);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .subnav::-webkit-scrollbar { display: none; }
+
+    .subnav-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 16px;
+      height: 100%;
+      color: rgba(255,255,255,0.9);
+      font-size: 13px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: color 0.15s;
+      border-bottom: 3px solid transparent;
+    }
+
+    .subnav-item:hover { color: #fff; border-bottom-color: #ffe082; }
+    .subnav-item .icon { font-size: 16px; }
+
+    /* ─── MAIN LAYOUT ─── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ─── HERO BANNER ─── */
+    .hero {
+      margin: 12px 0;
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, #1a237e 0%, #283593 40%, #1565c0 100%);
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+    }
+
+    .hero-content {
+      padding: 40px 48px;
+      color: #fff;
+      max-width: 460px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      background: var(--accent);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 3px;
+      margin-bottom: 16px;
+    }
+
+    .hero h1 {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.2;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .hero h1 span { color: #ffe082; }
+
+    .hero p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.8);
+      margin-bottom: 24px;
+      line-height: 1.6;
+    }
+
+    .hero-cta {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 4px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .hero-cta:hover { background: #e65100; transform: translateY(-1px); }
+
+    .hero-graphic {
+      position: absolute;
+      right: 0; top: 0; bottom: 0;
+      width: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .hero-circles {
+      position: relative;
+      width: 320px;
+      height: 320px;
+    }
+
+    .hero-circles .ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+
+    .hero-circles .ring-1 { inset: 0; }
+    .hero-circles .ring-2 { inset: 30px; border-color: rgba(255,224,130,0.15); }
+    .hero-circles .ring-3 { inset: 60px; border-color: rgba(255,255,255,0.08); }
+
+    .hero-product-cards {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .hero-pcard {
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 12px;
+      padding: 14px;
+      text-align: center;
+      width: 100px;
+      color: #fff;
+    }
+
+    .hero-pcard .emoji { font-size: 30px; margin-bottom: 6px; }
+    .hero-pcard .pname { font-size: 11px; font-weight: 500; opacity: 0.9; }
+    .hero-pcard .pprice { font-size: 13px; font-weight: 700; color: #ffe082; margin-top: 2px; }
+
+    .hero-pcard:nth-child(2) { transform: translateY(-16px); }
+
+    /* Banner dots */
+    .hero-dots {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 6px;
+    }
+
+    .hero-dots span {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.4);
+      cursor: pointer;
+    }
+
+    .hero-dots span.active { background: #fff; width: 20px; border-radius: 4px; }
+
+    /* ─── CATEGORIES ─── */
+    .section { margin: 12px 0; }
+
+    .section-card {
+      background: var(--surface);
+      border-radius: 4px;
+      padding: 20px 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+
+    .section-title span {
+      color: var(--primary);
+    }
+
+    .categories-grid {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 12px;
+    }
+
+    .cat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 12px 8px;
+      border-radius: 8px;
+      transition: background 0.15s, transform 0.15s;
+    }
+
+    .cat-item:hover { background: #f0f4ff; transform: translateY(-2px); }
+
+    .cat-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      background: var(--bg);
+    }
+
+    .cat-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    /* ─── BANNER ROW ─── */
+    .banner-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin: 12px 0;
+    }
+
+    .mini-banner {
+      border-radius: 4px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 120px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .mini-banner:hover { transform: translateY(-2px); }
+
+    .mini-banner-1 { background: linear-gradient(135deg, #e3f2fd, #bbdefb); }
+    .mini-banner-2 { background: linear-gradient(135deg, #fce4ec, #f8bbd0); }
+    .mini-banner-3 { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); }
+
+    .mini-banner-text .tag {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 4px;
+    }
+
+    .mini-banner-2 .mini-banner-text .tag { color: #c2185b; }
+    .mini-banner-3 .mini-banner-text .tag { color: var(--success); }
+
+    .mini-banner-text h3 {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.2;
+      margin-bottom: 4px;
+    }
+
+    .mini-banner-text p {
+      font-size: 12px;
+      color: var(--text-sec);
+    }
+
+    .mini-banner-emoji { font-size: 48px; opacity: 0.85; }
+
+    /* ─── PRODUCTS ─── */
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .product-card {
+      background: var(--surface);
+      padding: 16px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .product-card:hover {
+      box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+      position: relative;
+      z-index: 1;
+    }
+
+    .product-img {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--bg);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 56px;
+      transition: transform 0.2s;
+    }
+
+    .product-card:hover .product-img { transform: scale(1.05); }
+
+    .product-name {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .product-rating {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .rating-badge {
+      background: var(--success);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 6px;
+      border-radius: 3px;
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .rating-count { font-size: 11px; color: var(--text-muted); }
+
+    .product-price {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .price-current {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .price-original {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .price-discount {
+      font-size: 12px;
+      color: #388e3c;
+      font-weight: 600;
+    }
+
+    .product-badge {
+      display: inline-block;
+      background: var(--accent-light);
+      color: var(--accent);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    /* ─── DEALS TIMER ─── */
+    .deals-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .timer {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-sec);
+    }
+
+    .timer-label { font-weight: 500; }
+
+    .timer-blocks {
+      display: flex;
+      gap: 4px;
+    }
+
+    .timer-block {
+      background: var(--text);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 3px 7px;
+      border-radius: 3px;
+      min-width: 28px;
+      text-align: center;
+    }
+
+    .timer-sep { color: var(--text); font-weight: 700; align-self: center; }
+
+    .view-all-btn {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--primary);
+      background: none;
+      border: 1px solid var(--primary);
+      padding: 6px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .view-all-btn:hover { background: #e8f0fe; }
+
+    /* ─── TRUST STRIP ─── */
+    .trust-strip {
+      background: var(--surface);
+      margin: 12px 0;
+      border-radius: 4px;
+      padding: 20px 24px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .trust-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .trust-icon {
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .trust-text .t-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .trust-text .t-sub {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    /* ─── FOOTER ─── */
+    footer {
+      background: #172337;
+      color: rgba(255,255,255,0.65);
+      margin-top: 24px;
+    }
+
+    .footer-top {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      padding: 40px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-col h4 {
+      font-size: 13px;
+      font-weight: 600;
+      color: rgba(255,255,255,0.5);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-col li {
+      font-size: 13px;
+      cursor: pointer;
+      transition: color 0.15s;
+    }
+
+    .footer-col li:hover { color: #fff; }
+
+    .footer-bottom {
+      padding: 20px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-brand {
+      font-size: 20px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .footer-brand span { color: #ffe082; }
+
+    .footer-copy {
+      font-size: 12px;
+      color: rgba(255,255,255,0.35);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 16px;
+    }
+
+    .footer-links a {
+      font-size: 12px;
+      color: rgba(255,255,255,0.45);
+      transition: color 0.15s;
+    }
+
+    .footer-links a:hover { color: #fff; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #323232;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 9999;
+      transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .categories-grid { grid-template-columns: repeat(4, 1fr); }
+      .products-grid { grid-template-columns: repeat(3, 1fr); }
+      .banner-row { grid-template-columns: 1fr; }
+      .trust-strip { grid-template-columns: repeat(2, 1fr); }
+      .footer-top { grid-template-columns: repeat(2, 1fr); }
+      .hero-graphic { display: none; }
+      .hero h1 { font-size: 24px; }
+    }
+
+    @media (max-width: 600px) {
+      .categories-grid { grid-template-columns: repeat(4, 1fr); }
+      .products-grid { grid-template-columns: repeat(2, 1fr); }
+      .nav-logo .tagline { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <a href="index.html" class="nav-logo">
+      <span class="brand">Bazar<span>io</span></span>
+      <span class="tagline">India's Everything Store</span>
+    </a>
+
+    <div class="nav-search">
+      <input type="text" placeholder="Search for products, brands and more" id="searchInput" />
+      <button onclick="handleSearch()">🔍</button>
+    </div>
+
+    <div class="nav-actions">
+      <button class="nav-btn-login" onclick="handleLogin()">Login / Sign Up</button>
+
+      <button class="nav-btn" onclick="showToast('Opening Wishlist...')">
+        <span class="label">Wishlist</span>
+        <span class="value">♡ Saved</span>
+      </button>
+
+      <button class="nav-btn" onclick="window.location.href='cart.html'">
+        <span class="label">Cart</span>
+        <span class="value">🛒 <span class="cart-count" id="cartCount">0</span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── SUBNAV ─── -->
+  <div class="subnav">
+    <div class="subnav-item" onclick="handleCategoryNav('Electronics')"><span class="icon">📱</span> Electronics</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Fashion')"><span class="icon">👗</span> Fashion</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Grocery')"><span class="icon">🛒</span> Grocery</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Home & Furniture')"><span class="icon">🛋️</span> Home & Furniture</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Appliances')"><span class="icon">🔌</span> Appliances</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Beauty')"><span class="icon">💄</span> Beauty</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Sports')"><span class="icon">⚽</span> Sports</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Toys')"><span class="icon">🎮</span> Toys</div>
+    <div class="subnav-item" onclick="handleCategoryNav('Books')"><span class="icon">📚</span> Books</div>
+    <div class="subnav-item" onclick="showToast('Opening Today\'s Deals...')">🔥 Today\'s Deals</div>
+  </div>
+
+  <!-- ─── MAIN ─── -->
+  <main>
+    <div class="container">
+
+      <!-- HERO BANNER -->
+      <div class="hero section">
+        <div class="hero-content">
+          <span class="hero-tag">🔥 Mega Sale Live Now</span>
+          <h1>Up to <span>80% Off</span><br/>on Everything</h1>
+          <p>Electronics, fashion, groceries & more — delivered to your door in hours.</p>
+          <button class="hero-cta" onclick="handleShopNow()">Shop Now →</button>
+        </div>
+        <div class="hero-graphic">
+          <div class="hero-circles">
+            <div class="ring ring-1"></div>
+            <div class="ring ring-2"></div>
+            <div class="ring ring-3"></div>
+            <div class="hero-product-cards">
+              <div class="hero-pcard">
+                <div class="emoji">📱</div>
+                <div class="pname">Smartphones</div>
+                <div class="pprice">From ₹6,999</div>
+              </div>
+              <div class="hero-pcard">
+                <div class="emoji">👟</div>
+                <div class="pname">Footwear</div>
+                <div class="pprice">From ₹499</div>
+              </div>
+              <div class="hero-pcard">
+                <div class="emoji">🎧</div>
+                <div class="pname">Audio</div>
+                <div class="pprice">From ₹999</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-dots">
+          <span class="active"></span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+
+      <!-- CATEGORIES -->
+      <div class="section section-card">
+        <h2 class="section-title">Shop by <span>Category</span></h2>
+        <div class="categories-grid">
+          <div class="cat-item" onclick="handleCategoryClick('Electronics')">
+            <div class="cat-icon">📱</div>
+            <div class="cat-name">Electronics</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Fashion')">
+            <div class="cat-icon">👗</div>
+            <div class="cat-name">Fashion</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Grocery')">
+            <div class="cat-icon">🛒</div>
+            <div class="cat-name">Grocery</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Home & Furniture')">
+            <div class="cat-icon">🛋️</div>
+            <div class="cat-name">Home & Furniture</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Appliances')">
+            <div class="cat-icon">🔌</div>
+            <div class="cat-name">Appliances</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Beauty')">
+            <div class="cat-icon">💄</div>
+            <div class="cat-name">Beauty</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Sports')">
+            <div class="cat-icon">⚽</div>
+            <div class="cat-name">Sports</div>
+          </div>
+          <div class="cat-item" onclick="handleCategoryClick('Books')">
+            <div class="cat-icon">📚</div>
+            <div class="cat-name">Books</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MINI BANNERS -->
+      <div class="banner-row">
+        <div class="mini-banner mini-banner-1" onclick="handleCategoryClick('Electronics')">
+          <div class="mini-banner-text">
+            <div class="tag">New Launch</div>
+            <h3>Smartphones<br/>Under ₹15,000</h3>
+            <p>Top brands. Best prices.</p>
+          </div>
+          <div class="mini-banner-emoji">📱</div>
+        </div>
+        <div class="mini-banner mini-banner-2" onclick="handleCategoryClick('Fashion')">
+          <div class="mini-banner-text">
+            <div class="tag">End of Season</div>
+            <h3>Fashion Sale<br/>Min 50% Off</h3>
+            <p>Trendy styles for all.</p>
+          </div>
+          <div class="mini-banner-emoji">👗</div>
+        </div>
+        <div class="mini-banner mini-banner-3" onclick="handleCategoryClick('Grocery')">
+          <div class="mini-banner-text">
+            <div class="tag">Daily Essentials</div>
+            <h3>Fresh Grocery<br/>2-Hour Delivery</h3>
+            <p>Farm to doorstep.</p>
+          </div>
+          <div class="mini-banner-emoji">🥦</div>
+        </div>
+      </div>
+
+      <!-- DEALS OF THE DAY -->
+      <div class="section section-card">
+        <div class="deals-header">
+          <h2 class="section-title" style="margin-bottom:0">🔥 Deals of the Day</h2>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div class="timer">
+              <span class="timer-label">Ends in:</span>
+              <div class="timer-blocks">
+                <span class="timer-block" id="timerH">08</span>
+                <span class="timer-sep">:</span>
+                <span class="timer-block" id="timerM">45</span>
+                <span class="timer-sep">:</span>
+                <span class="timer-block" id="timerS">30</span>
+              </div>
+            </div>
+            <button class="view-all-btn" onclick="showToast('Opening all deals...')">View All</button>
+          </div>
+        </div>
+        <br/>
+        <div class="products-grid">
+
+          <div class="product-card" onclick="handleProductClick('boAt Airdopes 141', 'Audio', 1299, 4499)">
+            <div class="product-img">🎧</div>
+            <div class="product-badge">71% off</div>
+            <div class="product-name">boAt Airdopes 141 TWS Earbuds with 42H Playback</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.1 ★</span>
+              <span class="rating-count">(1,24,832)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹1,299</span>
+              <span class="price-original">₹4,499</span>
+              <span class="price-discount">71% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Noise ColorFit Pro 4', 'Wearables', 2499, 6999)">
+            <div class="product-img">⌚</div>
+            <div class="product-badge">64% off</div>
+            <div class="product-name">Noise ColorFit Pro 4 Smartwatch with 1.72" Display</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.3 ★</span>
+              <span class="rating-count">(86,421)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹2,499</span>
+              <span class="price-original">₹6,999</span>
+              <span class="price-discount">64% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Samsung Galaxy M14', 'Electronics', 10999, 14999)">
+            <div class="product-img">📱</div>
+            <div class="product-badge">Bestseller</div>
+            <div class="product-name">Samsung Galaxy M14 5G (4GB RAM, 128GB Storage)</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.2 ★</span>
+              <span class="rating-count">(2,31,104)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹10,999</span>
+              <span class="price-original">₹14,999</span>
+              <span class="price-discount">27% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Prestige Iris 750W Mixer', 'Appliances', 1795, 3495)">
+            <div class="product-img">🍹</div>
+            <div class="product-badge">49% off</div>
+            <div class="product-name">Prestige Iris 750W Mixer Grinder with 3 Jars</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.4 ★</span>
+              <span class="rating-count">(42,219)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹1,795</span>
+              <span class="price-original">₹3,495</span>
+              <span class="price-discount">49% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Nike Air Max 270', 'Footwear', 6995, 11995)">
+            <div class="product-img">👟</div>
+            <div class="product-badge">42% off</div>
+            <div class="product-name">Nike Air Max 270 Running Shoes for Men</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.5 ★</span>
+              <span class="rating-count">(18,743)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹6,995</span>
+              <span class="price-original">₹11,995</span>
+              <span class="price-discount">42% off</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- TRUST STRIP -->
+      <div class="trust-strip">
+        <div class="trust-item">
+          <span class="trust-icon">🚚</span>
+          <div class="trust-text">
+            <div class="t-title">Free Delivery</div>
+            <div class="t-sub">On orders above ₹499</div>
+          </div>
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">↩️</span>
+          <div class="trust-text">
+            <div class="t-title">Easy Returns</div>
+            <div class="t-sub">10-day hassle-free returns</div>
+          </div>
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">🔒</span>
+          <div class="trust-text">
+            <div class="t-title">Secure Payments</div>
+            <div class="t-sub">100% safe & encrypted</div>
+          </div>
+        </div>
+        <div class="trust-item">
+          <span class="trust-icon">🎧</span>
+          <div class="trust-text">
+            <div class="t-title">24/7 Support</div>
+            <div class="t-sub">We're here to help anytime</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MORE PRODUCTS -->
+      <div class="section section-card">
+        <h2 class="section-title">🆕 New Arrivals</h2>
+        <div class="products-grid">
+
+          <div class="product-card" onclick="handleProductClick('Levi\'s 511 Slim Jeans', 'Fashion', 2399, 3999)">
+            <div class="product-img">👖</div>
+            <div class="product-name">Levi's 511 Slim Fit Men's Jeans — Dark Blue</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.3 ★</span>
+              <span class="rating-count">(9,142)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹2,399</span>
+              <span class="price-original">₹3,999</span>
+              <span class="price-discount">40% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Instant Pot Duo 5.7L', 'Appliances', 8999, 13999)">
+            <div class="product-img">🍲</div>
+            <div class="product-name">Instant Pot Duo 5.7L Electric Pressure Cooker</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.6 ★</span>
+              <span class="rating-count">(34,891)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹8,999</span>
+              <span class="price-original">₹13,999</span>
+              <span class="price-discount">36% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Atomberg Renesa 1200mm Fan', 'Appliances', 2849, 4500)">
+            <div class="product-img">💨</div>
+            <div class="product-name">Atomberg Renesa 1200mm BLDC Ceiling Fan with Remote</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.4 ★</span>
+              <span class="rating-count">(22,310)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹2,849</span>
+              <span class="price-original">₹4,500</span>
+              <span class="price-discount">37% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Himalaya Face Wash Kit', 'Beauty', 349, 620)">
+            <div class="product-img">🧴</div>
+            <div class="product-name">Himalaya Purifying Neem Face Wash Combo Pack of 3</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.5 ★</span>
+              <span class="rating-count">(61,003)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹349</span>
+              <span class="price-original">₹620</span>
+              <span class="price-discount">44% off</span>
+            </div>
+          </div>
+
+          <div class="product-card" onclick="handleProductClick('Cosco Champion Cricket Kit', 'Sports', 1899, 3200)">
+            <div class="product-img">🏏</div>
+            <div class="product-name">Cosco Champion Cricket Kit — Full Set with Bag</div>
+            <div class="product-rating">
+              <span class="rating-badge">4.2 ★</span>
+              <span class="rating-count">(4,328)</span>
+            </div>
+            <div class="product-price">
+              <span class="price-current">₹1,899</span>
+              <span class="price-original">₹3,200</span>
+              <span class="price-discount">41% off</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- /container -->
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer>
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-col">
+          <h4>About</h4>
+          <ul>
+            <li>About Bazario</li>
+            <li>Careers</li>
+            <li>Press</li>
+            <li>Corporate Information</li>
+            <li>Sitemap</li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Help</h4>
+          <ul>
+            <li>Payments</li>
+            <li>Shipping</li>
+            <li>Cancellation & Returns</li>
+            <li>FAQ</li>
+            <li>Report Infringement</li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Policy</h4>
+          <ul>
+            <li>Return Policy</li>
+            <li>Terms of Use</li>
+            <li>Security</li>
+            <li>Privacy</li>
+            <li>EPR Compliance</li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Social</h4>
+          <ul>
+            <li>🐦 Twitter / X</li>
+            <li>📘 Facebook</li>
+            <li>📸 Instagram</li>
+            <li>▶️ YouTube</li>
+            <li>💼 LinkedIn</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="footer-brand">Bazar<span>io</span></div>
+        <div class="footer-copy">© 2025 Bazario Internet Pvt. Ltd. All rights reserved.</div>
+        <div class="footer-links">
+          <a href="#">Privacy</a>
+          <a href="#">Terms</a>
+          <a href="#">Grievance</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── TOAST ─── -->
+  <div class="toast" id="toast"></div>
+
+  <!-- ─── JAVASCRIPT ─── -->
+  <script>
+    // ── Cart state ──
+    let cartCount = 0;
+
+    // ── Toast helper ──
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ── Navbar actions ──
+    function handleLogin() {
+      // Later: this will trigger CleverTap onUserLogin
+      showToast('Opening login page...');
+      setTimeout(() => window.location.href = 'account.html', 800);
+    }
+
+    function handleSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+      // Later: CleverTap event — "Product Searched", { query: q }
+      showToast(`Searching for "${q}"...`);
+    }
+
+    // ── Category navigation ──
+    function handleCategoryNav(category) {
+      // Later: CleverTap event — "Category Viewed", { category_name: category }
+      showToast(`Browsing ${category}...`);
+      setTimeout(() => window.location.href = `listing.html?category=${encodeURIComponent(category)}`, 800);
+    }
+
+    function handleCategoryClick(category) {
+      // Later: CleverTap event — "Category Viewed", { category_name: category, source: 'home_grid' }
+      showToast(`Opening ${category}...`);
+      setTimeout(() => window.location.href = `listing.html?category=${encodeURIComponent(category)}`, 800);
+    }
+
+    // ── Hero CTA ──
+    function handleShopNow() {
+      // Later: CleverTap event — "Banner Clicked", { banner_name: 'Mega Sale', position: 'hero' }
+      showToast('Loading deals...');
+      setTimeout(() => window.location.href = 'listing.html', 800);
+    }
+
+    // ── Product click ──
+    function handleProductClick(name, category, price, originalPrice) {
+      // Later: CleverTap event — "Product Viewed", { product_name, category, price, original_price }
+      showToast(`Opening ${name}...`);
+      setTimeout(() => {
+        window.location.href = `product.html?name=${encodeURIComponent(name)}&category=${encodeURIComponent(category)}&price=${price}`;
+      }, 800);
+    }
+
+    // ── Countdown timer ──
+    function startTimer() {
+      let totalSeconds = (8 * 3600) + (45 * 60) + 30;
+      setInterval(() => {
+        if (totalSeconds <= 0) return;
+        totalSeconds--;
+        const h = Math.floor(totalSeconds / 3600);
+        const m = Math.floor((totalSeconds % 3600) / 60);
+        const s = totalSeconds % 60;
+        document.getElementById('timerH').textContent = String(h).padStart(2, '0');
+        document.getElementById('timerM').textContent = String(m).padStart(2, '0');
+        document.getElementById('timerS').textContent = String(s).padStart(2, '0');
+      }, 1000);
+    }
+
+    // ── Search on Enter key ──
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSearch();
+    });
+
+    // ── Init ──
+    startTimer();
+  </script>
+</body>
+</html>
