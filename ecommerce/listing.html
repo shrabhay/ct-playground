@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazario — Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #2874f0;
+      --primary-dark: #1a5dc8;
+      --accent:       #ff6f00;
+      --bg:           #f1f3f6;
+      --surface:      #ffffff;
+      --text:         #212121;
+      --text-sec:     #666666;
+      --text-muted:   #999999;
+      --border:       #e0e0e0;
+      --success:      #388e3c;
+    }
+
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 14px;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── NAVBAR ─── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--primary);
+      height: 56px;
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .nav-logo { display: flex; flex-direction: column; min-width: 120px; text-decoration: none; }
+    .nav-logo .brand { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+    .nav-logo .brand span { color: #ffe082; }
+    .nav-logo .tagline { font-size: 10px; color: rgba(255,255,255,0.75); font-style: italic; margin-top: 2px; }
+    .nav-search { flex: 1; display: flex; max-width: 600px; }
+    .nav-search input {
+      flex: 1; height: 36px; padding: 0 14px;
+      border: none; border-radius: 4px 0 0 4px;
+      font-size: 14px; outline: none; color: var(--text);
+    }
+    .nav-search button {
+      width: 44px; height: 36px;
+      background: var(--accent); border: none;
+      border-radius: 0 4px 4px 0;
+      color: #fff; font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .nav-btn {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 6px 14px; color: #fff; border-radius: 4px;
+      font-size: 12px; white-space: nowrap;
+      cursor: pointer; background: none; border: none; gap: 2px;
+      transition: background 0.15s;
+    }
+    .nav-btn .label { font-size: 11px; color: rgba(255,255,255,0.8); }
+    .nav-btn .value { font-size: 13px; font-weight: 600; }
+    .nav-btn:hover { background: rgba(255,255,255,0.15); }
+    .nav-btn-login {
+      background: #fff; color: var(--primary);
+      font-weight: 600; font-size: 13px;
+      border-radius: 4px; padding: 7px 20px;
+      border: none; cursor: pointer;
+    }
+    .cart-count {
+      background: var(--accent); color: #fff;
+      font-size: 10px; font-weight: 700;
+      border-radius: 50%; width: 16px; height: 16px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-left: 2px;
+    }
+
+    /* ─── BREADCRUMB ─── */
+    .breadcrumb {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .breadcrumb a { color: var(--primary); }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* ─── LAYOUT ─── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+
+    .page-body {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 12px;
+      padding: 12px 0 24px;
+      align-items: start;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar { display: flex; flex-direction: column; gap: 1px; }
+
+    .filter-block {
+      background: var(--surface);
+      padding: 16px;
+    }
+
+    .filter-block:first-child { border-radius: 4px 4px 0 0; }
+    .filter-block:last-child  { border-radius: 0 0 4px 4px; }
+
+    .filter-header {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .filter-title {
+      font-size: 13px; font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text);
+    }
+
+    .filter-clear {
+      font-size: 12px; color: var(--primary);
+      background: none; border: none; cursor: pointer;
+      font-family: inherit;
+    }
+
+    .filter-option {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 0; cursor: pointer;
+    }
+
+    .filter-option input[type="checkbox"] {
+      width: 14px; height: 14px;
+      accent-color: var(--primary); cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .filter-option label {
+      font-size: 13px; color: var(--text-sec);
+      cursor: pointer; line-height: 1.4;
+    }
+
+    .filter-option label span {
+      color: var(--text-muted); font-size: 11px;
+    }
+
+    /* Price range */
+    .price-inputs {
+      display: flex; gap: 8px; margin-top: 12px;
+    }
+
+    .price-inputs input {
+      flex: 1; padding: 6px 8px;
+      border: 1px solid var(--border);
+      border-radius: 3px; font-size: 12px;
+      font-family: inherit; color: var(--text);
+      outline: none;
+    }
+
+    .price-inputs input:focus { border-color: var(--primary); }
+
+    .price-go {
+      padding: 6px 12px;
+      background: var(--primary); color: #fff;
+      border: none; border-radius: 3px;
+      font-size: 12px; font-weight: 600;
+    }
+
+    /* ─── MAIN CONTENT ─── */
+    .main-content { display: flex; flex-direction: column; gap: 1px; }
+
+    /* Sort/results bar */
+    .sort-bar {
+      background: var(--surface);
+      padding: 12px 16px;
+      display: flex; align-items: center;
+      justify-content: space-between;
+      border-radius: 4px 4px 0 0;
+    }
+
+    .results-info {
+      font-size: 13px; color: var(--text-sec);
+    }
+
+    .results-info strong { color: var(--text); font-weight: 600; }
+
+    .sort-options {
+      display: flex; align-items: center; gap: 0;
+    }
+
+    .sort-label {
+      font-size: 13px; font-weight: 600;
+      color: var(--text-muted); margin-right: 12px;
+    }
+
+    .sort-btn {
+      padding: 8px 16px;
+      background: none; border: none;
+      font-size: 13px; color: var(--text-sec);
+      cursor: pointer; border-bottom: 2px solid transparent;
+      transition: all 0.15s; font-family: inherit;
+    }
+
+    .sort-btn:hover { color: var(--primary); }
+    .sort-btn.active { color: var(--primary); font-weight: 600; border-bottom-color: var(--primary); }
+
+    /* Product grid */
+    .products-list {
+      display: flex; flex-direction: column; gap: 1px;
+    }
+
+    .product-row {
+      background: var(--surface);
+      padding: 20px 16px;
+      display: grid;
+      grid-template-columns: 200px 1fr auto;
+      gap: 20px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+      align-items: start;
+    }
+
+    .product-row:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.1); position: relative; z-index: 1; }
+    .product-row:last-child { border-radius: 0 0 4px 4px; }
+
+    .prod-image {
+      width: 200px; height: 200px;
+      background: var(--bg);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 72px;
+      flex-shrink: 0;
+      transition: transform 0.2s;
+    }
+
+    .product-row:hover .prod-image { transform: scale(1.03); }
+
+    .prod-info { display: flex; flex-direction: column; gap: 8px; padding-top: 4px; }
+
+    .prod-name {
+      font-size: 15px; font-weight: 500;
+      color: var(--text); line-height: 1.4;
+    }
+
+    .prod-rating {
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .rating-badge {
+      background: var(--success); color: #fff;
+      font-size: 12px; font-weight: 600;
+      padding: 2px 7px; border-radius: 3px;
+      display: flex; align-items: center; gap: 2px;
+    }
+
+    .rating-count { font-size: 12px; color: var(--text-muted); }
+
+    .prod-highlights { list-style: none; margin-top: 4px; }
+
+    .prod-highlights li {
+      font-size: 12px; color: var(--text-sec);
+      padding: 2px 0; display: flex; gap: 6px;
+    }
+
+    .prod-highlights li::before {
+      content: '•'; color: var(--text-muted); flex-shrink: 0;
+    }
+
+    .prod-delivery {
+      font-size: 12px; color: var(--text-sec);
+      margin-top: 4px;
+    }
+
+    .prod-delivery strong { color: var(--success); font-weight: 600; }
+
+    .prod-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+
+    .prod-tag {
+      font-size: 11px; padding: 2px 7px;
+      border-radius: 2px; font-weight: 500;
+    }
+
+    .tag-assured { background: #e3f2fd; color: #1565c0; }
+    .tag-bestseller { background: #fff3e0; color: #e65100; }
+    .tag-new { background: #e8f5e9; color: #2e7d32; }
+
+    .prod-actions {
+      display: flex; flex-direction: column;
+      gap: 8px; min-width: 160px; padding-top: 4px;
+    }
+
+    .prod-price-block { text-align: right; }
+
+    .prod-price-current {
+      font-size: 22px; font-weight: 700; color: var(--text);
+    }
+
+    .prod-price-row {
+      display: flex; align-items: center;
+      gap: 6px; justify-content: flex-end; margin-top: 2px;
+    }
+
+    .prod-price-original {
+      font-size: 13px; color: var(--text-muted);
+      text-decoration: line-through;
+    }
+
+    .prod-price-discount { font-size: 13px; color: var(--success); font-weight: 600; }
+
+    .btn-add-cart {
+      background: var(--accent); color: #fff;
+      border: none; border-radius: 4px;
+      padding: 10px 16px; font-size: 13px; font-weight: 600;
+      width: 100%; transition: background 0.2s;
+      font-family: inherit;
+    }
+
+    .btn-add-cart:hover { background: #e65100; }
+
+    .btn-wishlist {
+      background: none; color: var(--primary);
+      border: 1px solid var(--primary); border-radius: 4px;
+      padding: 9px 16px; font-size: 13px; font-weight: 600;
+      width: 100%; transition: background 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-wishlist:hover { background: #e8f0fe; }
+
+    /* ─── PAGINATION ─── */
+    .pagination {
+      background: var(--surface);
+      padding: 16px;
+      display: flex; align-items: center;
+      justify-content: center; gap: 4px;
+      border-radius: 0 0 4px 4px;
+      margin-top: 1px;
+    }
+
+    .page-btn {
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--border); border-radius: 3px;
+      background: none; font-size: 13px; cursor: pointer;
+      font-family: inherit; color: var(--text);
+      transition: all 0.15s;
+    }
+
+    .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .page-btn.next { width: auto; padding: 0 14px; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: #323232; color: #fff;
+      padding: 12px 24px; border-radius: 4px;
+      font-size: 14px; font-weight: 500;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      z-index: 9999; transition: transform 0.3s ease;
+      white-space: nowrap;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .page-body { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .product-row { grid-template-columns: 120px 1fr; }
+      .prod-actions { display: none; }
+      .prod-image { width: 120px; height: 120px; font-size: 44px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <a href="../ecommerce/index.html" class="nav-logo">
+      <span class="brand">Bazar<span>io</span></span>
+      <span class="tagline">India's Everything Store</span>
+    </a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search for products, brands and more" id="searchInput" />
+      <button onclick="handleSearch()">🔍</button>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn-login" onclick="showToast('Opening login...')">Login</button>
+      <button class="nav-btn" onclick="showToast('Opening Wishlist...')">
+        <span class="label">Wishlist</span>
+        <span class="value">♡</span>
+      </button>
+      <button class="nav-btn" onclick="window.location.href='cart.html'">
+        <span class="label">Cart</span>
+        <span class="value">🛒 <span class="cart-count" id="cartCount">0</span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── BREADCRUMB ─── -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a href="../ecommerce/index.html">Home</a>
+      <span>›</span>
+      <span id="breadcrumbCategory">Electronics</span>
+    </div>
+  </div>
+
+  <!-- ─── MAIN ─── -->
+  <main>
+    <div class="container">
+      <div class="page-body">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+
+          <div class="filter-block">
+            <div class="filter-header">
+              <span class="filter-title">Filters</span>
+              <button class="filter-clear" onclick="clearFilters()">Clear All</button>
+            </div>
+          </div>
+
+          <!-- Price -->
+          <div class="filter-block">
+            <div class="filter-header">
+              <span class="filter-title">Price</span>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="p1" onchange="handleFilter('price', 'Under ₹500')">
+              <label for="p1">Under ₹500</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="p2" onchange="handleFilter('price', '₹500 – ₹1,000')">
+              <label for="p2">₹500 – ₹1,000</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="p3" onchange="handleFilter('price', '₹1,000 – ₹5,000')">
+              <label for="p3">₹1,000 – ₹5,000</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="p4" onchange="handleFilter('price', '₹5,000 – ₹15,000')">
+              <label for="p4">₹5,000 – ₹15,000</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="p5" onchange="handleFilter('price', 'Above ₹15,000')">
+              <label for="p5">Above ₹15,000</label>
+            </div>
+            <div class="price-inputs">
+              <input type="number" placeholder="Min" id="priceMin" />
+              <input type="number" placeholder="Max" id="priceMax" />
+              <button class="price-go" onclick="handlePriceRange()">Go</button>
+            </div>
+          </div>
+
+          <!-- Brand -->
+          <div class="filter-block">
+            <div class="filter-header">
+              <span class="filter-title">Brand</span>
+            </div>
+            <div id="brandFilters"></div>
+          </div>
+
+          <!-- Rating -->
+          <div class="filter-block">
+            <div class="filter-header">
+              <span class="filter-title">Customer Rating</span>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="r4" onchange="handleFilter('rating', '4★ & above')">
+              <label for="r4">4★ & above</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="r3" onchange="handleFilter('rating', '3★ & above')">
+              <label for="r3">3★ & above</label>
+            </div>
+          </div>
+
+          <!-- Discount -->
+          <div class="filter-block">
+            <div class="filter-header">
+              <span class="filter-title">Discount</span>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="d10" onchange="handleFilter('discount', '10% or more')">
+              <label for="d10">10% or more</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="d20" onchange="handleFilter('discount', '20% or more')">
+              <label for="d20">20% or more</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="d30" onchange="handleFilter('discount', '30% or more')">
+              <label for="d30">30% or more</label>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="d50" onchange="handleFilter('discount', '50% or more')">
+              <label for="d50">50% or more</label>
+            </div>
+          </div>
+
+          <!-- Availability -->
+          <div class="filter-block">
+            <div class="filter-header">
+              <span class="filter-title">Availability</span>
+            </div>
+            <div class="filter-option">
+              <input type="checkbox" id="avail" onchange="handleFilter('availability', 'Exclude Out of Stock')">
+              <label for="avail">Exclude Out of Stock</label>
+            </div>
+          </div>
+
+        </aside>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+
+          <!-- Sort bar -->
+          <div class="sort-bar">
+            <div class="results-info">
+              Showing results for <strong id="categoryLabel">Electronics</strong>
+              — <span id="resultCount">48</span> products
+            </div>
+            <div class="sort-options">
+              <span class="sort-label">Sort by:</span>
+              <button class="sort-btn active" onclick="handleSort('relevance', this)">Relevance</button>
+              <button class="sort-btn" onclick="handleSort('popularity', this)">Popularity</button>
+              <button class="sort-btn" onclick="handleSort('price_low', this)">Price: Low to High</button>
+              <button class="sort-btn" onclick="handleSort('price_high', this)">Price: High to Low</button>
+              <button class="sort-btn" onclick="handleSort('rating', this)">Rating</button>
+            </div>
+          </div>
+
+          <!-- Products list -->
+          <div class="products-list" id="productsList"></div>
+
+          <!-- Pagination -->
+          <div class="pagination">
+            <button class="page-btn active">1</button>
+            <button class="page-btn" onclick="handlePageChange(2)">2</button>
+            <button class="page-btn" onclick="handlePageChange(3)">3</button>
+            <button class="page-btn" onclick="handlePageChange(4)">4</button>
+            <button class="page-btn" onclick="handlePageChange(5)">5</button>
+            <button class="page-btn next" onclick="handlePageChange('next')">Next ›</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ─── PRODUCT CATALOGUE ───
+    // Each category has its own set of products.
+    // When we integrate CleverTap, clicking a product fires "Product Viewed"
+    // with all these properties as event properties.
+
+    const catalogue = {
+      'Electronics': [
+        { id: 'E001', name: 'Samsung Galaxy M14 5G (4GB RAM, 128GB)', brand: 'Samsung', category: 'Electronics', price: 10999, originalPrice: 14999, discount: 27, rating: 4.2, reviews: 231104, emoji: '📱', tags: ['bestseller'], highlights: ['5G ready', '50MP triple camera', '6000mAh battery', 'Android 13'] },
+        { id: 'E002', name: 'Apple iPhone 13 (128GB) — Midnight', brand: 'Apple', category: 'Electronics', price: 49999, originalPrice: 69900, discount: 28, rating: 4.6, reviews: 189432, emoji: '📱', tags: ['assured'], highlights: ['A15 Bionic chip', '12MP dual camera', '5G capable', 'Face ID'] },
+        { id: 'E003', name: 'OnePlus Nord CE3 Lite 5G (8GB RAM, 128GB)', brand: 'OnePlus', category: 'Electronics', price: 17999, originalPrice: 25999, discount: 31, rating: 4.1, reviews: 94210, emoji: '📱', tags: ['assured'], highlights: ['Snapdragon 695', '108MP camera', '67W SUPERVOOC', '5000mAh'] },
+        { id: 'E004', name: 'boAt Airdopes 141 TWS Earbuds 42H Playback', brand: 'boAt', category: 'Electronics', price: 1299, originalPrice: 4499, discount: 71, rating: 4.1, reviews: 124832, emoji: '🎧', tags: ['bestseller'], highlights: ['42H total playback', 'ENx tech', 'IPX4 water resistant', 'Instant connect'] },
+        { id: 'E005', name: 'Noise ColorFit Pro 4 Smartwatch 1.72" Display', brand: 'Noise', category: 'Electronics', price: 2499, originalPrice: 6999, discount: 64, rating: 4.3, reviews: 86421, emoji: '⌚', tags: ['bestseller'], highlights: ['1.72" TFT display', 'GPS built-in', '100+ sports modes', 'SpO2 monitoring'] },
+        { id: 'E006', name: 'Logitech MK215 Wireless Keyboard & Mouse Combo', brand: 'Logitech', category: 'Electronics', price: 1795, originalPrice: 2795, discount: 36, rating: 4.4, reviews: 52341, emoji: '⌨️', tags: ['assured'], highlights: ['2.4GHz wireless', '24-month battery life', 'Compact design', 'Plug & play'] },
+        { id: 'E007', name: 'Sony Bravia 43" 4K Ultra HD Android TV', brand: 'Sony', category: 'Electronics', price: 44990, originalPrice: 64990, discount: 31, rating: 4.5, reviews: 38921, emoji: '📺', tags: ['assured'], highlights: ['4K HDR processor', 'Google TV', 'Dolby Audio', 'HDMI x3'] },
+        { id: 'E008', name: 'HP 15s Core i5 12th Gen Laptop (8GB, 512GB SSD)', brand: 'HP', category: 'Electronics', price: 49990, originalPrice: 67990, discount: 26, rating: 4.3, reviews: 21043, emoji: '💻', tags: ['new'], highlights: ['Intel Core i5-1235U', '8GB DDR4 RAM', '512GB SSD', 'Windows 11'] },
+      ],
+      'Fashion': [
+        { id: 'F001', name: "Levi's 511 Slim Fit Men's Jeans — Dark Blue", brand: "Levi's", category: 'Fashion', price: 2399, originalPrice: 3999, discount: 40, rating: 4.3, reviews: 9142, emoji: '👖', tags: ['bestseller'], highlights: ['Slim fit', '99% cotton', 'Machine washable', 'Available in 28–38 waist'] },
+        { id: 'F002', name: 'H&M Women Floral Wrap Dress — Multicolour', brand: 'H&M', category: 'Fashion', price: 1299, originalPrice: 2499, discount: 48, rating: 4.1, reviews: 6832, emoji: '👗', tags: ['new'], highlights: ['Regular fit', 'V-neck wrap style', 'Woven fabric', 'Belt included'] },
+        { id: 'F003', name: 'Nike Air Max 270 Running Shoes for Men', brand: 'Nike', category: 'Fashion', price: 6995, originalPrice: 11995, discount: 42, rating: 4.5, reviews: 18743, emoji: '👟', tags: ['assured'], highlights: ['Max Air heel unit', 'Foam midsole', 'Mesh upper', 'Available UK 6–12'] },
+        { id: 'F004', name: 'Allen Solly Men Slim Fit Formal Shirt — White', brand: 'Allen Solly', category: 'Fashion', price: 949, originalPrice: 1799, discount: 47, rating: 4.2, reviews: 14231, emoji: '👔', tags: ['bestseller'], highlights: ['Slim fit collar', '100% cotton', 'Full sleeves', 'Machine wash safe'] },
+        { id: 'F005', name: 'Fabindia Women Kurta Set — Ethnic Print', brand: 'Fabindia', category: 'Fashion', price: 1999, originalPrice: 3499, discount: 43, rating: 4.4, reviews: 7621, emoji: '👘', tags: ['new'], highlights: ['Cotton fabric', 'A-line kurta', 'Dupatta included', 'Straight palazzo'] },
+        { id: 'F006', name: 'Puma Men Hoodie Sweatshirt — Navy Blue', brand: 'Puma', category: 'Fashion', price: 1599, originalPrice: 3499, discount: 54, rating: 4.3, reviews: 11082, emoji: '🧥', tags: ['assured'], highlights: ['Fleece inner lining', 'Kangaroo pocket', 'Drawstring hood', 'Regular fit'] },
+      ],
+      'Grocery': [
+        { id: 'G001', name: 'Tata Salt Iodised — 1kg Pack of 6', brand: 'Tata', category: 'Grocery', price: 162, originalPrice: 180, discount: 10, rating: 4.6, reviews: 43210, emoji: '🧂', tags: ['bestseller'], highlights: ['Iodised salt', 'Fine grain', 'Free flowing', 'BIS certified'] },
+        { id: 'G002', name: 'Aashirvaad Atta Whole Wheat — 10kg', brand: 'Aashirvaad', category: 'Grocery', price: 379, originalPrice: 430, discount: 12, rating: 4.5, reviews: 89321, emoji: '🌾', tags: ['bestseller'], highlights: ['100% whole wheat', 'Soft rotis', 'No maida', 'Sampoorna atta'] },
+        { id: 'G003', name: 'Amul Butter Pasteurised — 500g', brand: 'Amul', category: 'Grocery', price: 265, originalPrice: 285, discount: 7, rating: 4.7, reviews: 32104, emoji: '🧈', tags: ['assured'], highlights: ['Pasteurised', 'Table butter', 'Rich & creamy', 'Refrigerate on delivery'] },
+        { id: 'G004', name: "Nescafé Classic Instant Coffee — 200g", brand: 'Nescafé', category: 'Grocery', price: 499, originalPrice: 620, discount: 20, rating: 4.4, reviews: 21843, emoji: '☕', tags: ['bestseller'], highlights: ['100% pure coffee', 'Rich aroma', 'Easy to brew', 'Resealable pack'] },
+        { id: 'G005', name: 'Fortune Sunlite Sunflower Oil — 5L', brand: 'Fortune', category: 'Grocery', price: 689, originalPrice: 780, discount: 12, rating: 4.3, reviews: 18420, emoji: '🫙', tags: ['assured'], highlights: ['Light & digestible', 'High smoke point', 'Vitamin E enriched', 'Less absorption'] },
+      ],
+      'Home & Furniture': [
+        { id: 'H001', name: 'Wakefit Orthopaedic Memory Foam Mattress — Queen', brand: 'Wakefit', category: 'Home & Furniture', price: 12999, originalPrice: 19999, discount: 35, rating: 4.5, reviews: 48321, emoji: '🛏️', tags: ['bestseller'], highlights: ['7-zone orthopaedic support', '20cm height', '100 night trial', 'CertiPUR-US certified'] },
+        { id: 'H002', name: 'Solimo Engineered Wood Study Table — Walnut', brand: 'Solimo', category: 'Home & Furniture', price: 4499, originalPrice: 7999, discount: 44, rating: 4.2, reviews: 12043, emoji: '🪑', tags: ['assured'], highlights: ['Engineered wood', 'Easy assembly', 'Storage shelf', '120x60cm tabletop'] },
+        { id: 'H003', name: 'Story@Home 300 TC Cotton Double Bedsheet Set', brand: 'Story@Home', category: 'Home & Furniture', price: 799, originalPrice: 1799, discount: 56, rating: 4.3, reviews: 34210, emoji: '🛌', tags: ['bestseller'], highlights: ['300 TC pure cotton', '2 pillow covers', 'Machine washable', 'Reactive print'] },
+      ],
+      'Appliances': [
+        { id: 'A001', name: 'LG 8kg 5 Star Inverter Fully-Automatic Washing Machine', brand: 'LG', category: 'Appliances', price: 34990, originalPrice: 49990, discount: 30, rating: 4.5, reviews: 28432, emoji: '🫧', tags: ['assured'], highlights: ['Inverter Direct Drive', 'Steam wash', 'ThinQ AI', '10yr motor warranty'] },
+        { id: 'A002', name: 'Prestige Iris 750W Mixer Grinder with 3 Jars', brand: 'Prestige', category: 'Appliances', price: 1795, originalPrice: 3495, discount: 49, rating: 4.4, reviews: 42219, emoji: '🍹', tags: ['bestseller'], highlights: ['750W motor', '3 stainless steel jars', 'Whipper jar', '3-speed control'] },
+        { id: 'A003', name: 'Voltas 1.5 Ton 5 Star Inverter Split AC', brand: 'Voltas', category: 'Appliances', price: 38990, originalPrice: 55000, discount: 29, rating: 4.3, reviews: 19832, emoji: '❄️', tags: ['assured'], highlights: ['5-star energy rating', '4-in-1 adjustable mode', 'Anti-bacterial filter', 'Copper condenser'] },
+        { id: 'A004', name: 'Atomberg Renesa 1200mm BLDC Ceiling Fan + Remote', brand: 'Atomberg', category: 'Appliances', price: 2849, originalPrice: 4500, discount: 37, rating: 4.4, reviews: 22310, emoji: '💨', tags: ['new'], highlights: ['BLDC motor', '65% energy saving', 'Remote control', 'Anti-dust coating'] },
+      ],
+      'Beauty': [
+        { id: 'B001', name: 'Himalaya Purifying Neem Face Wash — Pack of 3', brand: 'Himalaya', category: 'Beauty', price: 349, originalPrice: 620, discount: 44, rating: 4.5, reviews: 61003, emoji: '🧴', tags: ['bestseller'], highlights: ['Neem + turmeric', 'Oil-free formula', 'Suitable all skin types', 'No parabens'] },
+        { id: 'B002', name: "L'Oreal Paris Revitalift 1.5% Pure Hyaluronic Acid Serum", brand: "L'Oreal", category: 'Beauty', price: 799, originalPrice: 1399, discount: 43, rating: 4.3, reviews: 23841, emoji: '💆', tags: ['assured'], highlights: ['1.5% hyaluronic acid', 'Replumps in 1 week', 'Dermatologist tested', 'For all skin types'] },
+        { id: 'B003', name: 'Maybelline Fit Me Matte+Poreless Foundation', brand: 'Maybelline', category: 'Beauty', price: 449, originalPrice: 699, discount: 36, rating: 4.2, reviews: 41032, emoji: '💄', tags: ['bestseller'], highlights: ['16HR wear', 'SPF 22', '40 shades', 'Oil-free formula'] },
+      ],
+      'Sports': [
+        { id: 'SP001', name: 'Cosco Champion Cricket Kit — Full Set with Bag', brand: 'Cosco', category: 'Sports', price: 1899, originalPrice: 3200, discount: 41, rating: 4.2, reviews: 4328, emoji: '🏏', tags: ['bestseller'], highlights: ['English willow bat', 'Complete kit', 'Helmet included', 'Kit bag with wheels'] },
+        { id: 'SP002', name: 'Yonex Voltric 1DG Badminton Racquet', brand: 'Yonex', category: 'Sports', price: 2899, originalPrice: 4500, discount: 36, rating: 4.5, reviews: 8932, emoji: '🏸', tags: ['assured'], highlights: ['TRI-VOLTAGE system', 'Carbon graphite', 'G4 grip size', 'Pre-strung 24lbs'] },
+        { id: 'SP003', name: 'Nivia Storm Football — Size 5', brand: 'Nivia', category: 'Sports', price: 649, originalPrice: 999, discount: 35, rating: 4.3, reviews: 6210, emoji: '⚽', tags: ['new'], highlights: ['Size 5', '32 panel', 'Machine stitched', 'PU outer casing'] },
+      ],
+      'Books': [
+        { id: 'BK001', name: 'Atomic Habits — James Clear', brand: 'Penguin', category: 'Books', price: 399, originalPrice: 799, discount: 50, rating: 4.7, reviews: 184320, emoji: '📗', tags: ['bestseller'], highlights: ['#1 NYT Bestseller', 'Paperback edition', 'English', '320 pages'] },
+        { id: 'BK002', name: 'The Psychology of Money — Morgan Housel', brand: 'Jaico', category: 'Books', price: 349, originalPrice: 599, discount: 42, rating: 4.6, reviews: 92104, emoji: '📘', tags: ['bestseller'], highlights: ['19 short stories', 'Financial wisdom', 'Paperback', '256 pages'] },
+        { id: 'BK003', name: 'Rich Dad Poor Dad — Robert T. Kiyosaki', brand: 'Manjul', category: 'Books', price: 299, originalPrice: 495, discount: 40, rating: 4.5, reviews: 143210, emoji: '📙', tags: ['bestseller'], highlights: ['25yr anniversary ed.', 'Hindi + English', 'Paperback', '336 pages'] },
+      ],
+    };
+
+    // ─── STATE ───
+    let currentCategory = 'Electronics';
+    let cartItems = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+
+    // ─── INIT ───
+    function init() {
+      const params = new URLSearchParams(window.location.search);
+      const cat = params.get('category');
+      if (cat && catalogue[cat]) {
+        currentCategory = cat;
+      }
+      document.title = `Bazario — ${currentCategory}`;
+      document.getElementById('breadcrumbCategory').textContent = currentCategory;
+      document.getElementById('categoryLabel').textContent = currentCategory;
+
+      renderProducts(currentCategory);
+      renderBrandFilters(currentCategory);
+      updateCartCount();
+
+      // Later: CleverTap event — "Category Viewed"
+      // clevertap.event.push("Category Viewed", {
+      //   category_name: currentCategory,
+      //   source: "listing_page"
+      // });
+    }
+
+    // ─── RENDER PRODUCTS ───
+    function renderProducts(category) {
+      const products = catalogue[category] || catalogue['Electronics'];
+      document.getElementById('resultCount').textContent = products.length * 6; // simulate more pages
+      const list = document.getElementById('productsList');
+      list.innerHTML = '';
+
+      products.forEach(p => {
+        const tagHTML = p.tags.map(t => `<span class="prod-tag tag-${t}">${t === 'assured' ? '✓ Bazario Assured' : t === 'bestseller' ? '🏆 Bestseller' : '🆕 New'}</span>`).join('');
+        const highlightHTML = p.highlights.map(h => `<li>${h}</li>`).join('');
+
+        const row = document.createElement('div');
+        row.className = 'product-row';
+        row.innerHTML = `
+          <div class="prod-image">${p.emoji}</div>
+          <div class="prod-info">
+            <div class="prod-name">${p.name}</div>
+            <div class="prod-rating">
+              <span class="rating-badge">${p.rating} ★</span>
+              <span class="rating-count">(${p.reviews.toLocaleString('en-IN')})</span>
+            </div>
+            <ul class="prod-highlights">${highlightHTML}</ul>
+            <div class="prod-tags">${tagHTML}</div>
+            <div class="prod-delivery">Delivery by <strong>Tomorrow, Free</strong> with Bazario Prime</div>
+          </div>
+          <div class="prod-actions">
+            <div class="prod-price-block">
+              <div class="prod-price-current">₹${p.price.toLocaleString('en-IN')}</div>
+              <div class="prod-price-row">
+                <span class="prod-price-original">₹${p.originalPrice.toLocaleString('en-IN')}</span>
+                <span class="prod-price-discount">${p.discount}% off</span>
+              </div>
+            </div>
+            <button class="btn-add-cart" onclick="handleAddToCart(event, '${p.id}')">Add to Cart</button>
+            <button class="btn-wishlist" onclick="handleWishlist(event, '${p.name}')">♡ Wishlist</button>
+          </div>
+        `;
+        row.addEventListener('click', () => handleProductClick(p));
+        list.appendChild(row);
+      });
+    }
+
+    // ─── BRAND FILTERS ───
+    function renderBrandFilters(category) {
+      const products = catalogue[category] || [];
+      const brands = [...new Set(products.map(p => p.brand))];
+      const container = document.getElementById('brandFilters');
+      container.innerHTML = brands.map((b, i) => `
+        <div class="filter-option">
+          <input type="checkbox" id="brand${i}" onchange="handleFilter('brand', '${b}')">
+          <label for="brand${i}">${b}</label>
+        </div>
+      `).join('');
+    }
+
+    // ─── PRODUCT CLICK → goes to product.html ───
+    function handleProductClick(product) {
+      // Later: CleverTap event — "Product Viewed"
+      // clevertap.event.push("Product Viewed", {
+      //   product_id:     product.id,
+      //   product_name:   product.name,
+      //   category:       product.category,
+      //   price:          product.price,
+      //   original_price: product.originalPrice,
+      //   discount_pct:   product.discount,
+      //   brand:          product.brand,
+      //   rating:         product.rating,
+      //   source:         "listing_page"
+      // });
+      const params = new URLSearchParams({
+        id:       product.id,
+        name:     product.name,
+        category: product.category,
+        price:    product.price,
+        original: product.originalPrice,
+        discount: product.discount,
+        brand:    product.brand,
+        rating:   product.rating,
+        reviews:  product.reviews,
+        emoji:    product.emoji,
+        highlights: product.highlights.join('|'),
+        tags:     product.tags.join(',')
+      });
+      window.location.href = `product.html?${params.toString()}`;
+    }
+
+    // ─── ADD TO CART (from listing) ───
+    function handleAddToCart(e, productId) {
+      e.stopPropagation();
+      const product = Object.values(catalogue).flat().find(p => p.id === productId);
+      if (!product) return;
+
+      const existing = cartItems.find(i => i.id === productId);
+      if (existing) {
+        existing.qty++;
+      } else {
+        cartItems.push({ ...product, qty: 1 });
+      }
+      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      updateCartCount();
+
+      // Later: CleverTap event — "Added to Cart"
+      // clevertap.event.push("Added to Cart", {
+      //   product_id:   product.id,
+      //   product_name: product.name,
+      //   category:     product.category,
+      //   price:        product.price,
+      //   quantity:     1,
+      //   cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0),
+      //   source:       "listing_page"
+      // });
+
+      showToast(`✓ ${product.name.substring(0, 30)}... added to cart`);
+    }
+
+    function handleWishlist(e, name) {
+      e.stopPropagation();
+      // Later: CleverTap event — "Added to Wishlist"
+      showToast(`♡ Added to Wishlist`);
+    }
+
+    // ─── FILTERS ───
+    function handleFilter(type, value) {
+      // Later: CleverTap event — "Filter Applied"
+      // clevertap.event.push("Filter Applied", {
+      //   filter_type:  type,
+      //   filter_value: value,
+      //   category:     currentCategory
+      // });
+      showToast(`Filter applied: ${value}`);
+    }
+
+    function handlePriceRange() {
+      const min = document.getElementById('priceMin').value;
+      const max = document.getElementById('priceMax').value;
+      if (!min && !max) return;
+      handleFilter('price_range', `₹${min} – ₹${max}`);
+    }
+
+    function clearFilters() {
+      document.querySelectorAll('.filter-option input').forEach(cb => cb.checked = false);
+      showToast('All filters cleared');
+    }
+
+    // ─── SORT ───
+    function handleSort(type, btn) {
+      document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      // Later: CleverTap event — "Sort Applied"
+      showToast(`Sorted by: ${btn.textContent}`);
+    }
+
+    // ─── SEARCH ───
+    function handleSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+      // Later: CleverTap event — "Product Searched"
+      showToast(`Searching for "${q}"...`);
+    }
+
+    // ─── PAGINATION ───
+    function handlePageChange(page) {
+      // Later: CleverTap event — "Listing Page Changed"
+      showToast(`Loading page ${page}...`);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ─── CART COUNT ───
+    function updateCartCount() {
+      const total = cartItems.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+
+    // ─── TOAST ───
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ─── SEARCH on Enter ───
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSearch();
+    });
+
+    // ─── RUN ───
+    init();
+  </script>
+</body>
+</html>
