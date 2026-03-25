@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazario — Product</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #2874f0;
+      --primary-dark: #1a5dc8;
+      --accent:       #ff6f00;
+      --bg:           #f1f3f6;
+      --surface:      #ffffff;
+      --text:         #212121;
+      --text-sec:     #666666;
+      --text-muted:   #999999;
+      --border:       #e0e0e0;
+      --success:      #388e3c;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── NAVBAR ─── */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--primary); height: 56px;
+      display: flex; align-items: center;
+      padding: 0 16px; gap: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .nav-logo { display: flex; flex-direction: column; min-width: 120px; text-decoration: none; }
+    .nav-logo .brand { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+    .nav-logo .brand span { color: #ffe082; }
+    .nav-logo .tagline { font-size: 10px; color: rgba(255,255,255,0.75); font-style: italic; margin-top: 2px; }
+    .nav-search { flex: 1; display: flex; max-width: 600px; }
+    .nav-search input { flex: 1; height: 36px; padding: 0 14px; border: none; border-radius: 4px 0 0 4px; font-size: 14px; outline: none; color: var(--text); }
+    .nav-search button { width: 44px; height: 36px; background: var(--accent); border: none; border-radius: 0 4px 4px 0; color: #fff; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .nav-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 6px 14px; color: #fff; border-radius: 4px; font-size: 12px; white-space: nowrap; cursor: pointer; background: none; border: none; gap: 2px; transition: background 0.15s; }
+    .nav-btn .label { font-size: 11px; color: rgba(255,255,255,0.8); }
+    .nav-btn .value { font-size: 13px; font-weight: 600; }
+    .nav-btn:hover { background: rgba(255,255,255,0.15); }
+    .nav-btn-login { background: #fff; color: var(--primary); font-weight: 600; font-size: 13px; border-radius: 4px; padding: 7px 20px; border: none; cursor: pointer; }
+    .cart-count { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; }
+
+    /* ─── BREADCRUMB ─── */
+    .breadcrumb { background: var(--surface); border-bottom: 1px solid var(--border); padding: 10px 16px; font-size: 12px; color: var(--text-muted); }
+    .breadcrumb a { color: var(--primary); }
+    .breadcrumb span { margin: 0 6px; }
+
+    /* ─── LAYOUT ─── */
+    .container { max-width: 1280px; margin: 0 auto; padding: 0 16px; }
+
+    .pdp-layout {
+      display: grid;
+      grid-template-columns: 420px 1fr 300px;
+      gap: 0;
+      background: var(--surface);
+      margin: 12px 0;
+      border-radius: 4px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    /* ─── LEFT: IMAGE PANEL ─── */
+    .img-panel {
+      padding: 24px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 56px;
+      height: fit-content;
+    }
+
+    .main-image {
+      width: 100%;
+      aspect-ratio: 1;
+      background: var(--bg);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 120px;
+      position: relative;
+    }
+
+    .img-badge {
+      position: absolute;
+      top: 12px; left: 12px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 3px;
+    }
+
+    .img-thumbnails {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .thumb {
+      width: 56px; height: 56px;
+      background: var(--bg);
+      border-radius: 4px;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+
+    .thumb.active { border-color: var(--primary); }
+    .thumb:hover { border-color: var(--primary); }
+
+    .img-actions {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-wishlist-img {
+      flex: 1;
+      padding: 11px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: none;
+      font-size: 13px;
+      color: var(--text-sec);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn-wishlist-img:hover { border-color: var(--primary); color: var(--primary); background: #e8f0fe; }
+
+    .btn-share {
+      padding: 11px 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: none;
+      font-size: 13px;
+      color: var(--text-sec);
+      transition: all 0.15s;
+    }
+
+    .btn-share:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* ─── MIDDLE: PRODUCT INFO ─── */
+    .prod-panel {
+      padding: 24px;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .prod-title {
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1.4;
+    }
+
+    .prod-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .rating-pill {
+      background: var(--success);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 4px;
+    }
+
+    .review-count { font-size: 13px; color: var(--primary); }
+    .divider-dot { color: var(--text-muted); }
+
+    .assured-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1565c0;
+      background: #e3f2fd;
+      padding: 3px 10px;
+      border-radius: 3px;
+    }
+
+    /* Pricing */
+    .pricing-block { display: flex; flex-direction: column; gap: 4px; }
+
+    .price-tag { font-size: 13px; color: var(--text-muted); }
+
+    .price-row {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .price-main { font-size: 28px; font-weight: 700; color: var(--text); }
+
+    .price-original { font-size: 15px; color: var(--text-muted); text-decoration: line-through; }
+
+    .price-discount { font-size: 15px; color: var(--success); font-weight: 600; }
+
+    .emi-note { font-size: 12px; color: var(--primary); margin-top: 4px; }
+
+    /* Offers */
+    .offers-section { border: 1px solid var(--border); border-radius: 4px; padding: 16px; }
+
+    .offers-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; }
+
+    .offer-item {
+      display: flex;
+      gap: 10px;
+      padding: 6px 0;
+      font-size: 13px;
+      color: var(--text-sec);
+      border-bottom: 1px dashed var(--border);
+    }
+
+    .offer-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+    .offer-tag {
+      font-size: 11px;
+      font-weight: 700;
+      background: #e8f5e9;
+      color: var(--success);
+      padding: 2px 6px;
+      border-radius: 3px;
+      white-space: nowrap;
+      align-self: flex-start;
+      flex-shrink: 0;
+    }
+
+    /* Variants */
+    .variant-section { display: flex; flex-direction: column; gap: 10px; }
+
+    .variant-label { font-size: 13px; font-weight: 600; color: var(--text); }
+
+    .variant-options { display: flex; gap: 8px; flex-wrap: wrap; }
+
+    .variant-btn {
+      padding: 7px 16px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      background: none;
+      font-size: 13px;
+      color: var(--text);
+      transition: all 0.15s;
+    }
+
+    .variant-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .variant-btn.active { border-color: var(--primary); color: var(--primary); background: #e8f0fe; font-weight: 600; }
+    .variant-btn.out { color: var(--text-muted); text-decoration: line-through; cursor: not-allowed; }
+
+    /* Highlights */
+    .highlights-section {}
+
+    .highlights-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+
+    .highlights-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+
+    .highlights-list li {
+      display: flex;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-sec);
+    }
+
+    .highlights-list li::before { content: '•'; color: var(--text-muted); flex-shrink: 0; }
+
+    /* Description */
+    .desc-section {}
+    .desc-title { font-size: 14px; font-weight: 700; margin-bottom: 10px; }
+    .desc-text { font-size: 13px; color: var(--text-sec); line-height: 1.7; }
+
+    /* Specs */
+    .specs-table { width: 100%; border-collapse: collapse; }
+    .specs-table tr:nth-child(even) td { background: var(--bg); }
+    .specs-table td {
+      padding: 9px 12px;
+      font-size: 13px;
+      border: 1px solid var(--border);
+    }
+    .specs-table td:first-child { color: var(--text-muted); width: 35%; font-weight: 500; }
+    .specs-table td:last-child { color: var(--text); }
+
+    /* Ratings breakdown */
+    .ratings-section {}
+    .ratings-title { font-size: 14px; font-weight: 700; margin-bottom: 14px; }
+
+    .ratings-overview {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .ratings-big {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 80px;
+    }
+
+    .ratings-big .score { font-size: 48px; font-weight: 700; line-height: 1; }
+    .ratings-big .stars { color: var(--success); font-size: 16px; margin: 4px 0; }
+    .ratings-big .total { font-size: 12px; color: var(--text-muted); }
+
+    .ratings-bars { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+
+    .rating-bar-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .bar-label { min-width: 32px; color: var(--text-sec); text-align: right; }
+
+    .bar-track {
+      flex: 1;
+      height: 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .bar-fill { height: 100%; background: var(--success); border-radius: 4px; }
+    .bar-fill.low { background: #f44336; }
+    .bar-fill.mid { background: #ff9800; }
+
+    .bar-count { min-width: 40px; color: var(--text-muted); font-size: 11px; }
+
+    /* ─── RIGHT: BUY PANEL ─── */
+    .buy-panel {
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: sticky;
+      top: 56px;
+      height: fit-content;
+    }
+
+    .delivery-section { display: flex; flex-direction: column; gap: 12px; }
+
+    .delivery-title { font-size: 14px; font-weight: 700; }
+
+    .delivery-input-row { display: flex; gap: 6px; }
+
+    .delivery-input-row input {
+      flex: 1;
+      padding: 8px 10px;
+      border: 1px solid var(--border);
+      border-radius: 3px;
+      font-size: 13px;
+      font-family: inherit;
+      outline: none;
+    }
+
+    .delivery-input-row input:focus { border-color: var(--primary); }
+
+    .btn-check {
+      padding: 8px 14px;
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .delivery-info {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .delivery-row {
+      display: flex;
+      gap: 10px;
+      font-size: 13px;
+      align-items: flex-start;
+    }
+
+    .delivery-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+    .delivery-row .d-title { font-weight: 600; color: var(--text); }
+    .delivery-row .d-sub { color: var(--text-muted); font-size: 12px; }
+
+    /* Seller */
+    .seller-section {
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+      font-size: 13px;
+    }
+
+    .seller-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .seller-label { color: var(--text-muted); }
+    .seller-name { color: var(--primary); font-weight: 500; }
+    .seller-rating { color: var(--success); }
+
+    /* Qty */
+    .qty-section { display: flex; align-items: center; gap: 12px; }
+    .qty-label { font-size: 13px; font-weight: 600; }
+
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .qty-btn {
+      width: 32px; height: 32px;
+      background: var(--bg);
+      border: none;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+      transition: background 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .qty-btn:hover { background: var(--border); }
+
+    .qty-display {
+      width: 40px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 6px 0;
+    }
+
+    /* CTA buttons */
+    .cta-section { display: flex; flex-direction: column; gap: 8px; }
+
+    .btn-add-cart {
+      padding: 13px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 700;
+      width: 100%;
+      transition: background 0.2s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-add-cart:hover { background: #e65100; transform: translateY(-1px); }
+    .btn-add-cart:active { transform: translateY(0); }
+
+    .btn-buy-now {
+      padding: 13px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 700;
+      width: 100%;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-buy-now:hover { background: var(--primary-dark); transform: translateY(-1px); }
+
+    .protection-note {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+
+    /* ─── RELATED PRODUCTS ─── */
+    .related-section {
+      background: var(--surface);
+      border-radius: 4px;
+      padding: 24px;
+      margin: 12px 0 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .related-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+
+    .related-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1px;
+      background: var(--border);
+    }
+
+    .related-card {
+      background: var(--surface);
+      padding: 16px;
+      cursor: pointer;
+      transition: box-shadow 0.2s;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .related-card:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.1); position: relative; z-index: 1; }
+
+    .related-img {
+      width: 100%; aspect-ratio: 1;
+      background: var(--bg); border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 48px;
+      transition: transform 0.2s;
+    }
+
+    .related-card:hover .related-img { transform: scale(1.05); }
+
+    .related-name { font-size: 12px; color: var(--text); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+    .related-price { font-size: 14px; font-weight: 700; }
+
+    .related-discount { font-size: 11px; color: var(--success); font-weight: 600; }
+
+    .related-rating {
+      display: flex; align-items: center; gap: 4px;
+    }
+
+    .related-rating .badge { background: var(--success); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 5px; border-radius: 2px; }
+
+    /* ─── TOAST ─── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #323232; color: #fff; padding: 12px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 9999; transition: transform 0.3s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 1100px) {
+      .pdp-layout { grid-template-columns: 340px 1fr; }
+      .buy-panel { display: none; }
+    }
+    @media (max-width: 768px) {
+      .pdp-layout { grid-template-columns: 1fr; }
+      .img-panel { position: static; border-right: none; border-bottom: 1px solid var(--border); }
+      .related-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <a href="../ecommerce/index.html" class="nav-logo">
+      <span class="brand">Bazar<span>io</span></span>
+      <span class="tagline">India's Everything Store</span>
+    </a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search for products, brands and more" id="searchInput" />
+      <button>🔍</button>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn-login">Login</button>
+      <button class="nav-btn">
+        <span class="label">Wishlist</span>
+        <span class="value">♡</span>
+      </button>
+      <button class="nav-btn" onclick="window.location.href='cart.html'">
+        <span class="label">Cart</span>
+        <span class="value">🛒 <span class="cart-count" id="cartCount">0</span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── BREADCRUMB ─── -->
+  <div class="breadcrumb">
+    <div class="container">
+      <a href="../ecommerce/index.html">Home</a>
+      <span>›</span>
+      <a id="breadcrumbCategory" href="#">Electronics</a>
+      <span>›</span>
+      <span id="breadcrumbProduct">Product</span>
+    </div>
+  </div>
+
+  <!-- ─── PDP ─── -->
+  <div class="container">
+    <div class="pdp-layout">
+
+      <!-- LEFT: IMAGE PANEL -->
+      <div class="img-panel">
+        <div class="main-image" id="mainImage">
+          <span id="mainEmoji">📱</span>
+          <span class="img-badge" id="discountBadge">27% OFF</span>
+        </div>
+        <div class="img-thumbnails" id="thumbnails"></div>
+        <div class="img-actions">
+          <button class="btn-wishlist-img" onclick="handleWishlist()">
+            ♡ &nbsp;Add to Wishlist
+          </button>
+          <button class="btn-share" onclick="handleShare()">↗ Share</button>
+        </div>
+      </div>
+
+      <!-- MIDDLE: PRODUCT INFO -->
+      <div class="prod-panel">
+
+        <!-- Title & meta -->
+        <div>
+          <div class="prod-title" id="prodTitle">Loading product...</div>
+        </div>
+
+        <div class="prod-meta">
+          <span class="rating-pill" id="ratingPill">4.2 ★</span>
+          <span class="review-count" id="reviewCount">2,31,104 ratings</span>
+          <span class="divider-dot">·</span>
+          <span class="assured-badge">✓ Bazario Assured</span>
+        </div>
+
+        <!-- Pricing -->
+        <div class="pricing-block">
+          <div class="price-tag">Special Price</div>
+          <div class="price-row">
+            <span class="price-main" id="priceMain">₹10,999</span>
+            <span class="price-original" id="priceOriginal">₹14,999</span>
+            <span class="price-discount" id="priceDiscount">27% off</span>
+          </div>
+          <div class="emi-note">No cost EMI from ₹916/month · <a href="#" style="color:var(--primary)">View plans</a></div>
+        </div>
+
+        <!-- Offers -->
+        <div class="offers-section">
+          <div class="offers-title">Available Offers</div>
+          <div class="offer-item">
+            <span class="offer-tag">Bank Offer</span>
+            <span>10% off on HDFC Bank Credit Cards, up to ₹1,500. T&C apply.</span>
+          </div>
+          <div class="offer-item">
+            <span class="offer-tag">Bank Offer</span>
+            <span>5% Cashback on Bazario Axis Bank Card. No min order value.</span>
+          </div>
+          <div class="offer-item">
+            <span class="offer-tag">Special Price</span>
+            <span>Extra ₹500 off on exchange. Valid on select models only.</span>
+          </div>
+          <div class="offer-item">
+            <span class="offer-tag">Combo Offer</span>
+            <span>Buy with a compatible case and save ₹200. <a href="#" style="color:var(--primary)">View combos</a></span>
+          </div>
+        </div>
+
+        <!-- Variants -->
+        <div class="variant-section" id="variantSection">
+          <div class="variant-label">Storage</div>
+          <div class="variant-options" id="variantOptions"></div>
+        </div>
+
+        <!-- Highlights -->
+        <div class="highlights-section">
+          <div class="highlights-title">Highlights</div>
+          <ul class="highlights-list" id="highlightsList"></ul>
+        </div>
+
+        <!-- Description -->
+        <div class="desc-section">
+          <div class="desc-title">Description</div>
+          <div class="desc-text" id="descText">Loading...</div>
+        </div>
+
+        <!-- Specifications -->
+        <div>
+          <div class="highlights-title" style="margin-bottom:14px">Specifications</div>
+          <table class="specs-table" id="specsTable"></table>
+        </div>
+
+        <!-- Ratings breakdown -->
+        <div class="ratings-section">
+          <div class="ratings-title">Ratings & Reviews</div>
+          <div class="ratings-overview">
+            <div class="ratings-big">
+              <div class="score" id="ratingScore">4.2</div>
+              <div class="stars">★★★★☆</div>
+              <div class="total" id="ratingTotal">2,31,104</div>
+            </div>
+            <div class="ratings-bars" id="ratingBars"></div>
+          </div>
+        </div>
+
+      </div><!-- /prod-panel -->
+
+      <!-- RIGHT: BUY PANEL -->
+      <div class="buy-panel">
+
+        <div class="delivery-section">
+          <div class="delivery-title">Delivery</div>
+          <div class="delivery-input-row">
+            <input type="text" placeholder="Enter pincode" maxlength="6" id="pincode" />
+            <button class="btn-check" onclick="handlePincodeCheck()">Check</button>
+          </div>
+          <div class="delivery-info">
+            <div class="delivery-row">
+              <span class="delivery-icon">🚚</span>
+              <div>
+                <div class="d-title">Free Delivery</div>
+                <div class="d-sub">Tomorrow, if ordered within 3 hrs</div>
+              </div>
+            </div>
+            <div class="delivery-row">
+              <span class="delivery-icon">↩️</span>
+              <div>
+                <div class="d-title">10 Days Return</div>
+                <div class="d-sub">Change of mind applicable</div>
+              </div>
+            </div>
+            <div class="delivery-row">
+              <span class="delivery-icon">🔒</span>
+              <div>
+                <div class="d-title">1 Year Warranty</div>
+                <div class="d-sub">Manufacturer warranty</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="seller-section">
+          <div class="seller-row">
+            <span class="seller-label">Sold by</span>
+            <span class="seller-name">RetailNet India Pvt. Ltd.</span>
+          </div>
+          <div class="seller-row">
+            <span class="seller-label">Seller rating</span>
+            <span class="seller-rating">4.6 ★ (Excellent)</span>
+          </div>
+        </div>
+
+        <div class="qty-section">
+          <span class="qty-label">Qty:</span>
+          <div class="qty-controls">
+            <button class="qty-btn" onclick="changeQty(-1)">−</button>
+            <div class="qty-display" id="qtyDisplay">1</div>
+            <button class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+        </div>
+
+        <div class="cta-section">
+          <button class="btn-add-cart" onclick="handleAddToCart()">
+            🛒 &nbsp;Add to Cart
+          </button>
+          <button class="btn-buy-now" onclick="handleBuyNow()">
+            ⚡ Buy Now
+          </button>
+          <div class="protection-note">🔒 Safe and Secure Payments</div>
+        </div>
+
+      </div><!-- /buy-panel -->
+
+    </div><!-- /pdp-layout -->
+
+    <!-- RELATED PRODUCTS -->
+    <div class="related-section">
+      <div class="related-title">Similar Products</div>
+      <div class="related-grid" id="relatedGrid"></div>
+    </div>
+
+  </div><!-- /container -->
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ─── PRODUCT CATALOGUE (same as listing.html) ───
+    const catalogue = {
+      'Electronics': [
+        { id: 'E001', name: 'Samsung Galaxy M14 5G (4GB RAM, 128GB)', brand: 'Samsung', category: 'Electronics', price: 10999, originalPrice: 14999, discount: 27, rating: 4.2, reviews: 231104, emoji: '📱', tags: ['bestseller'], highlights: ['5G ready', '50MP triple camera', '6000mAh battery', 'Android 13'], variants: { label: 'Storage', options: ['4GB+64GB', '4GB+128GB', '6GB+128GB'] }, desc: 'The Samsung Galaxy M14 5G is powered by the Exynos 1330 processor and comes with a 50MP triple camera setup. The 6000mAh battery keeps you going all day with its 5G connectivity for blazing fast speeds.', specs: [['Brand','Samsung'],['Model','Galaxy M14 5G'],['RAM','4 GB'],['Storage','128 GB'],['Display','6.6" FHD+ TFT'],['Battery','6000 mAh'],['Processor','Exynos 1330'],['OS','Android 13'],['Camera','50MP + 5MP + 2MP']] },
+        { id: 'E002', name: 'Apple iPhone 13 (128GB) — Midnight', brand: 'Apple', category: 'Electronics', price: 49999, originalPrice: 69900, discount: 28, rating: 4.6, reviews: 189432, emoji: '📱', tags: ['assured'], highlights: ['A15 Bionic chip', '12MP dual camera', '5G capable', 'Face ID'], variants: { label: 'Storage', options: ['128GB', '256GB', '512GB'] }, desc: 'iPhone 13 features the A15 Bionic chip, the most powerful chip ever in a smartphone. Advanced dual-camera system with Night mode on every camera, Cinematic mode, and Photographic Styles.', specs: [['Brand','Apple'],['Model','iPhone 13'],['RAM','4 GB'],['Storage','128 GB'],['Display','6.1" Super Retina XDR'],['Battery','3227 mAh'],['Processor','A15 Bionic'],['OS','iOS 17'],['Camera','12MP + 12MP']] },
+        { id: 'E003', name: 'OnePlus Nord CE3 Lite 5G (8GB RAM, 128GB)', brand: 'OnePlus', category: 'Electronics', price: 17999, originalPrice: 25999, discount: 31, rating: 4.1, reviews: 94210, emoji: '📱', tags: ['assured'], highlights: ['Snapdragon 695', '108MP camera', '67W SUPERVOOC', '5000mAh'], variants: { label: 'Storage', options: ['8GB+128GB', '8GB+256GB'] }, desc: 'OnePlus Nord CE3 Lite 5G is equipped with Snapdragon 695 5G processor and a 108MP primary camera. The 67W SUPERVOOC charging fills the 5000mAh battery in just 44 minutes.', specs: [['Brand','OnePlus'],['Model','Nord CE3 Lite'],['RAM','8 GB'],['Storage','128 GB'],['Display','6.72" FHD+ LCD'],['Battery','5000 mAh'],['Processor','Snapdragon 695'],['OS','OxygenOS 13.1'],['Camera','108MP + 2MP + 2MP']] },
+        { id: 'E004', name: 'boAt Airdopes 141 TWS Earbuds 42H Playback', brand: 'boAt', category: 'Electronics', price: 1299, originalPrice: 4499, discount: 71, rating: 4.1, reviews: 124832, emoji: '🎧', tags: ['bestseller'], highlights: ['42H total playback', 'ENx tech', 'IPX4 water resistant', 'Instant connect'], variants: { label: 'Colour', options: ['Active Black', 'Bold Blue', 'Mint Green', 'Cherry Red'] }, desc: 'boAt Airdopes 141 TWS earbuds deliver 42 hours of total playback with ENx technology for clear calls. IPX4 water resistance makes them perfect for workouts. Features instant connect and Bluetooth v5.3.', specs: [['Brand','boAt'],['Model','Airdopes 141'],['Driver Size','6mm'],['Frequency','20Hz–20KHz'],['Battery','30mAh + 300mAh case'],['Connectivity','Bluetooth 5.3'],['Water resistance','IPX4'],['Mic','ENx tech microphone']] },
+        { id: 'E005', name: 'Noise ColorFit Pro 4 Smartwatch 1.72" Display', brand: 'Noise', category: 'Electronics', price: 2499, originalPrice: 6999, discount: 64, rating: 4.3, reviews: 86421, emoji: '⌚', tags: ['bestseller'], highlights: ['1.72" TFT display', 'GPS built-in', '100+ sports modes', 'SpO2 monitoring'], variants: { label: 'Colour', options: ['Jet Black', 'Silver Grey', 'Rose Gold', 'Teal'] }, desc: 'The Noise ColorFit Pro 4 features a large 1.72" TFT display with built-in GPS for accurate tracking. Monitor your SpO2, heart rate and stress levels. Choose from 100+ sports modes.', specs: [['Brand','Noise'],['Model','ColorFit Pro 4'],['Display','1.72" TFT'],['Battery','300 mAh'],['GPS','Built-in'],['Water resistance','IP68'],['Sensors','Heart rate, SpO2, Stress'],['Sports modes','100+']] },
+        { id: 'E006', name: 'Logitech MK215 Wireless Keyboard & Mouse Combo', brand: 'Logitech', category: 'Electronics', price: 1795, originalPrice: 2795, discount: 36, rating: 4.4, reviews: 52341, emoji: '⌨️', tags: ['assured'], highlights: ['2.4GHz wireless', '24-month battery life', 'Compact design', 'Plug & play'], variants: { label: 'Version', options: ['Standard', 'Hindi keys'] }, desc: 'The Logitech MK215 Wireless Combo brings together a comfortable keyboard and precise mouse connected via a single nano USB receiver. Battery life of up to 24 months on keyboard and 12 months on mouse.', specs: [['Brand','Logitech'],['Model','MK215'],['Connectivity','2.4GHz wireless'],['Range','10 metres'],['Keyboard battery','24 months'],['Mouse battery','12 months'],['DPI','1000 DPI'],['OS','Windows/Mac/Chrome']] },
+        { id: 'E007', name: 'Sony Bravia 43" 4K Ultra HD Android TV', brand: 'Sony', category: 'Electronics', price: 44990, originalPrice: 64990, discount: 31, rating: 4.5, reviews: 38921, emoji: '📺', tags: ['assured'], highlights: ['4K HDR processor', 'Google TV', 'Dolby Audio', 'HDMI x3'], variants: { label: 'Size', options: ['43"', '50"', '55"', '65"'] }, desc: 'Sony Bravia 43" 4K TV powered by Google TV gives you a world of entertainment in stunning 4K HDR. Dolby Audio and X1 processor deliver exceptional picture and sound quality.', specs: [['Brand','Sony'],['Model','KD-43X74L'],['Resolution','4K Ultra HD (3840×2160)'],['Display type','LED'],['HDR','Yes (HDR10, HLG)'],['Smart','Google TV'],['HDMI','3 ports'],['USB','2 ports']] },
+        { id: 'E008', name: 'HP 15s Core i5 12th Gen Laptop (8GB, 512GB SSD)', brand: 'HP', category: 'Electronics', price: 49990, originalPrice: 67990, discount: 26, rating: 4.3, reviews: 21043, emoji: '💻', tags: ['new'], highlights: ['Intel Core i5-1235U', '8GB DDR4 RAM', '512GB SSD', 'Windows 11'], variants: { label: 'RAM', options: ['8GB + 512GB SSD', '16GB + 512GB SSD', '16GB + 1TB SSD'] }, desc: 'HP 15s laptop powered by Intel Core i5-1235U 12th Gen processor delivers fast, fluid performance. With 8GB RAM and 512GB SSD, multi-tasking and boot times are significantly faster than traditional HDDs.', specs: [['Brand','HP'],['Processor','Intel Core i5-1235U'],['RAM','8 GB DDR4'],['Storage','512 GB SSD'],['Display','15.6" FHD IPS'],['Graphics','Intel Iris Xe'],['OS','Windows 11 Home'],['Weight','1.69 kg']] },
+      ],
+      'Fashion': [
+        { id: 'F001', name: "Levi's 511 Slim Fit Men's Jeans — Dark Blue", brand: "Levi's", category: 'Fashion', price: 2399, originalPrice: 3999, discount: 40, rating: 4.3, reviews: 9142, emoji: '👖', tags: ['bestseller'], highlights: ['Slim fit', '99% cotton', 'Machine washable', 'Available in 28–38 waist'], variants: { label: 'Size (Waist)', options: ['28','30','32','34','36','38'] }, desc: "Levi's 511 Slim Fit jeans sit below the waist and are slim through the thigh with a narrow leg opening. Made from stretch denim for all-day comfort in a classic dark blue wash.", specs: [['Brand',"Levi's"],['Fit','Slim'],['Fabric','99% cotton, 1% elastane'],['Wash','Dark Blue'],['Closure','Zip fly with button'],['Care','Machine wash cold']] },
+        { id: 'F002', name: 'H&M Women Floral Wrap Dress — Multicolour', brand: 'H&M', category: 'Fashion', price: 1299, originalPrice: 2499, discount: 48, rating: 4.1, reviews: 6832, emoji: '👗', tags: ['new'], highlights: ['Regular fit', 'V-neck wrap style', 'Woven fabric', 'Belt included'], variants: { label: 'Size', options: ['XS','S','M','L','XL'] }, desc: 'Elegant H&M floral wrap dress in a feminine silhouette. The V-neck wrap style with attached belt accentuates the waist. Perfect for brunch, office, or evening out.', specs: [['Brand','H&M'],['Fit','Regular'],['Neckline','V-neck'],['Fabric','Viscose woven'],['Length','Midi'],['Care','Hand wash cold']] },
+        { id: 'F003', name: 'Nike Air Max 270 Running Shoes for Men', brand: 'Nike', category: 'Fashion', price: 6995, originalPrice: 11995, discount: 42, rating: 4.5, reviews: 18743, emoji: '👟', tags: ['assured'], highlights: ['Max Air heel unit', 'Foam midsole', 'Mesh upper', 'Available UK 6–12'], variants: { label: 'Size (UK)', options: ['6','7','8','9','10','11','12'] }, desc: "Nike Air Max 270 features Nike's first lifestyle Air unit that sits below a heel inspired by the original Max Air 180. The mesh upper ensures breathability while the foam midsole delivers lightweight cushioning.", specs: [['Brand','Nike'],['Model','Air Max 270'],['Upper','Mesh + synthetic'],['Sole','Rubber'],['Closure','Lace-up'],['Cushioning','Max Air 270 heel unit']] },
+        { id: 'F004', name: 'Allen Solly Men Slim Fit Formal Shirt — White', brand: 'Allen Solly', category: 'Fashion', price: 949, originalPrice: 1799, discount: 47, rating: 4.2, reviews: 14231, emoji: '👔', tags: ['bestseller'], highlights: ['Slim fit collar', '100% cotton', 'Full sleeves', 'Machine wash safe'], variants: { label: 'Size', options: ['S','M','L','XL','XXL'] }, desc: 'Allen Solly slim fit formal shirt in crisp white is made from 100% cotton for breathability and comfort. Classic full-sleeve design with a slim fit collar — ideal for office or formal occasions.', specs: [['Brand','Allen Solly'],['Fit','Slim'],['Fabric','100% Cotton'],['Sleeve','Full sleeve'],['Collar','Classic formal'],['Care','Machine wash safe']] },
+      ],
+      'Grocery': [
+        { id: 'G001', name: 'Tata Salt Iodised — 1kg Pack of 6', brand: 'Tata', category: 'Grocery', price: 162, originalPrice: 180, discount: 10, rating: 4.6, reviews: 43210, emoji: '🧂', tags: ['bestseller'], highlights: ['Iodised salt', 'Fine grain', 'Free flowing', 'BIS certified'], variants: { label: 'Pack Size', options: ['1kg', 'Pack of 2', 'Pack of 6'] }, desc: "Tata Salt is India's most trusted salt brand. Vacuum evaporated iodised salt with consistent quality. Fine grain, free-flowing formula approved under BIS certification.", specs: [['Brand','Tata'],['Type','Iodised salt'],['Grain','Fine'],['Weight','1 kg'],['Iodine','Min 15 ppm'],['Certification','BIS']] },
+      ],
+      'Books': [
+        { id: 'BK001', name: 'Atomic Habits — James Clear', brand: 'Penguin', category: 'Books', price: 399, originalPrice: 799, discount: 50, rating: 4.7, reviews: 184320, emoji: '📗', tags: ['bestseller'], highlights: ['#1 NYT Bestseller', 'Paperback edition', 'English', '320 pages'], variants: { label: 'Format', options: ['Paperback', 'Hardcover', 'Kindle'] }, desc: 'Atomic Habits is a proven framework for improving every day. James Clear reveals practical strategies that will teach you exactly how to form good habits, break bad ones, and master the tiny behaviors that lead to remarkable results.', specs: [['Author','James Clear'],['Publisher','Penguin'],['ISBN','9780735211292'],['Pages','320'],['Language','English'],['Format','Paperback'],['Edition','International']] },
+      ],
+    };
+
+    // ─── STATE ───
+    let product = null;
+    let qty = 1;
+    let selectedVariant = null;
+    let cartItems = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+
+    // ─── INIT ───
+    function init() {
+      const params = new URLSearchParams(window.location.search);
+
+      // Try to find product by id first
+      const productId = params.get('id');
+      const allProducts = Object.values(catalogue).flat();
+      product = allProducts.find(p => p.id === productId);
+
+      // Fallback: reconstruct from URL params (from homepage quick click)
+      if (!product) {
+        const name     = params.get('name')     || 'Product';
+        const category = params.get('category') || 'Electronics';
+        const price    = parseInt(params.get('price'))    || 999;
+        const original = parseInt(params.get('original')) || price;
+        const discount = parseInt(params.get('discount')) || 0;
+        const brand    = params.get('brand')    || 'Bazario';
+        const rating   = parseFloat(params.get('rating')) || 4.0;
+        const reviews  = parseInt(params.get('reviews'))  || 1000;
+        const emoji    = params.get('emoji')    || '📦';
+        const highlights = (params.get('highlights') || '').split('|').filter(Boolean);
+        const tags     = (params.get('tags')    || '').split(',').filter(Boolean);
+
+        product = { id: 'TEMP', name, category, price, originalPrice: original, discount, brand, rating, reviews, emoji, highlights, tags, variants: { label: 'Option', options: ['Default'] }, desc: `${name} — a quality product by ${brand}.`, specs: [['Brand', brand], ['Category', category], ['Price', `₹${price.toLocaleString('en-IN')}`]] };
+      }
+
+      renderProduct(product);
+      renderRelated(product);
+      updateCartCount();
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Product Viewed"
+      // This fires every time a user lands on any product detail page.
+      // This is one of the most important events in ecommerce analytics.
+      //
+      // clevertap.event.push("Product Viewed", {
+      //   product_id:     product.id,
+      //   product_name:   product.name,
+      //   category:       product.category,
+      //   brand:          product.brand,
+      //   price:          product.price,
+      //   original_price: product.originalPrice,
+      //   discount_pct:   product.discount,
+      //   rating:         product.rating,
+      //   source:         "pdp"
+      // });
+      // ─────────────────────────────────────────────────────────────
+    }
+
+    // ─── RENDER PRODUCT ───
+    function renderProduct(p) {
+      document.title = `Bazario — ${p.name}`;
+      document.getElementById('breadcrumbCategory').textContent = p.category;
+      document.getElementById('breadcrumbCategory').href = `listing.html?category=${encodeURIComponent(p.category)}`;
+      document.getElementById('breadcrumbProduct').textContent = p.name.substring(0, 40) + '...';
+
+      document.getElementById('mainEmoji').textContent = p.emoji;
+      document.getElementById('prodTitle').textContent  = p.name;
+      document.getElementById('discountBadge').textContent = `${p.discount}% OFF`;
+
+      document.getElementById('ratingPill').textContent  = `${p.rating} ★`;
+      document.getElementById('reviewCount').textContent = `${p.reviews.toLocaleString('en-IN')} ratings`;
+      document.getElementById('ratingScore').textContent = p.rating;
+      document.getElementById('ratingTotal').textContent = p.reviews.toLocaleString('en-IN') + ' ratings';
+
+      document.getElementById('priceMain').textContent     = `₹${p.price.toLocaleString('en-IN')}`;
+      document.getElementById('priceOriginal').textContent = `₹${p.originalPrice.toLocaleString('en-IN')}`;
+      document.getElementById('priceDiscount').textContent = `${p.discount}% off`;
+
+      // EMI note
+      const emi = Math.round(p.price / 12);
+      document.querySelector('.emi-note').innerHTML = `No cost EMI from ₹${emi.toLocaleString('en-IN')}/month · <a href="#" style="color:var(--primary)">View plans</a>`;
+
+      // Thumbnails (simulate multiple views)
+      const thumbEmojis = [p.emoji, '🔍', '📦', '🏷️', '⭐'];
+      document.getElementById('thumbnails').innerHTML = thumbEmojis.map((e, i) =>
+        `<div class="thumb ${i === 0 ? 'active' : ''}" onclick="selectThumb(this, '${e}')">${e}</div>`
+      ).join('');
+
+      // Variants
+      if (p.variants) {
+        document.querySelector('#variantSection .variant-label').textContent = p.variants.label;
+        selectedVariant = p.variants.options[0];
+        document.getElementById('variantOptions').innerHTML = p.variants.options.map((v, i) =>
+          `<button class="variant-btn ${i === 0 ? 'active' : ''}" onclick="selectVariant(this, '${v}')">${v}</button>`
+        ).join('');
+      }
+
+      // Highlights
+      document.getElementById('highlightsList').innerHTML = p.highlights.map(h => `<li>${h}</li>`).join('');
+
+      // Description
+      document.getElementById('descText').textContent = p.desc || `${p.name} by ${p.brand}.`;
+
+      // Specs
+      if (p.specs) {
+        document.getElementById('specsTable').innerHTML = p.specs.map(([k, v]) =>
+          `<tr><td>${k}</td><td>${v}</td></tr>`
+        ).join('');
+      }
+
+      // Ratings bars
+      const ratingData = [
+        { stars: 5, pct: 55, count: '1.2L' },
+        { stars: 4, pct: 22, count: '50K' },
+        { stars: 3, pct: 12, count: '28K' },
+        { stars: 2, pct: 6,  count: '14K' },
+        { stars: 1, pct: 5,  count: '11K' },
+      ];
+      document.getElementById('ratingBars').innerHTML = ratingData.map(r => `
+        <div class="rating-bar-row">
+          <span class="bar-label">${r.stars}★</span>
+          <div class="bar-track">
+            <div class="bar-fill ${r.stars <= 2 ? (r.stars === 1 ? 'low' : 'mid') : ''}" style="width:${r.pct}%"></div>
+          </div>
+          <span class="bar-count">${r.count}</span>
+        </div>
+      `).join('');
+    }
+
+    // ─── RENDER RELATED PRODUCTS ───
+    function renderRelated(currentProduct) {
+      const sameCat = Object.values(catalogue).flat()
+        .filter(p => p.category === currentProduct.category && p.id !== currentProduct.id)
+        .slice(0, 5);
+
+      // Pad with products from other categories if needed
+      const allOthers = Object.values(catalogue).flat().filter(p => p.id !== currentProduct.id);
+      const related = sameCat.length >= 4 ? sameCat : [...sameCat, ...allOthers].slice(0, 5);
+
+      document.getElementById('relatedGrid').innerHTML = related.map(p => `
+        <div class="related-card" onclick="goToProduct('${p.id}', '${encodeURIComponent(p.category)}')">
+          <div class="related-img">${p.emoji}</div>
+          <div class="related-name">${p.name}</div>
+          <div class="related-rating">
+            <span class="badge">${p.rating} ★</span>
+          </div>
+          <div class="related-price">₹${p.price.toLocaleString('en-IN')}</div>
+          <div class="related-discount">${p.discount}% off</div>
+        </div>
+      `).join('');
+    }
+
+    // ─── INTERACTIONS ───
+
+    function selectThumb(el, emoji) {
+      document.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+      el.classList.add('active');
+      document.getElementById('mainEmoji').textContent = emoji;
+    }
+
+    function selectVariant(el, value) {
+      document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      selectedVariant = value;
+      // Later: CleverTap event — "Variant Selected"
+      // clevertap.event.push("Variant Selected", { product_id: product.id, variant: value });
+    }
+
+    function changeQty(delta) {
+      qty = Math.max(1, Math.min(10, qty + delta));
+      document.getElementById('qtyDisplay').textContent = qty;
+    }
+
+    function handlePincodeCheck() {
+      const pin = document.getElementById('pincode').value.trim();
+      if (pin.length !== 6 || isNaN(pin)) {
+        showToast('Please enter a valid 6-digit pincode');
+        return;
+      }
+      showToast(`Checking delivery to ${pin}...`);
+      // Later: CleverTap event — "Delivery Check", { pincode: pin, product_id: product.id }
+    }
+
+    function handleAddToCart() {
+      if (!product) return;
+      const existing = cartItems.find(i => i.id === product.id && i.variant === selectedVariant);
+      if (existing) {
+        existing.qty += qty;
+      } else {
+        cartItems.push({ ...product, qty, variant: selectedVariant });
+      }
+      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      updateCartCount();
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Added to Cart"
+      // clevertap.event.push("Added to Cart", {
+      //   product_id:   product.id,
+      //   product_name: product.name,
+      //   category:     product.category,
+      //   brand:        product.brand,
+      //   price:        product.price,
+      //   quantity:     qty,
+      //   variant:      selectedVariant,
+      //   cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0),
+      //   source:       "pdp"
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      showToast(`✓ Added to cart — ${product.name.substring(0, 28)}...`);
+    }
+
+    function handleBuyNow() {
+      handleAddToCart();
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Buy Now Clicked"
+      // clevertap.event.push("Buy Now Clicked", {
+      //   product_id:   product.id,
+      //   product_name: product.name,
+      //   category:     product.category,
+      //   price:        product.price,
+      //   quantity:     qty,
+      //   variant:      selectedVariant
+      // });
+      // ─────────────────────────────────────────────────────────────
+      setTimeout(() => window.location.href = 'cart.html', 600);
+    }
+
+    function handleWishlist() {
+      // Later: CleverTap event — "Added to Wishlist"
+      // clevertap.event.push("Added to Wishlist", {
+      //   product_id:   product.id,
+      //   product_name: product.name,
+      //   category:     product.category,
+      //   price:        product.price
+      // });
+      showToast('♡ Added to Wishlist');
+    }
+
+    function handleShare() {
+      showToast('Link copied to clipboard!');
+    }
+
+    function goToProduct(id, category) {
+      // Later: CleverTap event — "Product Viewed" fires on init of new page
+      window.location.href = `product.html?id=${id}&category=${category}`;
+    }
+
+    // ─── CART COUNT ───
+    function updateCartCount() {
+      const total = cartItems.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+
+    // ─── TOAST ───
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    init();
+  </script>
+</body>
+</html>
