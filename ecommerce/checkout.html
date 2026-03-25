@@ -742,6 +742,30 @@
       return cartItems.reduce((s, i) => s + (i.price * i.qty), 0);
     }
 
+    function updateStepsBar(activeStep) {
+        // activeStep: 2 = Address, 3 = Payment, 4 = Review
+        const steps = document.querySelectorAll('.step');
+        const lines = document.querySelectorAll('.step-line');
+        
+        steps.forEach((step, i) => {
+            const stepNum = i + 1;
+            step.classList.remove('active', 'done');
+            if (stepNum < activeStep) {
+                step.classList.add('done');
+                step.querySelector('.step-num').textContent = '✓';
+            } else if (stepNum === activeStep) {
+                step.classList.add('active');
+                step.querySelector('.step-num').textContent = stepNum;
+            } else {
+                step.querySelector('.step-num').textContent = stepNum;
+            }
+        });
+        
+        lines.forEach((line, i) => {
+            line.classList.toggle('done', i < activeStep - 1);
+        });
+    }
+
     // ─── ADDRESS ───
     function selectAddress(card) {
       document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
@@ -821,6 +845,8 @@
 
       showToast('Address confirmed ✓');
       document.getElementById('paymentPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      updateStepsBar(3);
     }
 
     // ─── PAYMENT ───
@@ -890,6 +916,8 @@
 
       showToast('Payment method confirmed ✓');
       document.getElementById('reviewPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      updateStepsBar(4);
     }
 
     // ─── PLACE ORDER ───
