@@ -158,14 +158,26 @@
 
     /* Price range */
     .price-inputs {
-      display: flex; gap: 8px; margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .price-inputs-row {
+      display: flex;
+      gap: 8px;
     }
 
     .price-inputs input {
-      flex: 1; padding: 6px 8px;
+      flex: 1;
+      min-width: 0;
+      padding: 6px 8px;
       border: 1px solid var(--border);
-      border-radius: 3px; font-size: 12px;
-      font-family: inherit; color: var(--text);
+      border-radius: 3px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--text);
       outline: none;
     }
 
@@ -384,6 +396,7 @@
       .prod-image { width: 120px; height: 120px; font-size: 44px; }
     }
   </style>
+  <script src="js/catalogue.js"></script>
 </head>
 <body>
 
@@ -399,9 +412,9 @@
     </div>
     <div class="nav-actions">
       <button class="nav-btn-login" onclick="showToast('Opening login...')">Login</button>
-      <button class="nav-btn" onclick="showToast('Opening Wishlist...')">
+      <button class="nav-btn" onclick="window.location.href='wishlist.html'">
         <span class="label">Wishlist</span>
-        <span class="value">♡</span>
+        <span class="value">♡ <span id="wishlistCount">0</span></span>
       </button>
       <button class="nav-btn" onclick="window.location.href='cart.html'">
         <span class="label">Cart</span>
@@ -460,9 +473,11 @@
               <label for="p5">Above ₹15,000</label>
             </div>
             <div class="price-inputs">
-              <input type="number" placeholder="Min" id="priceMin" />
-              <input type="number" placeholder="Max" id="priceMax" />
-              <button class="price-go" onclick="handlePriceRange()">Go</button>
+              <div class="price-inputs-row">
+                <input type="number" placeholder="Min" id="priceMin" />
+                <input type="number" placeholder="Max" id="priceMax" />
+              </div>
+              <button class="price-go" onclick="handlePriceRange()" style="width:100%;padding:8px;">Go</button>
             </div>
           </div>
 
@@ -571,95 +586,170 @@
     // When we integrate CleverTap, clicking a product fires "Product Viewed"
     // with all these properties as event properties.
 
-    const catalogue = {
-      'Electronics': [
-        { id: 'E001', name: 'Samsung Galaxy M14 5G (4GB RAM, 128GB)', brand: 'Samsung', category: 'Electronics', price: 10999, originalPrice: 14999, discount: 27, rating: 4.2, reviews: 231104, emoji: '📱', tags: ['bestseller'], highlights: ['5G ready', '50MP triple camera', '6000mAh battery', 'Android 13'] },
-        { id: 'E002', name: 'Apple iPhone 13 (128GB) — Midnight', brand: 'Apple', category: 'Electronics', price: 49999, originalPrice: 69900, discount: 28, rating: 4.6, reviews: 189432, emoji: '📱', tags: ['assured'], highlights: ['A15 Bionic chip', '12MP dual camera', '5G capable', 'Face ID'] },
-        { id: 'E003', name: 'OnePlus Nord CE3 Lite 5G (8GB RAM, 128GB)', brand: 'OnePlus', category: 'Electronics', price: 17999, originalPrice: 25999, discount: 31, rating: 4.1, reviews: 94210, emoji: '📱', tags: ['assured'], highlights: ['Snapdragon 695', '108MP camera', '67W SUPERVOOC', '5000mAh'] },
-        { id: 'E004', name: 'boAt Airdopes 141 TWS Earbuds 42H Playback', brand: 'boAt', category: 'Electronics', price: 1299, originalPrice: 4499, discount: 71, rating: 4.1, reviews: 124832, emoji: '🎧', tags: ['bestseller'], highlights: ['42H total playback', 'ENx tech', 'IPX4 water resistant', 'Instant connect'] },
-        { id: 'E005', name: 'Noise ColorFit Pro 4 Smartwatch 1.72" Display', brand: 'Noise', category: 'Electronics', price: 2499, originalPrice: 6999, discount: 64, rating: 4.3, reviews: 86421, emoji: '⌚', tags: ['bestseller'], highlights: ['1.72" TFT display', 'GPS built-in', '100+ sports modes', 'SpO2 monitoring'] },
-        { id: 'E006', name: 'Logitech MK215 Wireless Keyboard & Mouse Combo', brand: 'Logitech', category: 'Electronics', price: 1795, originalPrice: 2795, discount: 36, rating: 4.4, reviews: 52341, emoji: '⌨️', tags: ['assured'], highlights: ['2.4GHz wireless', '24-month battery life', 'Compact design', 'Plug & play'] },
-        { id: 'E007', name: 'Sony Bravia 43" 4K Ultra HD Android TV', brand: 'Sony', category: 'Electronics', price: 44990, originalPrice: 64990, discount: 31, rating: 4.5, reviews: 38921, emoji: '📺', tags: ['assured'], highlights: ['4K HDR processor', 'Google TV', 'Dolby Audio', 'HDMI x3'] },
-        { id: 'E008', name: 'HP 15s Core i5 12th Gen Laptop (8GB, 512GB SSD)', brand: 'HP', category: 'Electronics', price: 49990, originalPrice: 67990, discount: 26, rating: 4.3, reviews: 21043, emoji: '💻', tags: ['new'], highlights: ['Intel Core i5-1235U', '8GB DDR4 RAM', '512GB SSD', 'Windows 11'] },
-      ],
-      'Fashion': [
-        { id: 'F001', name: "Levi's 511 Slim Fit Men's Jeans — Dark Blue", brand: "Levi's", category: 'Fashion', price: 2399, originalPrice: 3999, discount: 40, rating: 4.3, reviews: 9142, emoji: '👖', tags: ['bestseller'], highlights: ['Slim fit', '99% cotton', 'Machine washable', 'Available in 28–38 waist'] },
-        { id: 'F002', name: 'H&M Women Floral Wrap Dress — Multicolour', brand: 'H&M', category: 'Fashion', price: 1299, originalPrice: 2499, discount: 48, rating: 4.1, reviews: 6832, emoji: '👗', tags: ['new'], highlights: ['Regular fit', 'V-neck wrap style', 'Woven fabric', 'Belt included'] },
-        { id: 'F003', name: 'Nike Air Max 270 Running Shoes for Men', brand: 'Nike', category: 'Fashion', price: 6995, originalPrice: 11995, discount: 42, rating: 4.5, reviews: 18743, emoji: '👟', tags: ['assured'], highlights: ['Max Air heel unit', 'Foam midsole', 'Mesh upper', 'Available UK 6–12'] },
-        { id: 'F004', name: 'Allen Solly Men Slim Fit Formal Shirt — White', brand: 'Allen Solly', category: 'Fashion', price: 949, originalPrice: 1799, discount: 47, rating: 4.2, reviews: 14231, emoji: '👔', tags: ['bestseller'], highlights: ['Slim fit collar', '100% cotton', 'Full sleeves', 'Machine wash safe'] },
-        { id: 'F005', name: 'Fabindia Women Kurta Set — Ethnic Print', brand: 'Fabindia', category: 'Fashion', price: 1999, originalPrice: 3499, discount: 43, rating: 4.4, reviews: 7621, emoji: '👘', tags: ['new'], highlights: ['Cotton fabric', 'A-line kurta', 'Dupatta included', 'Straight palazzo'] },
-        { id: 'F006', name: 'Puma Men Hoodie Sweatshirt — Navy Blue', brand: 'Puma', category: 'Fashion', price: 1599, originalPrice: 3499, discount: 54, rating: 4.3, reviews: 11082, emoji: '🧥', tags: ['assured'], highlights: ['Fleece inner lining', 'Kangaroo pocket', 'Drawstring hood', 'Regular fit'] },
-      ],
-      'Grocery': [
-        { id: 'G001', name: 'Tata Salt Iodised — 1kg Pack of 6', brand: 'Tata', category: 'Grocery', price: 162, originalPrice: 180, discount: 10, rating: 4.6, reviews: 43210, emoji: '🧂', tags: ['bestseller'], highlights: ['Iodised salt', 'Fine grain', 'Free flowing', 'BIS certified'] },
-        { id: 'G002', name: 'Aashirvaad Atta Whole Wheat — 10kg', brand: 'Aashirvaad', category: 'Grocery', price: 379, originalPrice: 430, discount: 12, rating: 4.5, reviews: 89321, emoji: '🌾', tags: ['bestseller'], highlights: ['100% whole wheat', 'Soft rotis', 'No maida', 'Sampoorna atta'] },
-        { id: 'G003', name: 'Amul Butter Pasteurised — 500g', brand: 'Amul', category: 'Grocery', price: 265, originalPrice: 285, discount: 7, rating: 4.7, reviews: 32104, emoji: '🧈', tags: ['assured'], highlights: ['Pasteurised', 'Table butter', 'Rich & creamy', 'Refrigerate on delivery'] },
-        { id: 'G004', name: "Nescafé Classic Instant Coffee — 200g", brand: 'Nescafé', category: 'Grocery', price: 499, originalPrice: 620, discount: 20, rating: 4.4, reviews: 21843, emoji: '☕', tags: ['bestseller'], highlights: ['100% pure coffee', 'Rich aroma', 'Easy to brew', 'Resealable pack'] },
-        { id: 'G005', name: 'Fortune Sunlite Sunflower Oil — 5L', brand: 'Fortune', category: 'Grocery', price: 689, originalPrice: 780, discount: 12, rating: 4.3, reviews: 18420, emoji: '🫙', tags: ['assured'], highlights: ['Light & digestible', 'High smoke point', 'Vitamin E enriched', 'Less absorption'] },
-      ],
-      'Home & Furniture': [
-        { id: 'H001', name: 'Wakefit Orthopaedic Memory Foam Mattress — Queen', brand: 'Wakefit', category: 'Home & Furniture', price: 12999, originalPrice: 19999, discount: 35, rating: 4.5, reviews: 48321, emoji: '🛏️', tags: ['bestseller'], highlights: ['7-zone orthopaedic support', '20cm height', '100 night trial', 'CertiPUR-US certified'] },
-        { id: 'H002', name: 'Solimo Engineered Wood Study Table — Walnut', brand: 'Solimo', category: 'Home & Furniture', price: 4499, originalPrice: 7999, discount: 44, rating: 4.2, reviews: 12043, emoji: '🪑', tags: ['assured'], highlights: ['Engineered wood', 'Easy assembly', 'Storage shelf', '120x60cm tabletop'] },
-        { id: 'H003', name: 'Story@Home 300 TC Cotton Double Bedsheet Set', brand: 'Story@Home', category: 'Home & Furniture', price: 799, originalPrice: 1799, discount: 56, rating: 4.3, reviews: 34210, emoji: '🛌', tags: ['bestseller'], highlights: ['300 TC pure cotton', '2 pillow covers', 'Machine washable', 'Reactive print'] },
-      ],
-      'Appliances': [
-        { id: 'A001', name: 'LG 8kg 5 Star Inverter Fully-Automatic Washing Machine', brand: 'LG', category: 'Appliances', price: 34990, originalPrice: 49990, discount: 30, rating: 4.5, reviews: 28432, emoji: '🫧', tags: ['assured'], highlights: ['Inverter Direct Drive', 'Steam wash', 'ThinQ AI', '10yr motor warranty'] },
-        { id: 'A002', name: 'Prestige Iris 750W Mixer Grinder with 3 Jars', brand: 'Prestige', category: 'Appliances', price: 1795, originalPrice: 3495, discount: 49, rating: 4.4, reviews: 42219, emoji: '🍹', tags: ['bestseller'], highlights: ['750W motor', '3 stainless steel jars', 'Whipper jar', '3-speed control'] },
-        { id: 'A003', name: 'Voltas 1.5 Ton 5 Star Inverter Split AC', brand: 'Voltas', category: 'Appliances', price: 38990, originalPrice: 55000, discount: 29, rating: 4.3, reviews: 19832, emoji: '❄️', tags: ['assured'], highlights: ['5-star energy rating', '4-in-1 adjustable mode', 'Anti-bacterial filter', 'Copper condenser'] },
-        { id: 'A004', name: 'Atomberg Renesa 1200mm BLDC Ceiling Fan + Remote', brand: 'Atomberg', category: 'Appliances', price: 2849, originalPrice: 4500, discount: 37, rating: 4.4, reviews: 22310, emoji: '💨', tags: ['new'], highlights: ['BLDC motor', '65% energy saving', 'Remote control', 'Anti-dust coating'] },
-      ],
-      'Beauty': [
-        { id: 'B001', name: 'Himalaya Purifying Neem Face Wash — Pack of 3', brand: 'Himalaya', category: 'Beauty', price: 349, originalPrice: 620, discount: 44, rating: 4.5, reviews: 61003, emoji: '🧴', tags: ['bestseller'], highlights: ['Neem + turmeric', 'Oil-free formula', 'Suitable all skin types', 'No parabens'] },
-        { id: 'B002', name: "L'Oreal Paris Revitalift 1.5% Pure Hyaluronic Acid Serum", brand: "L'Oreal", category: 'Beauty', price: 799, originalPrice: 1399, discount: 43, rating: 4.3, reviews: 23841, emoji: '💆', tags: ['assured'], highlights: ['1.5% hyaluronic acid', 'Replumps in 1 week', 'Dermatologist tested', 'For all skin types'] },
-        { id: 'B003', name: 'Maybelline Fit Me Matte+Poreless Foundation', brand: 'Maybelline', category: 'Beauty', price: 449, originalPrice: 699, discount: 36, rating: 4.2, reviews: 41032, emoji: '💄', tags: ['bestseller'], highlights: ['16HR wear', 'SPF 22', '40 shades', 'Oil-free formula'] },
-      ],
-      'Sports': [
-        { id: 'SP001', name: 'Cosco Champion Cricket Kit — Full Set with Bag', brand: 'Cosco', category: 'Sports', price: 1899, originalPrice: 3200, discount: 41, rating: 4.2, reviews: 4328, emoji: '🏏', tags: ['bestseller'], highlights: ['English willow bat', 'Complete kit', 'Helmet included', 'Kit bag with wheels'] },
-        { id: 'SP002', name: 'Yonex Voltric 1DG Badminton Racquet', brand: 'Yonex', category: 'Sports', price: 2899, originalPrice: 4500, discount: 36, rating: 4.5, reviews: 8932, emoji: '🏸', tags: ['assured'], highlights: ['TRI-VOLTAGE system', 'Carbon graphite', 'G4 grip size', 'Pre-strung 24lbs'] },
-        { id: 'SP003', name: 'Nivia Storm Football — Size 5', brand: 'Nivia', category: 'Sports', price: 649, originalPrice: 999, discount: 35, rating: 4.3, reviews: 6210, emoji: '⚽', tags: ['new'], highlights: ['Size 5', '32 panel', 'Machine stitched', 'PU outer casing'] },
-      ],
-      'Books': [
-        { id: 'BK001', name: 'Atomic Habits — James Clear', brand: 'Penguin', category: 'Books', price: 399, originalPrice: 799, discount: 50, rating: 4.7, reviews: 184320, emoji: '📗', tags: ['bestseller'], highlights: ['#1 NYT Bestseller', 'Paperback edition', 'English', '320 pages'] },
-        { id: 'BK002', name: 'The Psychology of Money — Morgan Housel', brand: 'Jaico', category: 'Books', price: 349, originalPrice: 599, discount: 42, rating: 4.6, reviews: 92104, emoji: '📘', tags: ['bestseller'], highlights: ['19 short stories', 'Financial wisdom', 'Paperback', '256 pages'] },
-        { id: 'BK003', name: 'Rich Dad Poor Dad — Robert T. Kiyosaki', brand: 'Manjul', category: 'Books', price: 299, originalPrice: 495, discount: 40, rating: 4.5, reviews: 143210, emoji: '📙', tags: ['bestseller'], highlights: ['25yr anniversary ed.', 'Hindi + English', 'Paperback', '336 pages'] },
-      ],
-    };
-
     // ─── STATE ───
     let currentCategory = 'Electronics';
-    let cartItems = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    let cartItems       = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    let currentSearch = ''; // empty means no search active
+
+    // ─── FILTER & PAGINATION STATE ───
+    const PAGE_SIZE = 8;
+    let currentPage   = 1;
+    let currentSort   = 'relevance';
+    let activeFilters = {
+      price:    [],   // e.g. ['Under ₹500', '₹500 – ₹1,000']
+      brands:   [],   // e.g. ['Samsung', 'Apple']
+      rating:   null, // e.g. 4 (means 4★ and above)
+      discount: null, // e.g. 30 (means 30% or more)
+      priceMin: null,
+      priceMax: null
+};
 
     // ─── INIT ───
     function init() {
       const params = new URLSearchParams(window.location.search);
-      const cat = params.get('category');
-      if (cat && catalogue[cat]) {
+      const cat    = params.get('category');
+      const searchParam = params.get('search');
+      if (searchParam) {
+        currentSearch   = searchParam.trim();
+        currentCategory = 'Search';
+      } else if (cat === 'Deals') {
+        currentCategory = 'Deals';
+      } else if (cat && catalogue[cat]) {
         currentCategory = cat;
       }
-      document.title = `Bazario — ${currentCategory}`;
-      document.getElementById('breadcrumbCategory').textContent = currentCategory;
-      document.getElementById('categoryLabel').textContent = currentCategory;
+      
+      let displayName;
+      if (currentCategory === 'Deals')  displayName = "Today's Deals 🔥";
+      else if (currentCategory === 'Search') displayName = `Results for "${currentSearch}"`;
+      else displayName = currentCategory;
 
-      renderProducts(currentCategory);
+      document.title = `Bazario — ${displayName}`;
+      document.getElementById('breadcrumbCategory').textContent = displayName;
+      document.getElementById('categoryLabel').textContent      = displayName;
+      
       renderBrandFilters(currentCategory);
+      applyFiltersAndSort(); // renders products + pagination
       updateCartCount();
 
+      // ─────────────────────────────────────────────────────────────
       // Later: CleverTap event — "Category Viewed"
       // clevertap.event.push("Category Viewed", {
       //   category_name: currentCategory,
-      //   source: "listing_page"
+      //   source:        "listing_page"
       // });
+      // ─────────────────────────────────────────────────────────────
+
+      // Pre-fill search bar if search mode
+      if (currentSearch) {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.value = currentSearch;
+      }
     }
 
-    // ─── RENDER PRODUCTS ───
-    function renderProducts(category) {
-      const products = catalogue[category] || catalogue['Electronics'];
-      document.getElementById('resultCount').textContent = products.length * 6; // simulate more pages
+    // ─── APPLY FILTERS, SORT, AND PAGINATE ───
+    // This runs every time a filter, sort, or page changes.
+    // It always starts from the full category array.
+    function applyFiltersAndSort() {
+      // Deals mode — pulls all products with 30%+ discount across all categories
+      let products;
+      if (currentCategory === 'Search') {
+        const q = currentSearch.toLowerCase();
+        products = getAllProducts().filter(p =>
+          p.name.toLowerCase().includes(q)     ||
+          p.brand.toLowerCase().includes(q)    ||
+          p.category.toLowerCase().includes(q) ||
+          (p.highlights || []).some(h => h.toLowerCase().includes(q))
+        );
+      } else if (currentCategory === 'Deals') {
+        products = getAllProducts()
+          .filter(p => p.discount >= 30)
+          .sort((a, b) => b.discount - a.discount);
+      } else {
+        products = catalogue[currentCategory] || [];
+      }
+      
+      // ── Price range filter (checkbox bands) ──
+      if (activeFilters.price.length > 0) {
+        products = products.filter(p => {
+          return activeFilters.price.some(band => {
+            if (band === 'Under ₹500')          return p.price < 500;
+            if (band === '₹500 – ₹1,000')       return p.price >= 500  && p.price < 1000;
+            if (band === '₹1,000 – ₹5,000')     return p.price >= 1000 && p.price < 5000;
+            if (band === '₹5,000 – ₹15,000')    return p.price >= 5000 && p.price < 15000;
+            if (band === 'Above ₹15,000')        return p.price >= 15000;
+            return false;
+          });
+        });
+      }
+
+      // ── Custom price range (Min/Max inputs) ──
+      if (activeFilters.priceMin !== null) {
+        products = products.filter(p => p.price >= activeFilters.priceMin);
+      }
+      if (activeFilters.priceMax !== null) {
+        products = products.filter(p => p.price <= activeFilters.priceMax);
+      }
+
+      // ── Brand filter ──
+      if (activeFilters.brands.length > 0) {
+        products = products.filter(p => activeFilters.brands.includes(p.brand));
+      }
+
+      // ── Rating filter ──
+      if (activeFilters.rating !== null) {
+        products = products.filter(p => p.rating >= activeFilters.rating);
+      }
+
+      // ── Discount filter ──
+      if (activeFilters.discount !== null) {
+        products = products.filter(p => p.discount >= activeFilters.discount);
+      }
+
+      // ── Sort ──
+      switch (currentSort) {
+        case 'price_low':   products.sort((a, b) => a.price - b.price);            break;
+        case 'price_high':  products.sort((a, b) => b.price - a.price);            break;
+        case 'rating':      products.sort((a, b) => b.rating - a.rating);          break;
+        case 'popularity':  products.sort((a, b) => b.reviews - a.reviews);        break;
+        case 'discount':    products.sort((a, b) => b.discount - a.discount);      break;
+        default:            break; // relevance — original catalogue order
+      }
+
+      // ── Update result count ──
+      const totalResults = products.length;
+      document.getElementById('resultCount').textContent = totalResults;
+
+      // ── Paginate ──
+      const totalPages  = Math.max(1, Math.ceil(totalResults / PAGE_SIZE));
+      currentPage       = Math.min(currentPage, totalPages); // clamp if filters reduced pages
+      const start       = (currentPage - 1) * PAGE_SIZE;
+      const pageSlice   = products.slice(start, start + PAGE_SIZE);
+
+      // ── Render ──
+      renderProductRows(pageSlice);
+      renderPagination(totalPages);
+    }
+
+    // ─── RENDER PRODUCT ROWS ───
+    // Receives an already-filtered, sorted, paginated array.
+    function renderProductRows(products) {
       const list = document.getElementById('productsList');
       list.innerHTML = '';
 
+      if (products.length === 0) {
+        list.innerHTML = `
+          <div style="background:#fff;padding:40px;text-align:center;color:#999;border-radius:0 0 4px 4px">
+            <div style="font-size:40px;margin-bottom:12px">🔍</div>
+            <div style="font-size:16px;font-weight:600;color:#212121;margin-bottom:8px">No products found</div>
+            <div style="font-size:13px">Try adjusting your filters or <button onclick="clearFilters()"
+              style="background:none;border:none;color:#2874f0;font-weight:600;cursor:pointer;font-size:13px">
+              clear all filters</button></div>
+          </div>`;
+        return;
+      }
+
       products.forEach(p => {
-        const tagHTML = p.tags.map(t => `<span class="prod-tag tag-${t}">${t === 'assured' ? '✓ Bazario Assured' : t === 'bestseller' ? '🏆 Bestseller' : '🆕 New'}</span>`).join('');
+        const tagHTML       = p.tags.map(t => `<span class="prod-tag tag-${t}">${t === 'assured' ? '✓ Bazario Assured' : t === 'bestseller' ? '🏆 Bestseller' : '🆕 New'}</span>`).join('');
         const highlightHTML = p.highlights.map(h => `<li>${h}</li>`).join('');
 
         const row = document.createElement('div');
@@ -695,8 +785,20 @@
 
     // ─── BRAND FILTERS ───
     function renderBrandFilters(category) {
-      const products = catalogue[category] || [];
-      const brands = [...new Set(products.map(p => p.brand))];
+      let products;
+      if (category === 'Search') {
+        const q = currentSearch.toLowerCase();
+        products = getAllProducts().filter(p =>
+          p.name.toLowerCase().includes(q)  ||
+          p.brand.toLowerCase().includes(q) ||
+          p.category.toLowerCase().includes(q)
+        );
+      } else if (category === 'Deals') {
+        products = getAllProducts().filter(p => p.discount >= 30);
+      } else {
+        products = catalogue[category] || [];
+      }
+      const brands    = [...new Set(products.map(p => p.brand))];
       const container = document.getElementById('brandFilters');
       container.innerHTML = brands.map((b, i) => `
         <div class="filter-option">
@@ -766,32 +868,85 @@
       showToast(`✓ ${product.name.substring(0, 30)}... added to cart`);
     }
 
-    function handleWishlist(e, name) {
+    function handleWishlist(e, productId) {
       e.stopPropagation();
-      // Later: CleverTap event — "Added to Wishlist"
-      showToast(`♡ Added to Wishlist`);
+      const p        = getAllProducts().find(item => item.name === productId) || getAllProducts().find(item => item.id === productId);
+      if (!p) { showToast('♡ Added to Wishlist'); return; }
+
+      const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+      const exists   = wishlist.find(i => i.id === p.id);
+
+      if (exists) { showToast('Already in your Wishlist'); return; }
+
+      wishlist.push({
+        id: p.id, name: p.name, brand: p.brand, category: p.category,
+        price: p.price, originalPrice: p.originalPrice, discount: p.discount,
+        rating: p.rating, emoji: p.emoji, addedAt: new Date().toISOString()
+      });
+
+      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      showToast(`♡ ${p.name.substring(0, 30)}... added to Wishlist`);
+
+      const el = document.getElementById('wishlistCount');
+      if (el) el.textContent = wishlist.length;
     }
 
     // ─── FILTERS ───
     function handleFilter(type, value) {
+      currentPage = 1; // reset to page 1 on any filter change
+
+      if (type === 'price') {
+        const idx = activeFilters.price.indexOf(value);
+        if (idx > -1) activeFilters.price.splice(idx, 1);
+        else activeFilters.price.push(value);
+      }
+
+      if (type === 'brand') {
+        const idx = activeFilters.brands.indexOf(value);
+        if (idx > -1) activeFilters.brands.splice(idx, 1);
+        else activeFilters.brands.push(value);
+      }
+
+      if (type === 'rating') {
+        const num = parseInt(value);
+        activeFilters.rating = activeFilters.rating === num ? null : num;
+      }
+
+      if (type === 'discount') {
+        const num = parseInt(value);
+        activeFilters.discount = activeFilters.discount === num ? null : num;
+      }
+
+      // ─────────────────────────────────────────────────────────────
       // Later: CleverTap event — "Filter Applied"
       // clevertap.event.push("Filter Applied", {
       //   filter_type:  type,
       //   filter_value: value,
       //   category:     currentCategory
       // });
-      showToast(`Filter applied: ${value}`);
+      // ─────────────────────────────────────────────────────────────
+
+      applyFiltersAndSort();
     }
 
     function handlePriceRange() {
-      const min = document.getElementById('priceMin').value;
-      const max = document.getElementById('priceMax').value;
+      const min = parseInt(document.getElementById('priceMin').value) || null;
+      const max = parseInt(document.getElementById('priceMax').value) || null;
       if (!min && !max) return;
-      handleFilter('price_range', `₹${min} – ₹${max}`);
+
+      activeFilters.priceMin = min;
+      activeFilters.priceMax = max;
+      currentPage = 1;
+      applyFiltersAndSort();
     }
 
     function clearFilters() {
+      activeFilters = { price: [], brands: [], rating: null, discount: null, priceMin: null, priceMax: null };
+      currentPage   = 1;
       document.querySelectorAll('.filter-option input').forEach(cb => cb.checked = false);
+      document.getElementById('priceMin').value = '';
+      document.getElementById('priceMax').value = '';
+      applyFiltersAndSort();
       showToast('All filters cleared');
     }
 
@@ -799,23 +954,119 @@
     function handleSort(type, btn) {
       document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
+      currentSort = type;
+      currentPage = 1;
+      applyFiltersAndSort();
+
+      // ─────────────────────────────────────────────────────────────
       // Later: CleverTap event — "Sort Applied"
-      showToast(`Sorted by: ${btn.textContent}`);
+      // clevertap.event.push("Sort Applied", {
+      //   sort_type:  type,
+      //   category:   currentCategory
+      // });
+      // ─────────────────────────────────────────────────────────────
     }
 
     // ─── SEARCH ───
     function handleSearch() {
       const q = document.getElementById('searchInput').value.trim();
       if (!q) return;
+
+      currentSearch   = q;
+      currentCategory = 'Search';
+      currentPage     = 1;
+
+      // Update URL without reloading the page
+      const url = new URL(window.location.href);
+      url.searchParams.set('search', q);
+      url.searchParams.delete('category');
+      window.history.pushState({}, '', url);
+
+      // Update display
+      const displayName = `Results for "${q}"`;
+      document.getElementById('breadcrumbCategory').textContent = displayName;
+      document.getElementById('categoryLabel').textContent      = displayName;
+      document.title = `Bazario — ${displayName}`;
+
+      // ─────────────────────────────────────────────────────────────
       // Later: CleverTap event — "Product Searched"
-      showToast(`Searching for "${q}"...`);
+      // clevertap.event.push("Product Searched", {
+      //   query:        q,
+      //   source:       "listing_search_bar"
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      renderBrandFilters('Search');
+      applyFiltersAndSort();
     }
 
-    // ─── PAGINATION ───
-    function handlePageChange(page) {
-      // Later: CleverTap event — "Listing Page Changed"
-      showToast(`Loading page ${page}...`);
+    // ─── RENDER PAGINATION BAR ───
+    function renderPagination(totalPages) {
+      const container = document.querySelector('.pagination');
+      if (!container) return;
+
+      if (totalPages <= 1) {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.style.display = 'flex';
+      container.innerHTML = '';
+
+      // Previous button
+      if (currentPage > 1) {
+        const prev = document.createElement('button');
+        prev.className = 'page-btn';
+        prev.textContent = '‹ Prev';
+        prev.onclick = () => goToPage(currentPage - 1);
+        container.appendChild(prev);
+      }
+
+      // Page number buttons
+      for (let i = 1; i <= totalPages; i++) {
+        // Show first, last, current, and neighbours — add ellipsis for large ranges
+        if (
+          i === 1 || i === totalPages ||
+          (i >= currentPage - 1 && i <= currentPage + 1)
+        ) {
+          const btn = document.createElement('button');
+          btn.className = `page-btn${i === currentPage ? ' active' : ''}`;
+          btn.textContent = i;
+          btn.onclick = () => goToPage(i);
+          container.appendChild(btn);
+        } else if (
+          i === currentPage - 2 || i === currentPage + 2
+        ) {
+          const ellipsis = document.createElement('span');
+          ellipsis.textContent = '...';
+          ellipsis.style.cssText = 'padding:0 6px;color:#999;align-self:center;font-size:13px';
+          container.appendChild(ellipsis);
+        }
+      }
+
+      // Next button
+      if (currentPage < totalPages) {
+        const next = document.createElement('button');
+        next.className = 'page-btn next';
+        next.textContent = 'Next ›';
+        next.onclick = () => goToPage(currentPage + 1);
+        container.appendChild(next);
+      }
+    }
+
+    // ─── GO TO PAGE ───
+    function goToPage(page) {
+      currentPage = page;
+      applyFiltersAndSort();
       window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Listing Page Changed"
+      // clevertap.event.push("Listing Page Changed", {
+      //   category:     currentCategory,
+      //   page_number:  page
+      // });
+      // ─────────────────────────────────────────────────────────────
     }
 
     // ─── CART COUNT ───

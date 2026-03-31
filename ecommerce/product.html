@@ -572,6 +572,7 @@
       .related-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
+  <script src="js/catalogue.js"></script>
 </head>
 <body>
 
@@ -583,13 +584,13 @@
     </a>
     <div class="nav-search">
       <input type="text" placeholder="Search for products, brands and more" id="searchInput" />
-      <button>🔍</button>
+      <button onclick="handleSearch()">🔍</button>
     </div>
     <div class="nav-actions">
       <button class="nav-btn-login">Login</button>
-      <button class="nav-btn">
+      <button class="nav-btn" onclick="window.location.href='wishlist.html'">
         <span class="label">Wishlist</span>
-        <span class="value">♡</span>
+        <span class="value">♡ <span id="wishlistCount">0</span></span>
       </button>
       <button class="nav-btn" onclick="window.location.href='cart.html'">
         <span class="label">Cart</span>
@@ -794,32 +795,6 @@
 
   <script>
 
-    // ─── PRODUCT CATALOGUE (same as listing.html) ───
-    const catalogue = {
-      'Electronics': [
-        { id: 'E001', name: 'Samsung Galaxy M14 5G (4GB RAM, 128GB)', brand: 'Samsung', category: 'Electronics', price: 10999, originalPrice: 14999, discount: 27, rating: 4.2, reviews: 231104, emoji: '📱', tags: ['bestseller'], highlights: ['5G ready', '50MP triple camera', '6000mAh battery', 'Android 13'], variants: { label: 'Storage', options: ['4GB+64GB', '4GB+128GB', '6GB+128GB'] }, desc: 'The Samsung Galaxy M14 5G is powered by the Exynos 1330 processor and comes with a 50MP triple camera setup. The 6000mAh battery keeps you going all day with its 5G connectivity for blazing fast speeds.', specs: [['Brand','Samsung'],['Model','Galaxy M14 5G'],['RAM','4 GB'],['Storage','128 GB'],['Display','6.6" FHD+ TFT'],['Battery','6000 mAh'],['Processor','Exynos 1330'],['OS','Android 13'],['Camera','50MP + 5MP + 2MP']] },
-        { id: 'E002', name: 'Apple iPhone 13 (128GB) — Midnight', brand: 'Apple', category: 'Electronics', price: 49999, originalPrice: 69900, discount: 28, rating: 4.6, reviews: 189432, emoji: '📱', tags: ['assured'], highlights: ['A15 Bionic chip', '12MP dual camera', '5G capable', 'Face ID'], variants: { label: 'Storage', options: ['128GB', '256GB', '512GB'] }, desc: 'iPhone 13 features the A15 Bionic chip, the most powerful chip ever in a smartphone. Advanced dual-camera system with Night mode on every camera, Cinematic mode, and Photographic Styles.', specs: [['Brand','Apple'],['Model','iPhone 13'],['RAM','4 GB'],['Storage','128 GB'],['Display','6.1" Super Retina XDR'],['Battery','3227 mAh'],['Processor','A15 Bionic'],['OS','iOS 17'],['Camera','12MP + 12MP']] },
-        { id: 'E003', name: 'OnePlus Nord CE3 Lite 5G (8GB RAM, 128GB)', brand: 'OnePlus', category: 'Electronics', price: 17999, originalPrice: 25999, discount: 31, rating: 4.1, reviews: 94210, emoji: '📱', tags: ['assured'], highlights: ['Snapdragon 695', '108MP camera', '67W SUPERVOOC', '5000mAh'], variants: { label: 'Storage', options: ['8GB+128GB', '8GB+256GB'] }, desc: 'OnePlus Nord CE3 Lite 5G is equipped with Snapdragon 695 5G processor and a 108MP primary camera. The 67W SUPERVOOC charging fills the 5000mAh battery in just 44 minutes.', specs: [['Brand','OnePlus'],['Model','Nord CE3 Lite'],['RAM','8 GB'],['Storage','128 GB'],['Display','6.72" FHD+ LCD'],['Battery','5000 mAh'],['Processor','Snapdragon 695'],['OS','OxygenOS 13.1'],['Camera','108MP + 2MP + 2MP']] },
-        { id: 'E004', name: 'boAt Airdopes 141 TWS Earbuds 42H Playback', brand: 'boAt', category: 'Electronics', price: 1299, originalPrice: 4499, discount: 71, rating: 4.1, reviews: 124832, emoji: '🎧', tags: ['bestseller'], highlights: ['42H total playback', 'ENx tech', 'IPX4 water resistant', 'Instant connect'], variants: { label: 'Colour', options: ['Active Black', 'Bold Blue', 'Mint Green', 'Cherry Red'] }, desc: 'boAt Airdopes 141 TWS earbuds deliver 42 hours of total playback with ENx technology for clear calls. IPX4 water resistance makes them perfect for workouts. Features instant connect and Bluetooth v5.3.', specs: [['Brand','boAt'],['Model','Airdopes 141'],['Driver Size','6mm'],['Frequency','20Hz–20KHz'],['Battery','30mAh + 300mAh case'],['Connectivity','Bluetooth 5.3'],['Water resistance','IPX4'],['Mic','ENx tech microphone']] },
-        { id: 'E005', name: 'Noise ColorFit Pro 4 Smartwatch 1.72" Display', brand: 'Noise', category: 'Electronics', price: 2499, originalPrice: 6999, discount: 64, rating: 4.3, reviews: 86421, emoji: '⌚', tags: ['bestseller'], highlights: ['1.72" TFT display', 'GPS built-in', '100+ sports modes', 'SpO2 monitoring'], variants: { label: 'Colour', options: ['Jet Black', 'Silver Grey', 'Rose Gold', 'Teal'] }, desc: 'The Noise ColorFit Pro 4 features a large 1.72" TFT display with built-in GPS for accurate tracking. Monitor your SpO2, heart rate and stress levels. Choose from 100+ sports modes.', specs: [['Brand','Noise'],['Model','ColorFit Pro 4'],['Display','1.72" TFT'],['Battery','300 mAh'],['GPS','Built-in'],['Water resistance','IP68'],['Sensors','Heart rate, SpO2, Stress'],['Sports modes','100+']] },
-        { id: 'E006', name: 'Logitech MK215 Wireless Keyboard & Mouse Combo', brand: 'Logitech', category: 'Electronics', price: 1795, originalPrice: 2795, discount: 36, rating: 4.4, reviews: 52341, emoji: '⌨️', tags: ['assured'], highlights: ['2.4GHz wireless', '24-month battery life', 'Compact design', 'Plug & play'], variants: { label: 'Version', options: ['Standard', 'Hindi keys'] }, desc: 'The Logitech MK215 Wireless Combo brings together a comfortable keyboard and precise mouse connected via a single nano USB receiver. Battery life of up to 24 months on keyboard and 12 months on mouse.', specs: [['Brand','Logitech'],['Model','MK215'],['Connectivity','2.4GHz wireless'],['Range','10 metres'],['Keyboard battery','24 months'],['Mouse battery','12 months'],['DPI','1000 DPI'],['OS','Windows/Mac/Chrome']] },
-        { id: 'E007', name: 'Sony Bravia 43" 4K Ultra HD Android TV', brand: 'Sony', category: 'Electronics', price: 44990, originalPrice: 64990, discount: 31, rating: 4.5, reviews: 38921, emoji: '📺', tags: ['assured'], highlights: ['4K HDR processor', 'Google TV', 'Dolby Audio', 'HDMI x3'], variants: { label: 'Size', options: ['43"', '50"', '55"', '65"'] }, desc: 'Sony Bravia 43" 4K TV powered by Google TV gives you a world of entertainment in stunning 4K HDR. Dolby Audio and X1 processor deliver exceptional picture and sound quality.', specs: [['Brand','Sony'],['Model','KD-43X74L'],['Resolution','4K Ultra HD (3840×2160)'],['Display type','LED'],['HDR','Yes (HDR10, HLG)'],['Smart','Google TV'],['HDMI','3 ports'],['USB','2 ports']] },
-        { id: 'E008', name: 'HP 15s Core i5 12th Gen Laptop (8GB, 512GB SSD)', brand: 'HP', category: 'Electronics', price: 49990, originalPrice: 67990, discount: 26, rating: 4.3, reviews: 21043, emoji: '💻', tags: ['new'], highlights: ['Intel Core i5-1235U', '8GB DDR4 RAM', '512GB SSD', 'Windows 11'], variants: { label: 'RAM', options: ['8GB + 512GB SSD', '16GB + 512GB SSD', '16GB + 1TB SSD'] }, desc: 'HP 15s laptop powered by Intel Core i5-1235U 12th Gen processor delivers fast, fluid performance. With 8GB RAM and 512GB SSD, multi-tasking and boot times are significantly faster than traditional HDDs.', specs: [['Brand','HP'],['Processor','Intel Core i5-1235U'],['RAM','8 GB DDR4'],['Storage','512 GB SSD'],['Display','15.6" FHD IPS'],['Graphics','Intel Iris Xe'],['OS','Windows 11 Home'],['Weight','1.69 kg']] },
-      ],
-      'Fashion': [
-        { id: 'F001', name: "Levi's 511 Slim Fit Men's Jeans — Dark Blue", brand: "Levi's", category: 'Fashion', price: 2399, originalPrice: 3999, discount: 40, rating: 4.3, reviews: 9142, emoji: '👖', tags: ['bestseller'], highlights: ['Slim fit', '99% cotton', 'Machine washable', 'Available in 28–38 waist'], variants: { label: 'Size (Waist)', options: ['28','30','32','34','36','38'] }, desc: "Levi's 511 Slim Fit jeans sit below the waist and are slim through the thigh with a narrow leg opening. Made from stretch denim for all-day comfort in a classic dark blue wash.", specs: [['Brand',"Levi's"],['Fit','Slim'],['Fabric','99% cotton, 1% elastane'],['Wash','Dark Blue'],['Closure','Zip fly with button'],['Care','Machine wash cold']] },
-        { id: 'F002', name: 'H&M Women Floral Wrap Dress — Multicolour', brand: 'H&M', category: 'Fashion', price: 1299, originalPrice: 2499, discount: 48, rating: 4.1, reviews: 6832, emoji: '👗', tags: ['new'], highlights: ['Regular fit', 'V-neck wrap style', 'Woven fabric', 'Belt included'], variants: { label: 'Size', options: ['XS','S','M','L','XL'] }, desc: 'Elegant H&M floral wrap dress in a feminine silhouette. The V-neck wrap style with attached belt accentuates the waist. Perfect for brunch, office, or evening out.', specs: [['Brand','H&M'],['Fit','Regular'],['Neckline','V-neck'],['Fabric','Viscose woven'],['Length','Midi'],['Care','Hand wash cold']] },
-        { id: 'F003', name: 'Nike Air Max 270 Running Shoes for Men', brand: 'Nike', category: 'Fashion', price: 6995, originalPrice: 11995, discount: 42, rating: 4.5, reviews: 18743, emoji: '👟', tags: ['assured'], highlights: ['Max Air heel unit', 'Foam midsole', 'Mesh upper', 'Available UK 6–12'], variants: { label: 'Size (UK)', options: ['6','7','8','9','10','11','12'] }, desc: "Nike Air Max 270 features Nike's first lifestyle Air unit that sits below a heel inspired by the original Max Air 180. The mesh upper ensures breathability while the foam midsole delivers lightweight cushioning.", specs: [['Brand','Nike'],['Model','Air Max 270'],['Upper','Mesh + synthetic'],['Sole','Rubber'],['Closure','Lace-up'],['Cushioning','Max Air 270 heel unit']] },
-        { id: 'F004', name: 'Allen Solly Men Slim Fit Formal Shirt — White', brand: 'Allen Solly', category: 'Fashion', price: 949, originalPrice: 1799, discount: 47, rating: 4.2, reviews: 14231, emoji: '👔', tags: ['bestseller'], highlights: ['Slim fit collar', '100% cotton', 'Full sleeves', 'Machine wash safe'], variants: { label: 'Size', options: ['S','M','L','XL','XXL'] }, desc: 'Allen Solly slim fit formal shirt in crisp white is made from 100% cotton for breathability and comfort. Classic full-sleeve design with a slim fit collar — ideal for office or formal occasions.', specs: [['Brand','Allen Solly'],['Fit','Slim'],['Fabric','100% Cotton'],['Sleeve','Full sleeve'],['Collar','Classic formal'],['Care','Machine wash safe']] },
-      ],
-      'Grocery': [
-        { id: 'G001', name: 'Tata Salt Iodised — 1kg Pack of 6', brand: 'Tata', category: 'Grocery', price: 162, originalPrice: 180, discount: 10, rating: 4.6, reviews: 43210, emoji: '🧂', tags: ['bestseller'], highlights: ['Iodised salt', 'Fine grain', 'Free flowing', 'BIS certified'], variants: { label: 'Pack Size', options: ['1kg', 'Pack of 2', 'Pack of 6'] }, desc: "Tata Salt is India's most trusted salt brand. Vacuum evaporated iodised salt with consistent quality. Fine grain, free-flowing formula approved under BIS certification.", specs: [['Brand','Tata'],['Type','Iodised salt'],['Grain','Fine'],['Weight','1 kg'],['Iodine','Min 15 ppm'],['Certification','BIS']] },
-      ],
-      'Books': [
-        { id: 'BK001', name: 'Atomic Habits — James Clear', brand: 'Penguin', category: 'Books', price: 399, originalPrice: 799, discount: 50, rating: 4.7, reviews: 184320, emoji: '📗', tags: ['bestseller'], highlights: ['#1 NYT Bestseller', 'Paperback edition', 'English', '320 pages'], variants: { label: 'Format', options: ['Paperback', 'Hardcover', 'Kindle'] }, desc: 'Atomic Habits is a proven framework for improving every day. James Clear reveals practical strategies that will teach you exactly how to form good habits, break bad ones, and master the tiny behaviors that lead to remarkable results.', specs: [['Author','James Clear'],['Publisher','Penguin'],['ISBN','9780735211292'],['Pages','320'],['Language','English'],['Format','Paperback'],['Edition','International']] },
-      ],
-    };
-
     // ─── STATE ───
     let product = null;
     let qty = 1;
@@ -990,6 +965,12 @@
       document.getElementById('qtyDisplay').textContent = qty;
     }
 
+    function handleSearch() {
+      const q = document.getElementById('searchInput').value.trim();
+      if (!q) return;
+      window.location.href = `listing.html?search=${encodeURIComponent(q)}`;
+    }
+
     function handlePincodeCheck() {
       const pin = document.getElementById('pincode').value.trim();
       if (pin.length !== 6 || isNaN(pin)) {
@@ -1046,6 +1027,32 @@
     }
 
     function handleWishlist() {
+      if (!product) return;
+      const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+      const exists   = wishlist.find(i => i.id === product.id);
+
+      if (exists) {
+        showToast('Already in your Wishlist');
+        return;
+      }
+
+      wishlist.push({
+        id:            product.id,
+        name:          product.name,
+        brand:         product.brand,
+        category:      product.category,
+        price:         product.price,
+        originalPrice: product.originalPrice,
+        discount:      product.discount,
+        rating:        product.rating,
+        emoji:         product.emoji,
+        addedAt:       new Date().toISOString()
+      });
+
+      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      updateWishlistCount();
+
+      // ─────────────────────────────────────────────────────────────
       // Later: CleverTap event — "Added to Wishlist"
       // clevertap.event.push("Added to Wishlist", {
       //   product_id:   product.id,
@@ -1053,6 +1060,8 @@
       //   category:     product.category,
       //   price:        product.price
       // });
+      // ─────────────────────────────────────────────────────────────
+
       showToast('♡ Added to Wishlist');
     }
 
@@ -1071,6 +1080,12 @@
       document.getElementById('cartCount').textContent = total;
     }
 
+    function updateWishlistCount() {
+      const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+      const el = document.getElementById('wishlistCount');
+      if (el) el.textContent = wishlist.length;
+    }
+
     // ─── TOAST ───
     function showToast(msg) {
       const t = document.getElementById('toast');
@@ -1080,6 +1095,9 @@
     }
 
     init();
+    document.getElementById('searchInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleSearch();
+    });
   </script>
   <script src="js/auth.js"></script>
 </body>
