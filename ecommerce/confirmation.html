@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazario — Order Confirmed!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #2874f0;
+      --primary-dark: #1a5dc8;
+      --accent:       #ff6f00;
+      --bg:           #f1f3f6;
+      --surface:      #ffffff;
+      --text:         #212121;
+      --text-sec:     #666666;
+      --text-muted:   #999999;
+      --border:       #e0e0e0;
+      --success:      #388e3c;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── NAVBAR ─── */
+    .navbar { position: sticky; top: 0; z-index: 100; background: var(--primary); height: 56px; display: flex; align-items: center; padding: 0 16px; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .nav-logo { display: flex; flex-direction: column; min-width: 120px; text-decoration: none; }
+    .nav-logo .brand { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+    .nav-logo .brand span { color: #ffe082; }
+    .nav-logo .tagline { font-size: 10px; color: rgba(255,255,255,0.75); font-style: italic; margin-top: 2px; }
+    .nav-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 6px 14px; color: #fff; border-radius: 4px; font-size: 12px; white-space: nowrap; cursor: pointer; background: none; border: none; gap: 2px; transition: background 0.15s; }
+    .nav-btn:hover { background: rgba(255,255,255,0.15); }
+    .nav-btn .label { font-size: 11px; color: rgba(255,255,255,0.8); }
+    .nav-btn .value { font-size: 13px; font-weight: 600; }
+
+    /* ─── CHECKOUT STEPS ─── */
+    .checkout-steps { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 0; }
+    .steps-inner { max-width: 900px; margin: 0 auto; padding: 0 16px; display: flex; align-items: center; justify-content: center; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted); }
+    .step.done { color: var(--success); }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--bg); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; }
+    .step.done .step-num { background: var(--success); border-color: var(--success); color: #fff; font-size: 13px; }
+    .step-line { flex: 1; height: 2px; background: var(--border); max-width: 80px; margin: 0 8px; }
+    .step-line.done { background: var(--success); }
+
+    /* ─── LAYOUT ─── */
+    .container { max-width: 900px; margin: 0 auto; padding: 0 16px; }
+    .page-body { padding: 24px 0 48px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* ─── SUCCESS BANNER ─── */
+    .success-banner {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 40px 32px;
+      text-align: center;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .success-banner::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--success), #66bb6a);
+    }
+
+    .success-icon {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      background: #e8f5e9;
+      border: 3px solid var(--success);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 32px;
+      margin: 0 auto 20px;
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes popIn {
+      0%   { transform: scale(0); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .success-title { font-size: 24px; font-weight: 700; color: var(--success); margin-bottom: 8px; }
+    .success-sub { font-size: 15px; color: var(--text-sec); margin-bottom: 20px; line-height: 1.6; }
+
+    .order-id-pill {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 999px; padding: 8px 20px;
+      font-size: 13px; color: var(--text-sec);
+    }
+
+    .order-id-pill strong { color: var(--primary); font-size: 14px; font-family: monospace; letter-spacing: 0.05em; }
+    .order-id-pill .copy-btn { background: none; border: none; color: var(--primary); font-size: 12px; font-weight: 600; cursor: pointer; padding: 0 0 0 4px; }
+
+    /* ─── DELIVERY TIMELINE ─── */
+    .delivery-card { background: var(--surface); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .delivery-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+
+    .timeline { display: flex; flex-direction: column; gap: 0; }
+
+    .timeline-item { display: flex; gap: 16px; padding-bottom: 24px; }
+    .timeline-item:last-child { padding-bottom: 0; }
+
+    .timeline-left { display: flex; flex-direction: column; align-items: center; min-width: 32px; }
+
+    .timeline-dot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; z-index: 1; }
+    .timeline-dot.done    { background: var(--success); color: #fff; }
+    .timeline-dot.active  { background: var(--primary); color: #fff; }
+    .timeline-dot.pending { background: var(--bg); border: 2px solid var(--border); color: var(--text-muted); }
+
+    .timeline-line { flex: 1; width: 2px; background: var(--border); margin: 4px 0; min-height: 20px; }
+    .timeline-line.done { background: var(--success); }
+
+    .timeline-content { padding-top: 4px; }
+    .timeline-label { font-size: 14px; font-weight: 600; color: var(--text); }
+    .timeline-label.active  { color: var(--primary); }
+    .timeline-label.pending { color: var(--text-muted); }
+    .timeline-date { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .timeline-date.active { color: var(--success); font-weight: 600; }
+
+    /* ─── ORDER ITEMS ─── */
+    .items-card { background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+    .items-header { padding: 16px 24px; border-bottom: 1px solid var(--border); font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: space-between; }
+    .items-header .total-badge { font-size: 13px; color: var(--text-sec); font-weight: 400; }
+
+    .order-item { padding: 16px 24px; display: flex; gap: 16px; align-items: center; border-bottom: 1px solid var(--border); }
+    .order-item:last-child { border-bottom: none; }
+
+    .order-item-img { width: 64px; height: 64px; background: var(--bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 28px; flex-shrink: 0; }
+
+    .order-item-info { flex: 1; }
+    .order-item-name { font-size: 14px; font-weight: 500; margin-bottom: 4px; line-height: 1.4; }
+    .order-item-meta { font-size: 12px; color: var(--text-muted); }
+
+    .order-item-price { text-align: right; }
+    .order-item-price .price { font-size: 15px; font-weight: 700; }
+    .order-item-price .qty   { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ─── SUMMARY GRID ─── */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .summary-card { background: var(--surface); border-radius: 8px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .summary-card-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 12px; }
+
+    .summary-card-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+    .summary-card-row .label { color: var(--text-sec); }
+    .summary-card-row .value { font-weight: 600; color: var(--text); }
+    .summary-card-row .value.green { color: var(--success); }
+
+    .summary-divider { border: none; border-top: 1px dashed var(--border); margin: 10px 0; }
+    .summary-total-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; }
+
+    /* ─── NEXT STEPS ─── */
+    .next-steps { background: var(--surface); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .next-steps-title { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+    .next-steps-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    .next-step-btn { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 12px; border: 1px solid var(--border); border-radius: 8px; background: none; cursor: pointer; transition: all 0.15s; text-align: center; font-family: inherit; }
+    .next-step-btn:hover { border-color: var(--primary); background: #f0f4ff; }
+    .next-step-btn .step-icon { font-size: 24px; }
+    .next-step-btn .step-label { font-size: 12px; font-weight: 600; color: var(--text); }
+    .next-step-btn .step-sub { font-size: 11px; color: var(--text-muted); }
+
+    /* ─── RATE ORDER ─── */
+    .rate-section { background: linear-gradient(135deg, #e3f2fd, #f3e5f5); border-radius: 8px; padding: 24px; text-align: center; }
+    .rate-title { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+    .rate-sub { font-size: 13px; color: var(--text-sec); margin-bottom: 16px; }
+
+    .star-rating { display: flex; justify-content: center; gap: 8px; margin-bottom: 16px; }
+    .star { font-size: 32px; cursor: pointer; transition: transform 0.1s; filter: grayscale(1); opacity: 0.4; }
+    .star:hover, .star.active { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
+
+    .rate-submit { padding: 10px 28px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; transition: background 0.2s; }
+    .rate-submit:hover { background: var(--primary-dark); }
+
+    /* ─── CONTINUE BAR ─── */
+    .continue-bar { background: var(--surface); border-radius: 8px; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .continue-text { font-size: 14px; color: var(--text-sec); }
+    .continue-text strong { color: var(--text); }
+
+    .btn-continue { padding: 11px 28px; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-size: 14px; font-weight: 700; transition: background 0.2s, transform 0.1s; }
+    .btn-continue:hover { background: #e65100; transform: translateY(-1px); }
+
+    /* ─── TOAST ─── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #323232; color: #fff; padding: 12px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 9999; transition: transform 0.3s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 700px) {
+      .summary-grid { grid-template-columns: 1fr; }
+      .next-steps-grid { grid-template-columns: repeat(2, 1fr); }
+      .continue-bar { flex-direction: column; gap: 12px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <a href="../ecommerce/index.html" class="nav-logo">
+      <span class="brand">Bazar<span>io</span></span>
+      <span class="tagline">India's Everything Store</span>
+    </a>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="window.location.href='../ecommerce/index.html'">
+        <span class="label">Continue</span>
+        <span class="value">Shopping</span>
+      </button>
+      <button class="nav-btn" onclick="window.location.href='account.html?section=orders'">
+        <span class="label">My</span>
+        <span class="value">Orders</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── CHECKOUT STEPS — all done ─── -->
+  <div class="checkout-steps">
+    <div class="steps-inner">
+      <div class="step done">
+        <div class="step-num">✓</div>
+        <span>Cart</span>
+      </div>
+      <div class="step-line done"></div>
+      <div class="step done">
+        <div class="step-num">✓</div>
+        <span>Address</span>
+      </div>
+      <div class="step-line done"></div>
+      <div class="step done">
+        <div class="step-num">✓</div>
+        <span>Payment</span>
+      </div>
+      <div class="step-line done"></div>
+      <div class="step done">
+        <div class="step-num">✓</div>
+        <span>Summary</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── MAIN ─── -->
+  <main>
+    <div class="container">
+      <div class="page-body">
+
+        <!-- SUCCESS BANNER -->
+        <div class="success-banner">
+          <div class="success-icon">✓</div>
+          <div class="success-title">Order Placed Successfully!</div>
+          <div class="success-sub" id="successSub">
+            Thank you! Your order has been confirmed and will be delivered by <strong id="deliveryDate">Tomorrow</strong>.
+          </div>
+          <div class="order-id-pill">
+            Order ID: &nbsp;<strong id="orderIdDisplay">BZ-00000000</strong>
+            <button class="copy-btn" onclick="copyOrderId()">📋 Copy</button>
+          </div>
+        </div>
+
+        <!-- DELIVERY TIMELINE -->
+        <div class="delivery-card">
+          <div class="delivery-title">📦 Delivery Status</div>
+          <div class="timeline">
+
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-dot done">✓</div>
+                <div class="timeline-line done"></div>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-label">Order Confirmed</div>
+                <div class="timeline-date" id="confirmedDate">Today</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-dot active">📦</div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-label active">Packing in Progress</div>
+                <div class="timeline-date active">Expected today evening</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-dot pending">🚚</div>
+                <div class="timeline-line"></div>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-label pending">Out for Delivery</div>
+                <div class="timeline-date" id="outForDeliveryDate">Tomorrow morning</div>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-left">
+                <div class="timeline-dot pending">🏠</div>
+              </div>
+              <div class="timeline-content">
+                <div class="timeline-label pending">Delivered</div>
+                <div class="timeline-date" id="deliveredDate">Tomorrow by 9 PM</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ORDER ITEMS -->
+        <div class="items-card">
+          <div class="items-header">
+            <span>Items in this Order</span>
+            <span class="total-badge" id="itemsCountBadge">0 items</span>
+          </div>
+          <div id="orderItemsList"></div>
+        </div>
+
+        <!-- PRICE & DELIVERY SUMMARY -->
+        <div class="summary-grid">
+
+          <div class="summary-card">
+            <div class="summary-card-title">Price Details</div>
+            <div class="summary-card-row">
+              <span class="label">Items total</span>
+              <span class="value" id="confMRP">₹0</span>
+            </div>
+            <div class="summary-card-row">
+              <span class="label">Discount</span>
+              <span class="value green" id="confDiscount">−₹0</span>
+            </div>
+            <div class="summary-card-row">
+              <span class="label">Delivery</span>
+              <span class="value green">FREE</span>
+            </div>
+            <div class="summary-card-row">
+              <span class="label">Packaging fee</span>
+              <span class="value">₹49</span>
+            </div>
+            <hr class="summary-divider" />
+            <div class="summary-total-row">
+              <span>Amount Paid</span>
+              <span id="confTotal">₹0</span>
+            </div>
+          </div>
+
+          <div class="summary-card">
+            <div class="summary-card-title">Delivery &amp; Payment</div>
+            <div class="summary-card-row">
+              <span class="label">Address</span>
+              <span class="value" id="confAddress" style="text-align:right;max-width:60%">—</span>
+            </div>
+            <div class="summary-card-row">
+              <span class="label">Expected by</span>
+              <span class="value green" id="confDelivery">Tomorrow</span>
+            </div>
+            <hr class="summary-divider" />
+            <div class="summary-card-row">
+              <span class="label">Payment</span>
+              <span class="value" id="confPayment">UPI</span>
+            </div>
+            <div class="summary-card-row">
+              <span class="label">Status</span>
+              <span class="value green">✓ Paid</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- NEXT STEPS -->
+        <div class="next-steps">
+          <div class="next-steps-title">What would you like to do next?</div>
+          <div class="next-steps-grid">
+            <button class="next-step-btn" onclick="showToast('Opening order tracking...')">
+              <span class="step-icon">📍</span>
+              <span class="step-label">Track Order</span>
+              <span class="step-sub">Live delivery updates</span>
+            </button>
+            <button class="next-step-btn" onclick="showToast('Opening invoice...')">
+              <span class="step-icon">🧾</span>
+              <span class="step-label">Download Invoice</span>
+              <span class="step-sub">PDF receipt</span>
+            </button>
+            <button class="next-step-btn" onclick="showToast('Opening return centre...')">
+              <span class="step-icon">↩️</span>
+              <span class="step-label">Return / Exchange</span>
+              <span class="step-sub">10-day return window</span>
+            </button>
+            <button class="next-step-btn" onclick="showToast('Opening support...')">
+              <span class="step-icon">🎧</span>
+              <span class="step-label">Need Help?</span>
+              <span class="step-sub">Chat or call support</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- RATE YOUR ORDER -->
+        <div class="rate-section">
+          <div class="rate-title">How was your shopping experience?</div>
+          <div class="rate-sub">Your feedback helps us improve for everyone.</div>
+          <div class="star-rating" id="starRating">
+            <span class="star" onclick="rateStar(1)">⭐</span>
+            <span class="star" onclick="rateStar(2)">⭐</span>
+            <span class="star" onclick="rateStar(3)">⭐</span>
+            <span class="star" onclick="rateStar(4)">⭐</span>
+            <span class="star" onclick="rateStar(5)">⭐</span>
+          </div>
+          <button class="rate-submit" onclick="submitRating()">Submit Feedback</button>
+        </div>
+
+        <!-- CONTINUE SHOPPING -->
+        <div class="continue-bar">
+          <div class="continue-text">
+            <strong>Thank you for shopping with Bazario!</strong><br/>
+            Explore more deals while your order is on its way.
+          </div>
+          <button class="btn-continue" onclick="window.location.href='../ecommerce/index.html'">
+            Continue Shopping →
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ─── STATE ───
+    let orderData  = null;
+    let userRating = 0;
+
+    // ─── INIT ───
+    function init() {
+      loadOrderData();
+      renderOrderDetails();
+      setDeliveryDates();
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Order Confirmed"
+      // Fires when the confirmation page loads after a successful order.
+      // The Charged event fires on checkout.html just before redirect —
+      // this event is a secondary confirmation signal useful for
+      // post-purchase campaign triggers.
+      //
+      // clevertap.event.push("Order Confirmed", {
+      //   order_id:       orderData.orderId,
+      //   order_value:    orderData.total,
+      //   item_count:     orderData.items.reduce((s, i) => s + i.qty, 0),
+      //   payment_method: orderData.paymentMethod,
+      //   top_category:   getMostFrequentCategory()
+      // });
+      //
+      // Also update user profile properties on purchase:
+      //
+      // clevertap.profile.push({
+      //   "Site": {
+      //     "Last Order Date":  new Date().toISOString(),
+      //     "Last Order Value": orderData.total
+      //   }
+      // });
+      // ─────────────────────────────────────────────────────────────
+    }
+
+    // ─── LOAD ORDER DATA FROM LOCALSTORAGE ───
+    // checkout.html saves full order data before redirecting here.
+    // We read it back to render the confirmation details.
+    function loadOrderData() {
+      orderData = JSON.parse(localStorage.getItem('bazario_last_order') || 'null');
+
+      // Fallback: read from URL params if localStorage is empty
+      if (!orderData) {
+        const params = new URLSearchParams(window.location.search);
+        orderData = {
+          orderId:       params.get('order') || 'BZ-' + Date.now().toString().slice(-8),
+          total:         parseInt(params.get('total')) || 999,
+          paymentMethod: params.get('payment') || 'upi',
+          items:         [],
+          address:       '42, Sector 14, Gurugram, Haryana — 122001',
+          placedAt:      new Date().toISOString()
+        };
+      }
+    }
+
+    // ─── RENDER ORDER DETAILS ───
+    function renderOrderDetails() {
+      if (!orderData) return;
+
+      // Order ID
+      document.getElementById('orderIdDisplay').textContent = orderData.orderId;
+
+      // Items list
+      const itemsList = document.getElementById('orderItemsList');
+      const items     = orderData.items || [];
+
+      if (items.length === 0) {
+        itemsList.innerHTML = `
+          <div style="padding:20px 24px;font-size:13px;color:var(--text-muted)">
+            No items found. <a href="../ecommerce/index.html" style="color:var(--primary)">Start shopping</a>
+          </div>`;
+      } else {
+        itemsList.innerHTML = items.map(item => `
+          <div class="order-item">
+            <div class="order-item-img">${item.emoji || '📦'}</div>
+            <div class="order-item-info">
+              <div class="order-item-name">${item.name}</div>
+              <div class="order-item-meta">
+                ${item.brand ? item.brand + ' · ' : ''}
+                ${item.category || ''}
+                ${item.variant ? ' · ' + item.variant : ''}
+              </div>
+            </div>
+            <div class="order-item-price">
+              <div class="price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+              <div class="qty">Qty: ${item.qty}</div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      // Items count badge
+      const totalQty = items.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('itemsCountBadge').textContent =
+        `${totalQty} item${totalQty !== 1 ? 's' : ''}`;
+
+      // Price breakdown
+      const mrp      = items.reduce((s, i) => s + ((i.originalPrice || i.price) * i.qty), 0);
+      const subtotal = items.reduce((s, i) => s + (i.price * i.qty), 0);
+      const discount = mrp - subtotal;
+
+      document.getElementById('confMRP').textContent      = `₹${mrp.toLocaleString('en-IN')}`;
+      document.getElementById('confDiscount').textContent = `−₹${discount.toLocaleString('en-IN')}`;
+      document.getElementById('confTotal').textContent    = `₹${orderData.total.toLocaleString('en-IN')}`;
+
+      // Address
+      const addressShort = (orderData.address || '').split(',').slice(0, 2).join(',').trim();
+      document.getElementById('confAddress').textContent = addressShort || 'Gurugram, Haryana';
+
+      // Payment method label
+      const paymentLabels = {
+        upi:        '📱 UPI',
+        card:       '💳 Card',
+        netbanking: '🏦 Net Banking',
+        emi:        '🏛️ EMI',
+        cod:        '💰 Cash on Delivery'
+      };
+      document.getElementById('confPayment').textContent =
+        paymentLabels[orderData.paymentMethod] || '📱 UPI';
+    }
+
+    // ─── SET DELIVERY DATES ───
+    function setDeliveryDates() {
+      const now      = new Date();
+      const tomorrow = new Date(now); tomorrow.setDate(now.getDate() + 1);
+
+      const fmt = d => d.toLocaleDateString('en-IN', {
+        weekday: 'short', day: 'numeric', month: 'short'
+      });
+
+      document.getElementById('confirmedDate').textContent      = `Today, ${fmt(now)}`;
+      document.getElementById('outForDeliveryDate').textContent = `${fmt(tomorrow)}, morning`;
+      document.getElementById('deliveredDate').textContent      = `${fmt(tomorrow)} by 9 PM`;
+      document.getElementById('deliveryDate').textContent       = fmt(tomorrow);
+      document.getElementById('confDelivery').textContent       = fmt(tomorrow);
+      document.getElementById('successSub').innerHTML =
+        `Thank you! Your order has been confirmed and will be delivered by <strong>${fmt(tomorrow)}</strong>.`;
+    }
+
+    // ─── HELPER: Most frequent category in order ───
+    function getMostFrequentCategory() {
+      if (!orderData || !orderData.items || orderData.items.length === 0) return '';
+      const freq = {};
+      orderData.items.forEach(i => freq[i.category] = (freq[i.category] || 0) + i.qty);
+      return Object.entries(freq).sort((a, b) => b[1] - a[1])[0][0];
+    }
+
+    // ─── COPY ORDER ID ───
+    function copyOrderId() {
+      const id = document.getElementById('orderIdDisplay').textContent;
+      navigator.clipboard.writeText(id)
+        .then(() => showToast('Order ID copied!'))
+        .catch(() => showToast('Copy failed — please copy manually'));
+    }
+
+    // ─── STAR RATING ───
+    function rateStar(n) {
+      userRating = n;
+      document.querySelectorAll('.star').forEach((s, i) => {
+        s.classList.toggle('active', i < n);
+      });
+    }
+
+    function submitRating() {
+      if (!userRating) { showToast('Please select a rating first'); return; }
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Order Rated"
+      //
+      // clevertap.event.push("Order Rated", {
+      //   order_id: orderData.orderId,
+      //   rating:   userRating,
+      //   context:  "post_purchase"
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      showToast(`Thanks for your ${userRating}★ rating!`);
+      document.querySelector('.rate-section').style.opacity       = '0.5';
+      document.querySelector('.rate-section').style.pointerEvents = 'none';
+    }
+
+    // ─── TOAST ───
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    init();
+  </script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

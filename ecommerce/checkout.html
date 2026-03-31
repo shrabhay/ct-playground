@@ -971,6 +971,15 @@
       // });
       // ─────────────────────────────────────────────────────────────
 
+      // Save order to user-specific orders list
+      const loggedUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      if (loggedUser) {
+        const ordersKey = `bazario_orders_${loggedUser.email}`;
+        const existingOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+        existingOrders.unshift(orderData);
+        localStorage.setItem(ordersKey, JSON.stringify(existingOrders));
+      }
+
       // Clear cart
       localStorage.removeItem('bazario_cart');
 
@@ -1004,5 +1013,6 @@
 
     init();
   </script>
+  <script src="js/auth.js"></script>
 </body>
 </html>

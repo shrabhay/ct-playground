@@ -542,22 +542,33 @@
     // ─── CHECKOUT ───
     function handleCheckout() {
       if (cartItems.length === 0) return;
+      
+      // ── Login gate ──
+      // If the user is not logged in, save a redirect flag and
+      // send them to the account page. After login/signup they
+      // will be automatically returned to cart.html.
+      
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      
+      if (!user) {
+        localStorage.setItem('bazario_login_redirect', 'cart.html');
+        showToast('Please login to place your order...');
+        setTimeout(() => window.location.href = 'account.html', 1200);
+        return;
+      }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Checkout Initiated"
-      // High-intent funnel event. Scalar properties only — no arrays.
-      // top_category and category_count represent cart composition
-      // without using arrays.
+      // Later: CleverTap event — "Checkout Started"
+      // Fires when user clicks "Place Order" button with items in cart.
       //
-      // clevertap.event.push("Checkout Initiated", {
-      //   item_count:      cartItems.reduce((s, i) => s + i.qty, 0),
-      //   cart_value:      getCartTotal(),
-      //   top_category:    getMostFrequentCategory(),
-      //   category_count:  getUniqueCategoryCount(),
-      //   coupon_applied:  couponApplied,
-      //   coupon_code:     couponCode
+      // clevertap.event.push("Checkout Started", {
+      //   item_count:        cartItems.reduce((s, i) => s + i.qty, 0),
+      //   cart_value:        getCartTotal(),
+      //   top_category:      getMostFrequentCategory(),
+      //   unique_categories: getUniqueCategoryCount(),
+      //   coupon_applied:    couponApplied,
+      //   coupon_code:       couponCode,
+      //   coupon_discount:   couponDiscount
       // });
-      // ─────────────────────────────────────────────────────────────
 
       window.location.href = 'checkout.html';
     }
@@ -577,5 +588,6 @@
 
     init();
   </script>
+  <script src="js/auth.js"></script>
 </body>
 </html>

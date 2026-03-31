@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bazario — My Account</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary:      #2874f0;
+      --primary-dark: #1a5dc8;
+      --accent:       #ff6f00;
+      --bg:           #f1f3f6;
+      --surface:      #ffffff;
+      --text:         #212121;
+      --text-sec:     #666666;
+      --text-muted:   #999999;
+      --border:       #e0e0e0;
+      --success:      #388e3c;
+      --danger:       #d32f2f;
+    }
+
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── NAVBAR ─── */
+    .navbar { position: sticky; top: 0; z-index: 100; background: var(--primary); height: 56px; display: flex; align-items: center; padding: 0 16px; gap: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .nav-logo { display: flex; flex-direction: column; min-width: 120px; text-decoration: none; }
+    .nav-logo .brand { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: -0.5px; line-height: 1; }
+    .nav-logo .brand span { color: #ffe082; }
+    .nav-logo .tagline { font-size: 10px; color: rgba(255,255,255,0.75); font-style: italic; margin-top: 2px; }
+    .nav-search { flex: 1; display: flex; max-width: 600px; }
+    .nav-search input { flex: 1; height: 36px; padding: 0 14px; border: none; border-radius: 4px 0 0 4px; font-size: 14px; outline: none; color: var(--text); }
+    .nav-search button { width: 44px; height: 36px; background: var(--accent); border: none; border-radius: 0 4px 4px 0; color: #fff; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+    .nav-actions { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; padding: 6px 14px; color: #fff; border-radius: 4px; font-size: 12px; white-space: nowrap; cursor: pointer; background: none; border: none; gap: 2px; transition: background 0.15s; }
+    .nav-btn .label { font-size: 11px; color: rgba(255,255,255,0.8); }
+    .nav-btn .value { font-size: 13px; font-weight: 600; }
+    .nav-btn:hover { background: rgba(255,255,255,0.15); }
+    .cart-count { background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; border-radius: 50%; width: 16px; height: 16px; display: inline-flex; align-items: center; justify-content: center; margin-left: 2px; }
+
+    /* ─── AUTH PAGE ─── */
+    .auth-page { min-height: calc(100vh - 56px); display: flex; align-items: center; justify-content: center; padding: 32px 16px; }
+
+    .auth-box { display: grid; grid-template-columns: 1fr 1fr; max-width: 820px; width: 100%; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+
+    .auth-brand { background: linear-gradient(160deg, #1a237e 0%, #1565c0 60%, #0288d1 100%); padding: 48px 40px; display: flex; flex-direction: column; justify-content: space-between; color: #fff; }
+    .auth-brand-logo { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+    .auth-brand-logo span { color: #ffe082; }
+    .auth-brand-tagline { font-size: 22px; font-weight: 600; line-height: 1.4; margin-top: 32px; }
+    .auth-brand-tagline em { color: #ffe082; font-style: normal; }
+    .auth-brand-perks { margin-top: 32px; display: flex; flex-direction: column; gap: 14px; }
+    .auth-perk { display: flex; align-items: center; gap: 12px; font-size: 13px; color: rgba(255,255,255,0.85); }
+    .auth-perk-icon { font-size: 20px; }
+    .auth-brand-footer { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 32px; }
+
+    .auth-form-panel { background: var(--surface); padding: 40px; display: flex; flex-direction: column; }
+
+    .auth-tabs { display: flex; border-bottom: 2px solid var(--border); margin-bottom: 28px; }
+    .auth-tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s; background: none; border-top: none; border-left: none; border-right: none; font-family: inherit; }
+    .auth-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .auth-tab:hover { color: var(--primary); }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-sec); text-transform: uppercase; letter-spacing: 0.04em; }
+    .form-label .req { color: var(--danger); }
+    .form-input { padding: 11px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; color: var(--text); outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    .form-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(40,116,240,0.1); }
+    .form-input.error { border-color: var(--danger); }
+    .form-input::placeholder { color: var(--text-muted); }
+    .form-error { font-size: 11px; color: var(--danger); margin-top: 2px; display: none; }
+    .form-error.show { display: block; }
+    .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    .phone-row { display: flex; gap: 0; }
+    .country-code { padding: 11px 12px; border: 1px solid var(--border); border-right: none; border-radius: 4px 0 0 4px; background: var(--bg); font-size: 14px; color: var(--text-sec); font-weight: 500; white-space: nowrap; }
+    .phone-row .form-input { border-radius: 0 4px 4px 0; flex: 1; }
+
+    .otp-inputs { display: flex; gap: 10px; justify-content: center; margin: 8px 0; }
+    .otp-digit { width: 48px; height: 52px; border: 2px solid var(--border); border-radius: 6px; font-size: 20px; font-weight: 700; text-align: center; outline: none; font-family: monospace; color: var(--text); transition: border-color 0.15s; }
+    .otp-digit:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(40,116,240,0.1); }
+
+    .password-strength { margin-top: 6px; }
+    .strength-bar { height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 2px; transition: width 0.3s, background 0.3s; width: 0; }
+    .strength-label { font-size: 11px; margin-top: 4px; }
+
+    .gender-options { display: flex; gap: 10px; }
+    .gender-btn { flex: 1; padding: 9px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; font-weight: 500; background: none; color: var(--text-sec); transition: all 0.15s; text-align: center; }
+    .gender-btn.active { border-color: var(--primary); color: var(--primary); background: #f0f4ff; font-weight: 600; }
+    .gender-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .btn-primary { width: 100%; padding: 13px; background: var(--accent); color: #fff; border: none; border-radius: 4px; font-size: 15px; font-weight: 700; transition: background 0.2s, transform 0.1s; margin-top: 4px; }
+    .btn-primary:hover { background: #e65100; transform: translateY(-1px); }
+    .btn-secondary { width: 100%; padding: 11px; background: none; color: var(--primary); border: 1px solid var(--primary); border-radius: 4px; font-size: 14px; font-weight: 600; transition: background 0.15s; margin-top: 8px; }
+    .btn-secondary:hover { background: #f0f4ff; }
+
+    .auth-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; }
+    .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .auth-divider span { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+    .social-btns { display: flex; gap: 10px; }
+    .social-btn { flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: none; font-size: 13px; font-weight: 500; color: var(--text-sec); display: flex; align-items: center; justify-content: center; gap: 8px; transition: background 0.15s; }
+    .social-btn:hover { background: var(--bg); }
+
+    .auth-footer-note { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 16px; line-height: 1.6; }
+    .auth-footer-note a { color: var(--primary); }
+
+    /* ─── PROFILE PAGE ─── */
+    .profile-page { padding: 24px 0 48px; display: none; }
+    .profile-layout { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+
+    .profile-sidebar { background: var(--surface); border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .profile-user-card { padding: 24px; border-bottom: 1px solid var(--border); text-align: center; }
+    .profile-avatar { width: 72px; height: 72px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), #0288d1); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; color: #fff; margin: 0 auto 12px; }
+    .profile-name  { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+    .profile-email { font-size: 12px; color: var(--text-muted); }
+    .profile-phone { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+    .profile-prime { display: inline-flex; align-items: center; gap: 4px; background: #fff3e0; color: var(--accent); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 999px; margin-top: 8px; }
+
+    .profile-nav { padding: 8px 0; }
+    .profile-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 20px; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.15s; color: var(--text-sec); border-left: 3px solid transparent; }
+    .profile-nav-item:hover { background: var(--bg); color: var(--text); }
+    .profile-nav-item.active { background: #f0f4ff; color: var(--primary); border-left-color: var(--primary); font-weight: 600; }
+    .profile-nav-item .nav-icon { font-size: 16px; }
+
+    .profile-logout { padding: 12px 20px; border-top: 1px solid var(--border); }
+    .btn-logout { width: 100%; padding: 9px; background: none; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; color: var(--danger); font-weight: 600; transition: all 0.15s; }
+    .btn-logout:hover { background: #fdecea; border-color: var(--danger); }
+
+    .profile-content { display: flex; flex-direction: column; gap: 16px; }
+    .profile-section { background: var(--surface); border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+    .section-title { font-size: 16px; font-weight: 700; }
+    .btn-edit-section { background: none; border: 1px solid var(--primary); color: var(--primary); border-radius: 4px; padding: 6px 14px; font-size: 12px; font-weight: 600; transition: background 0.15s; }
+    .btn-edit-section:hover { background: #f0f4ff; }
+
+    .profile-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .profile-field { display: flex; flex-direction: column; gap: 4px; }
+    .profile-field-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+    .profile-field-value { font-size: 14px; font-weight: 500; color: var(--text); padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .profile-field-input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 14px; font-family: inherit; color: var(--text); outline: none; display: none; }
+    .profile-field-input:focus { border-color: var(--primary); }
+    .profile-field.editing .profile-field-value { display: none; }
+    .profile-field.editing .profile-field-input { display: block; }
+
+    .profile-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat-card { background: var(--bg); border-radius: 6px; padding: 16px; text-align: center; }
+    .stat-value { font-size: 22px; font-weight: 700; color: var(--primary); }
+    .stat-label { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+
+    /* Order history */
+    .order-history-item { border: 1px solid var(--border); border-radius: 6px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+    .order-history-item:hover { border-color: var(--primary); box-shadow: 0 2px 8px rgba(40,116,240,0.1); }
+    .order-history-item:last-child { margin-bottom: 0; }
+    .order-emoji { font-size: 28px; width: 48px; height: 48px; background: var(--bg); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .order-info { flex: 1; }
+    .order-id-label { font-size: 12px; color: var(--text-muted); }
+    .order-name { font-size: 13px; font-weight: 600; margin: 2px 0; }
+    .order-date { font-size: 12px; color: var(--text-muted); }
+    .order-status { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 3px; white-space: nowrap; }
+    .order-status.delivered { background: #e8f5e9; color: var(--success); }
+    .order-status.transit   { background: #e3f2fd; color: var(--primary); }
+    .order-total { font-size: 15px; font-weight: 700; white-space: nowrap; }
+
+    /* Address list */
+    .address-list { display: flex; flex-direction: column; gap: 10px; }
+    .address-item { border: 1px solid var(--border); border-radius: 6px; padding: 14px 16px; display: flex; align-items: flex-start; justify-content: space-between; }
+    .address-item-left { display: flex; gap: 12px; }
+    .address-type-badge { font-size: 10px; font-weight: 700; background: var(--bg); border: 1px solid var(--border); padding: 2px 8px; border-radius: 3px; color: var(--text-muted); align-self: flex-start; white-space: nowrap; }
+    .address-details .addr-name { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+    .address-details .addr-line { font-size: 12px; color: var(--text-sec); line-height: 1.6; }
+    .address-actions { display: flex; gap: 8px; }
+    .addr-action-btn { background: none; border: none; font-size: 12px; color: var(--primary); font-weight: 600; cursor: pointer; padding: 4px 0; }
+
+    /* New address inline form */
+    .new-address-form { border: 1px dashed var(--border); border-radius: 6px; padding: 20px; margin-top: 12px; display: none; }
+    .new-address-form.show { display: block; }
+    .addr-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .addr-form-row.full { grid-template-columns: 1fr; }
+    .addr-form-input { padding: 9px 12px; border: 1px solid var(--border); border-radius: 4px; font-size: 13px; font-family: inherit; color: var(--text); outline: none; width: 100%; }
+    .addr-form-input:focus { border-color: var(--primary); }
+    .addr-form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 4px; }
+
+    /* ─── ORDER DETAIL MODAL ─── */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 16px; }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: var(--surface); border-radius: 8px; max-width: 560px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: 0 8px 40px rgba(0,0,0,0.2); }
+    .modal-header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    .modal-title { font-size: 16px; font-weight: 700; }
+    .modal-close { background: none; border: none; font-size: 20px; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1; }
+    .modal-close:hover { color: var(--text); }
+    .modal-body { padding: 20px 24px; }
+    .modal-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); margin-bottom: 12px; margin-top: 16px; }
+    .modal-section-title:first-child { margin-top: 0; }
+    .modal-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+    .modal-row .lbl { color: var(--text-sec); }
+    .modal-row .val { font-weight: 600; }
+    .modal-row .val.green { color: var(--success); }
+    .modal-divider { border: none; border-top: 1px dashed var(--border); margin: 12px 0; }
+    .modal-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .modal-item:last-child { border-bottom: none; }
+    .modal-item-img { width: 44px; height: 44px; background: var(--bg); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .modal-item-name { flex: 1; font-size: 13px; font-weight: 500; line-height: 1.4; }
+    .modal-item-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+    .modal-item-price { font-size: 14px; font-weight: 700; white-space: nowrap; }
+    .modal-total-row { display: flex; justify-content: space-between; font-size: 15px; font-weight: 700; margin-top: 8px; }
+    .modal-track-btn { width: 100%; padding: 12px; background: var(--primary); color: #fff; border: none; border-radius: 4px; font-size: 14px; font-weight: 600; margin-top: 20px; }
+
+    /* ─── TOAST ─── */
+    .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #323232; color: #fff; padding: 12px 24px; border-radius: 4px; font-size: 14px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 9999; transition: transform 0.3s ease; white-space: nowrap; }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 700px) {
+      .auth-box { grid-template-columns: 1fr; }
+      .auth-brand { display: none; }
+      .profile-layout { grid-template-columns: 1fr; }
+      .profile-stats { grid-template-columns: repeat(2, 1fr); }
+      .profile-form-grid { grid-template-columns: 1fr; }
+      .addr-form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <a href="../ecommerce/index.html" class="nav-logo">
+      <span class="brand">Bazar<span>io</span></span>
+      <span class="tagline">India's Everything Store</span>
+    </a>
+    <div class="nav-search">
+      <input type="text" placeholder="Search for products, brands and more" />
+      <button>🔍</button>
+    </div>
+    <div class="nav-actions">
+      <button class="nav-btn" onclick="window.location.href='cart.html'">
+        <span class="label">Cart</span>
+        <span class="value">🛒 <span class="cart-count" id="cartCount">0</span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ─── AUTH PAGE ─── -->
+  <div class="auth-page" id="authPage">
+    <div class="auth-box">
+
+      <div class="auth-brand">
+        <div>
+          <div class="auth-brand-logo">Bazar<span>io</span></div>
+          <div class="auth-brand-tagline">India's <em>everything</em> store — in your pocket.</div>
+          <div class="auth-brand-perks">
+            <div class="auth-perk"><span class="auth-perk-icon">🚚</span><span>Free delivery on orders above ₹499</span></div>
+            <div class="auth-perk"><span class="auth-perk-icon">↩️</span><span>10-day hassle-free returns</span></div>
+            <div class="auth-perk"><span class="auth-perk-icon">💰</span><span>Exclusive member-only deals</span></div>
+            <div class="auth-perk"><span class="auth-perk-icon">🔒</span><span>100% secure payments</span></div>
+          </div>
+        </div>
+        <div class="auth-brand-footer">© 2025 Bazario Internet Pvt. Ltd.</div>
+      </div>
+
+      <div class="auth-form-panel">
+        <div class="auth-tabs">
+          <button class="auth-tab active" id="loginTab" onclick="switchTab('login')">Login</button>
+          <button class="auth-tab" id="signupTab" onclick="switchTab('signup')">New to Bazario?</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <div id="loginForm">
+          <div id="loginStep1">
+            <div class="form-group">
+              <label class="form-label">Email or Mobile Number <span class="req">*</span></label>
+              <input type="text" class="form-input" id="loginIdentifier" placeholder="yourname@email.com or 9876543210" />
+              <span class="form-error" id="loginIdentifierError">Please enter a valid email or mobile number</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password <span class="req">*</span></label>
+              <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" />
+              <span class="form-error" id="loginPasswordError">Please enter your password</span>
+              <div class="form-hint" style="text-align:right">
+                <a href="#" style="color:var(--primary);font-size:12px;" onclick="showToast('Password reset link sent!')">Forgot password?</a>
+              </div>
+            </div>
+            <button class="btn-primary" onclick="handleLogin()">Login Securely</button>
+            <div class="auth-divider"><span>OR</span></div>
+            <div class="social-btns">
+              <button class="social-btn" onclick="handleSocialLogin('Google')">🔵 Google</button>
+              <button class="social-btn" onclick="handleSocialLogin('Facebook')">🔷 Facebook</button>
+            </div>
+            <div class="auth-divider"><span>OR login with OTP</span></div>
+            <button class="btn-secondary" onclick="showLoginOTP()">📱 Send OTP to Mobile</button>
+          </div>
+
+          <div id="loginStep2" style="display:none">
+            <div style="text-align:center;margin-bottom:24px">
+              <div style="font-size:32px;margin-bottom:12px">📱</div>
+              <div style="font-size:16px;font-weight:700;margin-bottom:6px">Verify your mobile</div>
+              <div style="font-size:13px;color:var(--text-sec)">OTP sent to <strong id="loginOTPTarget">+91 XXXXXXXX</strong></div>
+            </div>
+            <div class="otp-inputs" id="loginOTPInputs">
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'loginOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'loginOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'loginOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'loginOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'loginOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'loginOTPInputs')" onkeydown="otpBack(event,this)" />
+            </div>
+            <div style="text-align:center;font-size:12px;color:var(--text-muted);margin:12px 0">
+              Didn't receive? <button onclick="showToast('OTP resent!')" style="background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;font-size:12px">Resend OTP</button>
+            </div>
+            <button class="btn-primary" onclick="verifyLoginOTP()">Verify &amp; Login</button>
+            <button class="btn-secondary" onclick="backToStep('loginStep1','loginStep2')">← Back</button>
+          </div>
+        </div>
+
+        <!-- SIGNUP FORM -->
+        <div id="signupForm" style="display:none">
+          <div id="signupStep1">
+            <div class="form-group">
+              <label class="form-label">Full Name <span class="req">*</span></label>
+              <input type="text" class="form-input" id="signupName" placeholder="Rahul Sharma" />
+              <span class="form-error" id="signupNameError">Please enter your full name</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Email Address <span class="req">*</span></label>
+              <input type="email" class="form-input" id="signupEmail" placeholder="rahul@email.com" />
+              <span class="form-error" id="signupEmailError">Please enter a valid email address</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Mobile Number <span class="req">*</span></label>
+              <div class="phone-row">
+                <span class="country-code">🇮🇳 +91</span>
+                <input type="tel" class="form-input" id="signupPhone" placeholder="98765 43210" maxlength="10" />
+              </div>
+              <span class="form-error" id="signupPhoneError">Please enter a valid 10-digit mobile number</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password <span class="req">*</span></label>
+              <input type="password" class="form-input" id="signupPassword" placeholder="Min. 8 characters" oninput="checkPasswordStrength(this.value)" />
+              <div class="password-strength">
+                <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+                <div class="strength-label" id="strengthLabel" style="color:var(--text-muted)"></div>
+              </div>
+              <span class="form-error" id="signupPasswordError">Password must be at least 8 characters</span>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Gender</label>
+              <div class="gender-options">
+                <button class="gender-btn" onclick="selectGender(this,'Male')">👨 Male</button>
+                <button class="gender-btn" onclick="selectGender(this,'Female')">👩 Female</button>
+                <button class="gender-btn" onclick="selectGender(this,'Other')">🧑 Other</button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" class="form-input" id="signupDOB" />
+              <span class="form-hint">Helps us send you birthday surprises! 🎂</span>
+            </div>
+            <button class="btn-primary" onclick="proceedToOTP()">Continue →</button>
+            <div class="auth-footer-note">By continuing, you agree to Bazario's <a href="#">Terms of Use</a> and <a href="#">Privacy Policy</a>.</div>
+          </div>
+
+          <div id="signupStep2" style="display:none">
+            <div style="text-align:center;margin-bottom:24px">
+              <div style="font-size:32px;margin-bottom:12px">📲</div>
+              <div style="font-size:16px;font-weight:700;margin-bottom:6px">Verify your mobile number</div>
+              <div style="font-size:13px;color:var(--text-sec)">OTP sent to <strong id="signupOTPTarget">+91 XXXXXXXXXX</strong></div>
+            </div>
+            <div class="otp-inputs" id="signupOTPInputs">
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'signupOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'signupOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'signupOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'signupOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'signupOTPInputs')" onkeydown="otpBack(event,this)" />
+              <input class="otp-digit" maxlength="1" oninput="otpNext(this,'signupOTPInputs')" onkeydown="otpBack(event,this)" />
+            </div>
+            <div style="text-align:center;font-size:12px;color:var(--text-muted);margin:12px 0">
+              Didn't receive? <button onclick="showToast('OTP resent!')" style="background:none;border:none;color:var(--primary);font-weight:600;cursor:pointer;font-size:12px">Resend OTP</button>
+            </div>
+            <button class="btn-primary" onclick="verifySignupOTP()">Verify &amp; Create Account</button>
+            <button class="btn-secondary" onclick="backToStep('signupStep1','signupStep2')">← Edit Details</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── PROFILE PAGE ─── -->
+  <div class="profile-page" id="profilePage">
+    <div class="container">
+      <div class="profile-layout">
+
+        <div class="profile-sidebar">
+          <div class="profile-user-card">
+            <div class="profile-avatar" id="profileAvatar">R</div>
+            <div class="profile-name"  id="profileName">—</div>
+            <div class="profile-email" id="profileEmail">—</div>
+            <div class="profile-phone" id="profilePhone">—</div>
+            <div class="profile-prime" id="profilePrime" style="display:none">⚡ Prime Member</div>
+          </div>
+          <nav class="profile-nav">
+            <div class="profile-nav-item active" data-section="overview"     onclick="showSection('overview',this)"><span class="nav-icon">📊</span> Account Overview</div>
+            <div class="profile-nav-item"        data-section="orders"       onclick="showSection('orders',this)"><span class="nav-icon">📦</span> My Orders</div>
+            <div class="profile-nav-item"        data-section="personal"     onclick="showSection('personal',this)"><span class="nav-icon">👤</span> Personal Information</div>
+            <div class="profile-nav-item"        data-section="addresses"    onclick="showSection('addresses',this)"><span class="nav-icon">📍</span> Manage Addresses</div>
+            <div class="profile-nav-item"        data-section="preferences"  onclick="showSection('preferences',this)"><span class="nav-icon">⚙️</span> Preferences</div>
+          </nav>
+          <div class="profile-logout">
+            <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
+          </div>
+        </div>
+
+        <div class="profile-content">
+
+          <!-- OVERVIEW -->
+          <div class="profile-section" id="sectionOverview">
+            <div class="section-header"><div class="section-title">Account Overview</div></div>
+            <div class="profile-stats">
+              <div class="stat-card"><div class="stat-value" id="statOrders">0</div><div class="stat-label">Total Orders</div></div>
+              <div class="stat-card"><div class="stat-value" id="statWishlist">0</div><div class="stat-label">Wishlist Items</div></div>
+              <div class="stat-card"><div class="stat-value" id="statSavings">₹0</div><div class="stat-label">Total Savings</div></div>
+              <div class="stat-card"><div class="stat-value">⭐ 4.8</div><div class="stat-label">Avg. Rating Given</div></div>
+            </div>
+          </div>
+
+          <!-- MY ORDERS -->
+          <div class="profile-section" id="sectionOrders" style="display:none">
+            <div class="section-header"><div class="section-title">My Orders</div></div>
+            <div id="orderHistoryList"></div>
+          </div>
+
+          <!-- PERSONAL INFO -->
+          <div class="profile-section" id="sectionPersonal" style="display:none">
+            <div class="section-header">
+              <div class="section-title">Personal Information</div>
+              <button class="btn-edit-section" onclick="toggleEditPersonal()" id="editPersonalBtn">Edit</button>
+            </div>
+            <div class="profile-form-grid">
+              <div class="profile-field" id="fieldName">
+                <div class="profile-field-label">Full Name</div>
+                <div class="profile-field-value" id="fieldNameVal">—</div>
+                <input type="text" class="profile-field-input" id="fieldNameInput" placeholder="Full Name" />
+              </div>
+              <div class="profile-field" id="fieldEmail">
+                <div class="profile-field-label">Email Address</div>
+                <div class="profile-field-value" id="fieldEmailVal">—</div>
+                <input type="email" class="profile-field-input" id="fieldEmailInput" />
+              </div>
+              <div class="profile-field" id="fieldPhone">
+                <div class="profile-field-label">Mobile Number</div>
+                <div class="profile-field-value" id="fieldPhoneVal">—</div>
+                <input type="tel" class="profile-field-input" id="fieldPhoneInput" />
+              </div>
+              <div class="profile-field" id="fieldGender">
+                <div class="profile-field-label">Gender</div>
+                <div class="profile-field-value" id="fieldGenderVal">—</div>
+                <input type="text" class="profile-field-input" id="fieldGenderInput" />
+              </div>
+              <div class="profile-field" id="fieldDOB">
+                <div class="profile-field-label">Date of Birth</div>
+                <div class="profile-field-value" id="fieldDOBVal">—</div>
+                <input type="date" class="profile-field-input" id="fieldDOBInput" />
+              </div>
+              <div class="profile-field" id="fieldCity">
+                <div class="profile-field-label">City</div>
+                <div class="profile-field-value" id="fieldCityVal">—</div>
+                <input type="text" class="profile-field-input" id="fieldCityInput" placeholder="City" />
+              </div>
+            </div>
+            <div id="editPersonalActions" style="display:none;margin-top:20px">
+              <button style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:14px;font-weight:600;margin-right:10px;cursor:pointer" onclick="savePersonalInfo()">Save Changes</button>
+              <button style="padding:10px 18px;background:none;color:var(--text-sec);border:1px solid var(--border);border-radius:4px;font-size:14px;cursor:pointer" onclick="cancelEditPersonal()">Cancel</button>
+            </div>
+          </div>
+
+          <!-- ADDRESSES -->
+          <div class="profile-section" id="sectionAddresses" style="display:none">
+            <div class="section-header">
+              <div class="section-title">Manage Addresses</div>
+              <button class="btn-edit-section" onclick="toggleNewAddressForm()">+ Add New</button>
+            </div>
+            <div class="address-list" id="addressList">
+              <!-- Populated by JS -->
+            </div>
+            <!-- Add New Address inline form -->
+            <div class="new-address-form" id="newAddressForm">
+              <div style="font-size:14px;font-weight:700;margin-bottom:16px">Add a New Address</div>
+              <div class="addr-form-row">
+                <div>
+                  <label class="addr-form-label">Full Name *</label>
+                  <input type="text" class="addr-form-input" id="addrFormName" placeholder="Rahul Sharma" />
+                </div>
+                <div>
+                  <label class="addr-form-label">Mobile *</label>
+                  <input type="tel" class="addr-form-input" id="addrFormPhone" placeholder="98765 43210" maxlength="10" />
+                </div>
+              </div>
+              <div class="addr-form-row">
+                <div>
+                  <label class="addr-form-label">Pincode *</label>
+                  <input type="text" class="addr-form-input" id="addrFormPin" placeholder="110001" maxlength="6" />
+                </div>
+                <div>
+                  <label class="addr-form-label">State *</label>
+                  <select class="addr-form-input" id="addrFormState">
+                    <option value="">Select State</option>
+                    <option>Delhi</option><option>Haryana</option><option>Maharashtra</option>
+                    <option>Karnataka</option><option>Tamil Nadu</option><option>Telangana</option>
+                    <option>Uttar Pradesh</option><option>West Bengal</option><option>Rajasthan</option>
+                    <option>Gujarat</option><option>Punjab</option><option>Kerala</option>
+                  </select>
+                </div>
+              </div>
+              <div class="addr-form-row full">
+                <div>
+                  <label class="addr-form-label">Flat, House No., Street *</label>
+                  <input type="text" class="addr-form-input" id="addrFormLine1" placeholder="Flat 4B, Sunshine Apartments, MG Road" />
+                </div>
+              </div>
+              <div class="addr-form-row">
+                <div>
+                  <label class="addr-form-label">Area / Locality *</label>
+                  <input type="text" class="addr-form-input" id="addrFormLocality" placeholder="Sector 14" />
+                </div>
+                <div>
+                  <label class="addr-form-label">City *</label>
+                  <input type="text" class="addr-form-input" id="addrFormCity" placeholder="Gurugram" />
+                </div>
+              </div>
+              <div style="margin-bottom:12px">
+                <label class="addr-form-label">Address Type</label>
+                <div style="display:flex;gap:10px;margin-top:6px">
+                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="addrType" value="Home" checked style="accent-color:var(--primary)"> Home</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="addrType" value="Office" style="accent-color:var(--primary)"> Office</label>
+                  <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="addrType" value="Other" style="accent-color:var(--primary)"> Other</label>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px">
+                <button onclick="saveNewAddress()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer">Save Address</button>
+                <button onclick="toggleNewAddressForm()" style="padding:10px 16px;background:none;border:1px solid var(--border);border-radius:4px;font-size:13px;cursor:pointer;color:var(--text-sec)">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PREFERENCES -->
+          <div class="profile-section" id="sectionPreferences" style="display:none">
+            <div class="section-header"><div class="section-title">Preferences</div></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid var(--border)">
+                <div>
+                  <div style="font-size:14px;font-weight:600">Email Notifications</div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Order updates, offers and recommendations</div>
+                </div>
+                <input type="checkbox" checked onchange="handlePrefChange('email_notifications',this.checked)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer" />
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid var(--border)">
+                <div>
+                  <div style="font-size:14px;font-weight:600">SMS Notifications</div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Delivery alerts and OTPs</div>
+                </div>
+                <input type="checkbox" checked onchange="handlePrefChange('sms_notifications',this.checked)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer" />
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between">
+                <div>
+                  <div style="font-size:14px;font-weight:600">Personalised Recommendations</div>
+                  <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Based on your browsing and purchase history</div>
+                </div>
+                <input type="checkbox" checked onchange="handlePrefChange('personalisation',this.checked)" style="width:18px;height:18px;accent-color:var(--primary);cursor:pointer" />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── ORDER DETAIL MODAL ─── -->
+  <div class="modal-overlay" id="orderModal" onclick="closeOrderModal(event)">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div class="modal-title">Order Details</div>
+        <button class="modal-close" onclick="document.getElementById('orderModal').classList.remove('show')">✕</button>
+      </div>
+      <div class="modal-body" id="orderModalBody">
+        <!-- Populated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+
+    // ─── STATE ───
+    let currentUser       = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+    let selectedGender    = '';
+    let isEditingPersonal = false;
+    let userAddresses     = [];
+
+    // ─── INIT ───
+    function init() {
+      updateCartCount();
+      if (currentUser) {
+        showProfilePage();
+        // Check if a specific section was requested via URL parameter
+        // e.g. account.html?section=orders
+        const params  = new URLSearchParams(window.location.search);
+        const section = params.get('section');
+        if (section) {
+          const navItem = document.querySelector(`.profile-nav-item[data-section="${section}"]`);
+          showSection(section, navItem);
+        }
+      } else {
+        showAuthPage();
+      }
+    }
+
+    // ─── GET USER'S ORDERS (per-user storage) ───
+    // Orders are stored under bazario_orders_${email} so each
+    // account only sees its own orders. New accounts start with none.
+    function getUserOrders() {
+      if (!currentUser) return [];
+      const key = `bazario_orders_${currentUser.email}`;
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
+
+    // ─── GET USER'S ADDRESSES ───
+    function getUserAddresses() {
+      if (!currentUser) return [];
+      const key = `bazario_addresses_${currentUser.email}`;
+      const saved = JSON.parse(localStorage.getItem(key) || 'null');
+      if (saved) return saved;
+      // Default addresses for existing users
+      return [
+        { type: 'HOME',   name: currentUser.name || 'User', line: '42, Sector 14, Gurugram, Haryana — 122001',          phone: currentUser.phone || '' },
+        { type: 'OFFICE', name: currentUser.name || 'User', line: 'Tower B, DLF Cyber City, Gurugram, Haryana — 122002', phone: currentUser.phone || '' }
+      ];
+    }
+
+    // ─── PAGE SWITCH ───
+    function showAuthPage() {
+      document.getElementById('authPage').style.display    = 'flex';
+      document.getElementById('profilePage').style.display = 'none';
+    }
+
+    function showProfilePage() {
+      document.getElementById('authPage').style.display    = 'none';
+      document.getElementById('profilePage').style.display = 'block';
+      userAddresses = getUserAddresses();
+      renderProfile();
+      renderOrderHistory();
+      renderAddresses();
+    }
+
+    // ─── TAB SWITCH ───
+    function switchTab(tab) {
+      document.getElementById('loginTab').classList.toggle('active', tab === 'login');
+      document.getElementById('signupTab').classList.toggle('active', tab === 'signup');
+      document.getElementById('loginForm').style.display  = tab === 'login'  ? 'block' : 'none';
+      document.getElementById('signupForm').style.display = tab === 'signup' ? 'block' : 'none';
+    }
+
+    function backToStep(showId, hideId) {
+      document.getElementById(showId).style.display = 'block';
+      document.getElementById(hideId).style.display = 'none';
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // LOGIN FLOW
+    // ──────────────────────────────────────────────────────────────
+    function handleLogin() {
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      const password   = document.getElementById('loginPassword').value.trim();
+      let valid = true;
+      if (!identifier) { showFieldError('loginIdentifierError'); valid = false; } else { hideFieldError('loginIdentifierError'); }
+      if (!password)   { showFieldError('loginPasswordError');   valid = false; } else { hideFieldError('loginPasswordError'); }
+      if (!valid) return;
+
+      const user = {
+        name:     'Rahul Sharma',
+        email:    identifier.includes('@') ? identifier : 'rahul@email.com',
+        phone:    identifier.includes('@') ? '+91 98765 43210' : `+91 ${identifier}`,
+        gender:   'Male',
+        dob:      '1992-08-15',
+        city:     'Gurugram',
+        joinedAt: new Date().toISOString(),
+        isPrime:  true
+      };
+      completeLogin(user, 'password');
+    }
+
+    function showLoginOTP() {
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      if (!identifier) { showFieldError('loginIdentifierError'); return; }
+      document.getElementById('loginOTPTarget').textContent = identifier.includes('@') ? identifier : `+91 ${identifier}`;
+      document.getElementById('loginStep1').style.display = 'none';
+      document.getElementById('loginStep2').style.display = 'block';
+      showToast('OTP sent!');
+      document.querySelector('#loginOTPInputs .otp-digit').focus();
+    }
+
+    function verifyLoginOTP() {
+      const digits = [...document.querySelectorAll('#loginOTPInputs .otp-digit')].map(i => i.value);
+      if (digits.join('').length < 6) { showToast('Please enter the full 6-digit OTP'); return; }
+      const identifier = document.getElementById('loginIdentifier').value.trim();
+      const user = {
+        name:     'Rahul Sharma',
+        email:    identifier.includes('@') ? identifier : 'rahul@email.com',
+        phone:    identifier.includes('@') ? '+91 98765 43210' : `+91 ${identifier}`,
+        gender:   'Male', dob: '1992-08-15', city: 'Gurugram',
+        joinedAt: new Date().toISOString(), isPrime: true
+      };
+      completeLogin(user, 'otp');
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // SIGNUP FLOW
+    // ──────────────────────────────────────────────────────────────
+    function proceedToOTP() {
+      const name     = document.getElementById('signupName').value.trim();
+      const email    = document.getElementById('signupEmail').value.trim();
+      const phone    = document.getElementById('signupPhone').value.trim();
+      const password = document.getElementById('signupPassword').value.trim();
+      let valid = true;
+      if (!name)                            { showFieldError('signupNameError');     valid = false; } else { hideFieldError('signupNameError'); }
+      if (!email || !email.includes('@'))   { showFieldError('signupEmailError');    valid = false; } else { hideFieldError('signupEmailError'); }
+      if (!phone || phone.length < 10)      { showFieldError('signupPhoneError');    valid = false; } else { hideFieldError('signupPhoneError'); }
+      if (!password || password.length < 8) { showFieldError('signupPasswordError');valid = false; } else { hideFieldError('signupPasswordError'); }
+      if (!valid) return;
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Signup Initiated"
+      // clevertap.event.push("Signup Initiated", { method: "email_phone", has_referral: false });
+      // ─────────────────────────────────────────────────────────────
+
+      document.getElementById('signupOTPTarget').textContent = `+91 ${phone}`;
+      document.getElementById('signupStep1').style.display   = 'none';
+      document.getElementById('signupStep2').style.display   = 'block';
+      showToast(`OTP sent to +91 ${phone}`);
+      document.querySelector('#signupOTPInputs .otp-digit').focus();
+    }
+
+    function verifySignupOTP() {
+      const digits = [...document.querySelectorAll('#signupOTPInputs .otp-digit')].map(i => i.value);
+      if (digits.join('').length < 6) { showToast('Please enter the full 6-digit OTP'); return; }
+
+      const user = {
+        name:     document.getElementById('signupName').value.trim(),
+        email:    document.getElementById('signupEmail').value.trim(),
+        phone:    `+91 ${document.getElementById('signupPhone').value.trim()}`,
+        gender:   selectedGender,
+        dob:      document.getElementById('signupDOB').value,
+        city:     '',
+        joinedAt: new Date().toISOString(),
+        isPrime:  false
+      };
+      completeSignup(user);
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // COMPLETE LOGIN / SIGNUP — CleverTap onUserLogin goes here
+    // ──────────────────────────────────────────────────────────────
+    function completeLogin(user, method) {
+      currentUser = user;
+      localStorage.setItem('bazario_user', JSON.stringify(user));
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap — onUserLogin
+      // THE most important call in the web integration.
+      // Converts anonymous visitor → named, identified profile.
+      // All past anonymous events merge into this profile automatically.
+      //
+      // clevertap.onUserLogin.push({
+      //   "Site": {
+      //     "Name":     user.name,
+      //     "Email":    user.email,
+      //     "Phone":    user.phone,
+      //     "Gender":   user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : user.gender,
+      //     "DOB":      user.dob ? new Date(user.dob) : undefined,
+      //     "City":     user.city,
+      //     "Is Prime": user.isPrime
+      //   }
+      // });
+      // clevertap.event.push("User Logged In", { method, is_prime: user.isPrime });
+      // ─────────────────────────────────────────────────────────────
+
+      showToast(`Welcome back, ${user.name.split(' ')[0]}! 👋`);
+      handlePostAuthRedirect();
+    }
+
+    function completeSignup(user) {
+      currentUser = user;
+      localStorage.setItem('bazario_user', JSON.stringify(user));
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap — onUserLogin (also used for new signups)
+      // Creates a brand new named profile in CT for this user.
+      //
+      // clevertap.onUserLogin.push({
+      //   "Site": {
+      //     "Name":     user.name,
+      //     "Email":    user.email,
+      //     "Phone":    user.phone,
+      //     "Gender":   user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : user.gender,
+      //     "DOB":      user.dob ? new Date(user.dob) : undefined,
+      //     "City":     user.city,
+      //     "Is Prime": false
+      //   }
+      // });
+      // clevertap.event.push("User Signed Up", {
+      //   method: "email_phone", gender: user.gender, has_dob: !!user.dob, referral_used: false
+      // });
+      // ─────────────────────────────────────────────────────────────
+
+      showToast(`Welcome to Bazario, ${user.name.split(' ')[0]}! 🎉`);
+      handlePostAuthRedirect();
+    }
+
+    // ─── POST-AUTH REDIRECT ───
+    // If the user was redirected here from cart.html (because they
+    // tried to place an order without being logged in), send them back.
+    function handlePostAuthRedirect() {
+      const redirect = localStorage.getItem('bazario_login_redirect');
+      if (redirect) {
+        localStorage.removeItem('bazario_login_redirect');
+        setTimeout(() => window.location.href = redirect, 900);
+      } else {
+        setTimeout(() => showProfilePage(), 900);
+      }
+    }
+
+    // ──────────────────────────────────────────────────────────────
+    // PROFILE RENDERING
+    // ──────────────────────────────────────────────────────────────
+    function renderProfile() {
+      if (!currentUser) return;
+      const u = currentUser;
+
+      document.getElementById('profileAvatar').textContent = u.name ? u.name[0].toUpperCase() : 'U';
+      document.getElementById('profileName').textContent   = u.name  || '—';
+      document.getElementById('profileEmail').textContent  = u.email || '—';
+      document.getElementById('profilePhone').textContent  = u.phone || '—';
+
+      const primeEl = document.getElementById('profilePrime');
+      primeEl.style.display = u.isPrime ? 'inline-flex' : 'none';
+
+      // Personal info fields
+      document.getElementById('fieldNameVal').textContent   = u.name   || '—';
+      document.getElementById('fieldEmailVal').textContent  = u.email  || '—';
+      document.getElementById('fieldPhoneVal').textContent  = u.phone  || '—';
+      document.getElementById('fieldGenderVal').textContent = u.gender || '—';
+      document.getElementById('fieldCityVal').textContent   = u.city   || '—';
+      document.getElementById('fieldDOBVal').textContent    = u.dob
+        ? new Date(u.dob).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+        : '—';
+
+      document.getElementById('fieldNameInput').value   = u.name   || '';
+      document.getElementById('fieldEmailInput').value  = u.email  || '';
+      document.getElementById('fieldPhoneInput').value  = u.phone  || '';
+      document.getElementById('fieldGenderInput').value = u.gender || '';
+      document.getElementById('fieldCityInput').value   = u.city   || '';
+      document.getElementById('fieldDOBInput').value    = u.dob    || '';
+
+      // Stats — based on this user's actual orders
+      const orders = getUserOrders();
+      const totalSavings = orders.reduce((s, o) => {
+        const mrp = (o.items || []).reduce((a, i) => a + ((i.originalPrice || i.price) * i.qty), 0);
+        const paid = (o.items || []).reduce((a, i) => a + (i.price * i.qty), 0);
+        return s + (mrp - paid);
+      }, 0);
+
+      document.getElementById('statOrders').textContent  = orders.length;
+      document.getElementById('statWishlist').textContent = '0';
+      document.getElementById('statSavings').textContent  = totalSavings > 0
+        ? `₹${totalSavings.toLocaleString('en-IN')}`
+        : '₹0';
+    }
+
+    // ─── RENDER ORDER HISTORY ───
+    // Reads from user-specific orders key. New users see empty state.
+    function renderOrderHistory() {
+      const orders    = getUserOrders();
+      const container = document.getElementById('orderHistoryList');
+
+      if (orders.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:32px;color:var(--text-muted)">
+            <div style="font-size:40px;margin-bottom:12px">📦</div>
+            <div style="font-size:15px;font-weight:600;margin-bottom:6px;color:var(--text)">No orders yet</div>
+            <div style="font-size:13px;margin-bottom:16px">Your order history will appear here after your first purchase.</div>
+            <button onclick="window.location.href='../ecommerce/index.html'"
+              style="padding:10px 24px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer">
+              Start Shopping
+            </button>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = orders.map((order, idx) => {
+        const firstItem = order.items?.[0];
+        const extraCount = (order.items?.length || 1) - 1;
+        return `
+          <div class="order-history-item" onclick="openOrderModal(${idx})">
+            <div class="order-emoji">${firstItem?.emoji || '📦'}</div>
+            <div class="order-info">
+              <div class="order-id-label">Order ID: ${order.orderId}</div>
+              <div class="order-name">
+                ${firstItem?.name?.substring(0, 40) || 'Order'}
+                ${extraCount > 0 ? `<span style="color:var(--text-muted)"> + ${extraCount} more</span>` : ''}
+              </div>
+              <div class="order-date">
+                Placed on ${new Date(order.placedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </div>
+            </div>
+            <span class="order-status transit">In Transit</span>
+            <div class="order-total">₹${order.total?.toLocaleString('en-IN')}</div>
+          </div>
+        `;
+      }).join('');
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap event — "Order History Viewed"
+      // clevertap.event.push("Order History Viewed", { order_count: orders.length });
+      // ─────────────────────────────────────────────────────────────
+    }
+
+    // ─── ORDER DETAIL MODAL ───
+    function openOrderModal(idx) {
+      const orders = getUserOrders();
+      const order  = orders[idx];
+      if (!order) return;
+
+      const paymentLabels = { upi: '📱 UPI', card: '💳 Card', netbanking: '🏦 Net Banking', emi: '🏛️ EMI', cod: '💰 Cash on Delivery' };
+      const mrp      = (order.items || []).reduce((s, i) => s + ((i.originalPrice || i.price) * i.qty), 0);
+      const subtotal = (order.items || []).reduce((s, i) => s + (i.price * i.qty), 0);
+      const discount = mrp - subtotal;
+
+      document.getElementById('orderModalBody').innerHTML = `
+        <div class="modal-section-title">Order Information</div>
+        <div class="modal-row"><span class="lbl">Order ID</span><span class="val" style="font-family:monospace">${order.orderId}</span></div>
+        <div class="modal-row"><span class="lbl">Placed on</span><span class="val">${new Date(order.placedAt).toLocaleDateString('en-IN',{day:'numeric',month:'long',year:'numeric'})}</span></div>
+        <div class="modal-row"><span class="lbl">Status</span><span class="val" style="color:var(--primary)">In Transit 🚚</span></div>
+        <div class="modal-row"><span class="lbl">Payment</span><span class="val">${paymentLabels[order.paymentMethod] || '📱 UPI'}</span></div>
+        <div class="modal-row"><span class="lbl">Delivery to</span><span class="val" style="text-align:right;max-width:55%">${order.address || '—'}</span></div>
+
+        <hr class="modal-divider" />
+        <div class="modal-section-title">Items (${(order.items||[]).reduce((s,i)=>s+i.qty,0)})</div>
+        ${(order.items || []).map(item => `
+          <div class="modal-item">
+            <div class="modal-item-img">${item.emoji || '📦'}</div>
+            <div>
+              <div class="modal-item-name">${item.name}</div>
+              <div class="modal-item-meta">${item.brand || ''} ${item.variant ? '· ' + item.variant : ''}</div>
+            </div>
+            <div style="text-align:right">
+              <div class="modal-item-price">₹${(item.price * item.qty).toLocaleString('en-IN')}</div>
+              <div style="font-size:11px;color:var(--text-muted)">Qty: ${item.qty}</div>
+            </div>
+          </div>
+        `).join('')}
+
+        <hr class="modal-divider" />
+        <div class="modal-section-title">Price Breakdown</div>
+        <div class="modal-row"><span class="lbl">Items MRP</span><span class="val">₹${mrp.toLocaleString('en-IN')}</span></div>
+        <div class="modal-row"><span class="lbl">Discount</span><span class="val green">−₹${discount.toLocaleString('en-IN')}</span></div>
+        <div class="modal-row"><span class="lbl">Delivery</span><span class="val green">FREE</span></div>
+        <div class="modal-row"><span class="lbl">Packaging fee</span><span class="val">₹49</span></div>
+        <div class="modal-total-row"><span>Total Paid</span><span>₹${order.total?.toLocaleString('en-IN')}</span></div>
+
+        <button class="modal-track-btn" onclick="showToast('Live tracking coming soon!')">📍 Track Order</button>
+      `;
+
+      document.getElementById('orderModal').classList.add('show');
+    }
+
+    function closeOrderModal(e) {
+      if (e.target === document.getElementById('orderModal')) {
+        document.getElementById('orderModal').classList.remove('show');
+      }
+    }
+
+    // ─── RENDER ADDRESSES ───
+    function renderAddresses() {
+      const container = document.getElementById('addressList');
+      if (userAddresses.length === 0) {
+        container.innerHTML = `<div style="font-size:13px;color:var(--text-muted);padding:8px 0">No saved addresses. Add one below.</div>`;
+        return;
+      }
+      container.innerHTML = userAddresses.map((addr, idx) => `
+        <div class="address-item">
+          <div class="address-item-left">
+            <span class="address-type-badge">${addr.type}</span>
+            <div class="address-details">
+              <div class="addr-name">${addr.name}</div>
+              <div class="addr-line">${addr.line}<br/>📞 ${addr.phone}</div>
+            </div>
+          </div>
+          <div class="address-actions">
+            <button class="addr-action-btn" onclick="showToast('Edit address coming soon')">Edit</button>
+            <button class="addr-action-btn" style="color:var(--danger)" onclick="removeAddress(${idx})">Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleNewAddressForm() {
+      document.getElementById('newAddressForm').classList.toggle('show');
+    }
+
+    function saveNewAddress() {
+      const name     = document.getElementById('addrFormName').value.trim();
+      const phone    = document.getElementById('addrFormPhone').value.trim();
+      const pin      = document.getElementById('addrFormPin').value.trim();
+      const state    = document.getElementById('addrFormState').value;
+      const line1    = document.getElementById('addrFormLine1').value.trim();
+      const locality = document.getElementById('addrFormLocality').value.trim();
+      const city     = document.getElementById('addrFormCity').value.trim();
+      const type     = document.querySelector('input[name="addrType"]:checked')?.value || 'Home';
+
+      if (!name || !phone || !pin || !line1 || !city || !state) {
+        showToast('Please fill in all required fields');
+        return;
+      }
+
+      const newAddr = {
+        type:  type.toUpperCase(),
+        name,
+        phone: `+91 ${phone}`,
+        line:  `${line1}, ${locality ? locality + ', ' : ''}${city}, ${state} — ${pin}`
+      };
+
+      userAddresses.push(newAddr);
+      const key = `bazario_addresses_${currentUser.email}`;
+      localStorage.setItem(key, JSON.stringify(userAddresses));
+
+      // Clear form and hide it
+      ['addrFormName','addrFormPhone','addrFormPin','addrFormLine1','addrFormLocality','addrFormCity'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('addrFormState').value = '';
+      document.getElementById('newAddressForm').classList.remove('show');
+
+      renderAddresses();
+      showToast(`✓ ${type} address saved successfully`);
+    }
+
+    function removeAddress(idx) {
+      userAddresses.splice(idx, 1);
+      const key = `bazario_addresses_${currentUser.email}`;
+      localStorage.setItem(key, JSON.stringify(userAddresses));
+      renderAddresses();
+      showToast('Address removed');
+    }
+
+    // ─── PROFILE SECTIONS ───
+    function showSection(section, navEl) {
+      document.querySelectorAll('.profile-nav-item').forEach(i => i.classList.remove('active'));
+      if (navEl) navEl.classList.add('active');
+      const sections = ['overview','orders','personal','addresses','preferences'];
+      sections.forEach(s => {
+        document.getElementById(`section${s.charAt(0).toUpperCase()+s.slice(1)}`).style.display =
+          s === section ? 'block' : 'none';
+      });
+    }
+
+    // ─── EDIT PERSONAL INFO ───
+    function toggleEditPersonal() {
+      isEditingPersonal = !isEditingPersonal;
+      ['Name','Email','Phone','Gender','DOB','City'].forEach(f => {
+        document.getElementById(`field${f}`).classList.toggle('editing', isEditingPersonal);
+      });
+      document.getElementById('editPersonalActions').style.display = isEditingPersonal ? 'block' : 'none';
+      document.getElementById('editPersonalBtn').textContent       = isEditingPersonal ? 'Cancel' : 'Edit';
+      if (isEditingPersonal) document.getElementById('fieldNameInput').focus();
+    }
+
+    function cancelEditPersonal() {
+      isEditingPersonal = true;
+      toggleEditPersonal();
+    }
+
+    function savePersonalInfo() {
+      const updated = {
+        ...currentUser,
+        name:   document.getElementById('fieldNameInput').value.trim()   || currentUser.name,
+        email:  document.getElementById('fieldEmailInput').value.trim()  || currentUser.email,
+        phone:  document.getElementById('fieldPhoneInput').value.trim()  || currentUser.phone,
+        gender: document.getElementById('fieldGenderInput').value.trim() || currentUser.gender,
+        dob:    document.getElementById('fieldDOBInput').value           || currentUser.dob,
+        city:   document.getElementById('fieldCityInput').value.trim()   || currentUser.city,
+      };
+
+      currentUser = updated;
+      localStorage.setItem('bazario_user', JSON.stringify(updated));
+
+      // ─────────────────────────────────────────────────────────────
+      // Later: CleverTap profile push
+      // clevertap.profile.push({ "Site": { "Name": updated.name, "Email": updated.email, "City": updated.city, "Gender": updated.gender === 'Male' ? 'M' : 'F' } });
+      // ─────────────────────────────────────────────────────────────
+
+      isEditingPersonal = true;
+      toggleEditPersonal();
+      renderProfile();
+      showToast('Profile updated successfully ✓');
+    }
+
+    // ─── PREFERENCES ───
+    function handlePrefChange(pref, value) {
+      // Later: clevertap.profile.push({ "Site": { "MSG-email": value } }); etc.
+      showToast(`${pref.replace(/_/g,' ')} ${value ? 'enabled' : 'disabled'}`);
+    }
+
+    // ─── LOGOUT ───
+    function handleLogout() {
+      // Later: clevertap.event.push("User Logged Out", {});
+      localStorage.removeItem('bazario_user');
+      currentUser = null;
+      showToast('Signed out successfully');
+      setTimeout(() => showAuthPage(), 600);
+    }
+
+    // ─── SOCIAL LOGIN ───
+    function handleSocialLogin(provider) {
+      const user = {
+        name: provider === 'Google' ? 'Rahul Sharma' : 'Rahul S.',
+        email: `rahul@${provider.toLowerCase()}.com`,
+        phone: '+91 98765 43210', gender: 'Male',
+        dob: '', city: '', joinedAt: new Date().toISOString(), isPrime: false
+      };
+      showToast(`Signing in with ${provider}...`);
+      setTimeout(() => completeLogin(user, provider.toLowerCase()), 1000);
+    }
+
+    // ─── GENDER SELECT ───
+    function selectGender(btn, gender) {
+      document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedGender = gender;
+    }
+
+    // ─── PASSWORD STRENGTH ───
+    function checkPasswordStrength(password) {
+      const fill  = document.getElementById('strengthFill');
+      const label = document.getElementById('strengthLabel');
+      let strength = 0;
+      if (password.length >= 8)           strength++;
+      if (/[A-Z]/.test(password))         strength++;
+      if (/[0-9]/.test(password))         strength++;
+      if (/[^A-Za-z0-9]/.test(password))  strength++;
+      const levels = [
+        { pct: '25%', color: '#d32f2f', text: 'Weak' },
+        { pct: '50%', color: '#f57c00', text: 'Fair' },
+        { pct: '75%', color: '#fbc02d', text: 'Good' },
+        { pct: '100%',color: '#388e3c', text: 'Strong' }
+      ];
+      const lvl = levels[Math.max(0, strength - 1)] || levels[0];
+      fill.style.width      = password.length ? lvl.pct : '0';
+      fill.style.background = lvl.color;
+      label.textContent     = password.length ? lvl.text : '';
+      label.style.color     = lvl.color;
+    }
+
+    // ─── OTP HELPERS ───
+    function otpNext(input, containerId) {
+      input.value = input.value.replace(/\D/g, '');
+      if (input.value && input.nextElementSibling) input.nextElementSibling.focus();
+    }
+
+    function otpBack(e, input) {
+      if (e.key === 'Backspace' && !input.value && input.previousElementSibling) {
+        input.previousElementSibling.focus();
+      }
+    }
+
+    // ─── CART COUNT ───
+    function updateCartCount() {
+      const cart  = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+      const total = cart.reduce((s, i) => s + i.qty, 0);
+      document.getElementById('cartCount').textContent = total;
+    }
+
+    // ─── FORM HELPERS ───
+    function showFieldError(id) { document.getElementById(id).classList.add('show'); }
+    function hideFieldError(id) { document.getElementById(id).classList.remove('show'); }
+
+    // ─── TOAST ───
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    init();
+  </script>
+</body>
+</html>
