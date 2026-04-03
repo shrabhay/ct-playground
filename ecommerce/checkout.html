@@ -668,10 +668,17 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/clevertap.js"></script>
+  <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
-    const cartItems     = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    function getCartKey() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+    }
+
+    const cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     let selectedPayment = 'upi';
     let selectedBank    = '';
     let selectedAddress = '42, Sector 14, Gurugram, Haryana — 122001';
@@ -679,6 +686,12 @@
 
     // ─── INIT ───
     function init() {
+      // Show logged-in user name in the login panel
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      const nameEl = document.getElementById('loggedInUser');
+      if (nameEl) {
+        nameEl.textContent = user ? user.name || user.email : 'Guest User';
+      }
       renderSummary();
 
       // ─────────────────────────────────────────────────────────────
@@ -981,7 +994,7 @@
       }
 
       // Clear cart
-      localStorage.removeItem('bazario_cart');
+      localStorage.removeItem(getCartKey());
 
       // Navigate to confirmation
       window.location.href = `confirmation.html?order=${orderId}&total=${grandTotal}&payment=${selectedPayment}`;
@@ -1013,6 +1026,5 @@
 
     init();
   </script>
-  <script src="js/auth.js"></script>
 </body>
 </html>

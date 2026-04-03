@@ -273,10 +273,17 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/clevertap.js"></script>
+  <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
-    let cartItems      = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    function getCartKey() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+    }
+
+    let cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     let couponApplied  = false;
     let couponCode     = '';
     let couponDiscount = 0;
@@ -416,7 +423,7 @@
 
     // ─── SAVE TO STORAGE ───
     function saveToStorage() {
-      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
     }
 
     // ─── UPDATE NAVBAR CART COUNT ───
@@ -597,6 +604,5 @@
       if (e.key === 'Enter') handleSearch();
     });
   </script>
-  <script src="js/auth.js"></script>
 </body>
 </html>

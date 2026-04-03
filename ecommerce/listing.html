@@ -579,6 +579,8 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/clevertap.js"></script>
+  <script src="js/auth.js"></script>
   <script>
 
     // ─── PRODUCT CATALOGUE ───
@@ -588,7 +590,12 @@
 
     // ─── STATE ───
     let currentCategory = 'Electronics';
-    let cartItems       = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    function getCartKey() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+    }
+
+    let cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     let currentSearch = ''; // empty means no search active
 
     // ─── FILTER & PAGINATION STATE ───
@@ -851,7 +858,7 @@
       } else {
         cartItems.push({ ...product, qty: 1 });
       }
-      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
       updateCartCount();
 
       // Later: CleverTap event — "Added to Cart"
@@ -873,7 +880,7 @@
       const p        = getAllProducts().find(item => item.name === productId) || getAllProducts().find(item => item.id === productId);
       if (!p) { showToast('♡ Added to Wishlist'); return; }
 
-      const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+      const wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
       const exists   = wishlist.find(i => i.id === p.id);
 
       if (exists) { showToast('Already in your Wishlist'); return; }
@@ -884,11 +891,16 @@
         rating: p.rating, emoji: p.emoji, addedAt: new Date().toISOString()
       });
 
-      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
       showToast(`♡ ${p.name.substring(0, 30)}... added to Wishlist`);
 
       const el = document.getElementById('wishlistCount');
       if (el) el.textContent = wishlist.length;
+    }
+
+    function getWishlistKey() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
     }
 
     // ─── FILTERS ───
@@ -1091,6 +1103,5 @@
     // ─── RUN ───
     init();
   </script>
-  <script src="js/auth.js"></script>
 </body>
 </html>

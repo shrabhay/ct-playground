@@ -241,7 +241,7 @@
       <button>🔍</button>
     </div>
     <div class="nav-actions">
-      <button class="nav-btn" onclick="window.location.href='cart.html'">
+      <button class="nav-btn" id="navCartBtn" onclick="window.location.href='cart.html'" style="display:none">
         <span class="label">Cart</span>
         <span class="value">🛒 <span class="cart-count" id="cartCount">0</span></span>
       </button>
@@ -598,6 +598,8 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/clevertap.js"></script>
+  <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
@@ -650,11 +652,15 @@
     function showAuthPage() {
       document.getElementById('authPage').style.display    = 'flex';
       document.getElementById('profilePage').style.display = 'none';
+      const cartBtn = document.getElementById('navCartBtn');
+      if (cartBtn) cartBtn.style.display = 'none';
     }
 
     function showProfilePage() {
       document.getElementById('authPage').style.display    = 'none';
       document.getElementById('profilePage').style.display = 'block';
+      const cartBtn = document.getElementById('navCartBtn');
+      if (cartBtn) cartBtn.style.display = 'flex';
       userAddresses = getUserAddresses();
       renderProfile();
       renderOrderHistory();
@@ -685,16 +691,24 @@
       if (!password)   { showFieldError('loginPasswordError');   valid = false; } else { hideFieldError('loginPasswordError'); }
       if (!valid) return;
 
-      const user = {
-        name:     'Rahul Sharma',
-        email:    identifier.includes('@') ? identifier : 'rahul@email.com',
-        phone:    identifier.includes('@') ? '+91 98765 43210' : `+91 ${identifier}`,
-        gender:   'Male',
-        dob:      '1992-08-15',
-        city:     'Gurugram',
+      // Look up existing saved user data first — don't overwrite with hardcoded values
+      // Look up profile by email first — survives logout
+      const emailKey   = identifier.includes('@') ? identifier : null;
+      const savedUser  = emailKey
+        ? JSON.parse(localStorage.getItem(`bazario_profile_${emailKey}`) || 'null')
+        : JSON.parse(localStorage.getItem('bazario_user') || 'null');
+
+      const user = savedUser || {
+        name:     '',
+        email:    identifier.includes('@') ? identifier : '',
+        phone:    identifier.includes('@') ? '' : `+91${identifier}`,
+        gender:   '',
+        dob:      '',
+        city:     '',
         joinedAt: new Date().toISOString(),
-        isPrime:  true
+        isPrime:  false
       };
+
       completeLogin(user, 'password');
     }
 
@@ -711,14 +725,23 @@
     function verifyLoginOTP() {
       const digits = [...document.querySelectorAll('#loginOTPInputs .otp-digit')].map(i => i.value);
       if (digits.join('').length < 6) { showToast('Please enter the full 6-digit OTP'); return; }
+
+      const emailKey   = identifier.includes('@') ? identifier : null;
+      const savedUser  = emailKey
+        ? JSON.parse(localStorage.getItem(`bazario_profile_${emailKey}`) || 'null')
+        : JSON.parse(localStorage.getItem('bazario_user') || 'null');
       const identifier = document.getElementById('loginIdentifier').value.trim();
-      const user = {
-        name:     'Rahul Sharma',
-        email:    identifier.includes('@') ? identifier : 'rahul@email.com',
-        phone:    identifier.includes('@') ? '+91 98765 43210' : `+91 ${identifier}`,
-        gender:   'Male', dob: '1992-08-15', city: 'Gurugram',
-        joinedAt: new Date().toISOString(), isPrime: true
+      const user = savedUser || {
+        name:     '',
+        email:    identifier.includes('@') ? identifier : '',
+        phone:    identifier.includes('@') ? '' : `+91${identifier}`,
+        gender:   '',
+        dob:      '',
+        city:     '',
+        joinedAt: new Date().toISOString(),
+        isPrime:  false
       };
+
       completeLogin(user, 'otp');
     }
 
@@ -737,10 +760,22 @@
       if (!password || password.length < 8) { showFieldError('signupPasswordError');valid = false; } else { hideFieldError('signupPasswordError'); }
       if (!valid) return;
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Signup Initiated"
-      // clevertap.event.push("Signup Initiated", { method: "email_phone", has_referral: false });
-      // ─────────────────────────────────────────────────────────────
+      // ─── CleverTap ───────────────────────────────────────────────────────────────
+      // Push email as an early identity hint before OTP verification.
+      // This allows CT to merge this anonymous session with the named profile
+      // created at onUserLogin — so Signup Initiated ties to the correct user.
+      // Critical for drop-off analysis: cart → place order → signup → abandoned.
+      clevertap.profile.push({
+        "Site": {
+          "Email": document.getElementById('signupEmail').value.trim()
+        }
+      });
+
+      ctEvent("Signup Initiated", {
+        method:           "email_phone",
+        has_referral:     false,
+        from_cart:        localStorage.getItem('bazario_login_redirect') === 'cart.html'
+      });
 
       document.getElementById('signupOTPTarget').textContent = `+91 ${phone}`;
       document.getElementById('signupStep1').style.display   = 'none';
@@ -772,56 +807,62 @@
     function completeLogin(user, method) {
       currentUser = user;
       localStorage.setItem('bazario_user', JSON.stringify(user));
+      // Save profile keyed by email so it survives logout
+      if (user.email) {
+        localStorage.setItem(`bazario_profile_${user.email}`, JSON.stringify(user));
+      }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap — onUserLogin
-      // THE most important call in the web integration.
-      // Converts anonymous visitor → named, identified profile.
-      // All past anonymous events merge into this profile automatically.
-      //
-      // clevertap.onUserLogin.push({
-      //   "Site": {
-      //     "Name":     user.name,
-      //     "Email":    user.email,
-      //     "Phone":    user.phone,
-      //     "Gender":   user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : user.gender,
-      //     "DOB":      user.dob ? new Date(user.dob) : undefined,
-      //     "City":     user.city,
-      //     "Is Prime": user.isPrime
-      //   }
-      // });
-      // clevertap.event.push("User Logged In", { method, is_prime: user.isPrime });
-      // ─────────────────────────────────────────────────────────────
+      // ─── CleverTap: Identity + Login Event ───────────────────────────────────────
+      ctIdentifyUser(user);
+      ctEvent("User Logged In", {
+        method:   method,
+        is_prime: user.isPrime || false
+      });
 
       showToast(`Welcome back, ${user.name.split(' ')[0]}! 👋`);
+      mergeGuestCart(user.email);
+      mergeGuestWishlist(user.email);
+      refreshNavCounts();
       handlePostAuthRedirect();
     }
 
     function completeSignup(user) {
       currentUser = user;
       localStorage.setItem('bazario_user', JSON.stringify(user));
+      // Save profile keyed by email so it survives logout
+      if (user.email) {
+        localStorage.setItem(`bazario_profile_${user.email}`, JSON.stringify(user));
+      }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap — onUserLogin (also used for new signups)
-      // Creates a brand new named profile in CT for this user.
-      //
-      // clevertap.onUserLogin.push({
-      //   "Site": {
-      //     "Name":     user.name,
-      //     "Email":    user.email,
-      //     "Phone":    user.phone,
-      //     "Gender":   user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : user.gender,
-      //     "DOB":      user.dob ? new Date(user.dob) : undefined,
-      //     "City":     user.city,
-      //     "Is Prime": false
-      //   }
-      // });
-      // clevertap.event.push("User Signed Up", {
-      //   method: "email_phone", gender: user.gender, has_dob: !!user.dob, referral_used: false
-      // });
-      // ─────────────────────────────────────────────────────────────
+      // ─── CleverTap: Identity + Signup Events ─────────────────────────────────────
+      // onUserLogin used for signup too — creates new named profile in CT.
+      // MSG-email, MSG-sms, MSG-push default to true at signup.
+      clevertap.onUserLogin.push({
+        "Site": {
+          "Name":      user.name   || '',
+          "Email":     user.email  || '',
+          "Phone":     (user.phone || '').replace(/\s+/g, ''),
+          "Gender":    user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
+          "DOB":       user.dob ? new Date(user.dob) : undefined,
+          "City":      user.city   || '',
+          "Is Prime":  false,
+          "MSG-email": true,
+          "MSG-sms":   true,
+          "MSG-push":  true
+        }
+      });
+
+      ctEvent("User Signed Up", {
+        method:        "email_phone",
+        gender:        user.gender  || '',
+        has_dob:       !!user.dob,
+        referral_used: false
+      });
 
       showToast(`Welcome to Bazario, ${user.name.split(' ')[0]}! 🎉`);
+      mergeGuestCart(user.email);
+      mergeGuestWishlist(user.email);
+      refreshNavCounts();
       handlePostAuthRedirect();
     }
 
@@ -927,10 +968,9 @@
         `;
       }).join('');
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Order History Viewed"
-      // clevertap.event.push("Order History Viewed", { order_count: orders.length });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Order History Viewed", {
+        order_count: orders.length
+      });
     }
 
     // ─── ORDER DETAIL MODAL ───
@@ -1101,11 +1141,25 @@
 
       currentUser = updated;
       localStorage.setItem('bazario_user', JSON.stringify(updated));
+      if (updated.email) {
+        localStorage.setItem(`bazario_profile_${updated.email}`, JSON.stringify(updated));
+      }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap profile push
-      // clevertap.profile.push({ "Site": { "Name": updated.name, "Email": updated.email, "City": updated.city, "Gender": updated.gender === 'Male' ? 'M' : 'F' } });
-      // ─────────────────────────────────────────────────────────────
+      // ─── CleverTap: Profile Update ───────────────────────────────────────────────
+      ctUpdateProfile({
+        "Name":   updated.name   || '',
+        "Email":  updated.email  || '',
+        "Phone":  (updated.phone || '').replace(/\s+/g, ''),
+        "Gender": updated.gender === 'Male' ? 'M' : updated.gender === 'Female' ? 'F' : '',
+        "City":   updated.city   || '',
+        "DOB":    updated.dob ? new Date(updated.dob) : undefined
+      });
+
+      ctEvent("Profile Updated", {
+        fields_updated: Object.keys(updated)
+          .filter(k => updated[k] !== currentUser[k])
+          .join(', ')
+      });
 
       isEditingPersonal = true;
       toggleEditPersonal();
@@ -1113,17 +1167,37 @@
       showToast('Profile updated successfully ✓');
     }
 
-    // ─── PREFERENCES ───
     function handlePrefChange(pref, value) {
-      // Later: clevertap.profile.push({ "Site": { "MSG-email": value } }); etc.
+      const prefMap = {
+        email_notifications: { "MSG-email":      value },
+        sms_notifications:   { "MSG-sms":        value },
+        personalisation:     { "Personalisation": value }
+      };
+
+      if (prefMap[pref]) {
+        ctUpdateProfile(prefMap[pref]);
+      }
+
+      ctEvent("Preference Changed", {
+        preference: pref,
+        value:      value
+      });
+
       showToast(`${pref.replace(/_/g,' ')} ${value ? 'enabled' : 'disabled'}`);
     }
 
     // ─── LOGOUT ───
     function handleLogout() {
-      // Later: clevertap.event.push("User Logged Out", {});
+      ctEvent("User Logged Out", {});
       localStorage.removeItem('bazario_user');
       currentUser = null;
+
+      // Reset cart and wishlist count immediately on logout
+      const cartEl     = document.getElementById('cartCount');
+      const wishlistEl = document.getElementById('wishlistCount');
+      if (cartEl)     cartEl.textContent     = '0';
+      if (wishlistEl) wishlistEl.textContent = '0';
+
       showToast('Signed out successfully');
       setTimeout(() => showAuthPage(), 600);
     }
@@ -1186,6 +1260,59 @@
       const cart  = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
       const total = cart.reduce((s, i) => s + i.qty, 0);
       document.getElementById('cartCount').textContent = total;
+    }
+
+    // ─── Merge guest cart into user cart on login ───
+    function mergeGuestCart(userEmail) {
+      const guestCart = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+      if (guestCart.length === 0) return;
+
+      const userCartKey  = `bazario_cart_${userEmail}`;
+      const userCart     = JSON.parse(localStorage.getItem(userCartKey) || '[]');
+
+      guestCart.forEach(guestItem => {
+        const existing = userCart.find(i => i.id === guestItem.id);
+        if (existing) {
+          existing.qty += guestItem.qty;
+        } else {
+          userCart.push(guestItem);
+        }
+      });
+
+      localStorage.setItem(userCartKey, JSON.stringify(userCart));
+      localStorage.removeItem('bazario_cart_guest');
+    }
+
+    function mergeGuestWishlist(userEmail) {
+      const guestWishlist = JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
+      if (guestWishlist.length === 0) return;
+
+      const userWishKey  = `bazario_wishlist_${userEmail}`;
+      const userWishlist = JSON.parse(localStorage.getItem(userWishKey) || '[]');
+
+      guestWishlist.forEach(guestItem => {
+        const exists = userWishlist.find(i => i.id === guestItem.id);
+        if (!exists) userWishlist.push(guestItem);
+      });
+
+      localStorage.setItem(userWishKey, JSON.stringify(userWishlist));
+      localStorage.removeItem('bazario_wishlist_guest');
+    }
+
+    function refreshNavCounts() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+
+      // Cart
+      const cartKey = user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+      const cart    = JSON.parse(localStorage.getItem(cartKey) || '[]');
+      const cartEl  = document.getElementById('cartCount');
+      if (cartEl) cartEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
+
+      // Wishlist
+      const wishKey  = user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
+      const wishlist = JSON.parse(localStorage.getItem(wishKey) || '[]');
+      const wishEl   = document.getElementById('wishlistCount');
+      if (wishEl) wishEl.textContent = wishlist.length;
     }
 
     // ─── FORM HELPERS ───

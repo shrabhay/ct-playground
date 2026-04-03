@@ -425,12 +425,13 @@
   <div class="toast" id="toast"></div>
 
   <script src="js/catalogue.js"></script>
+  <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
-    let wishlist    = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
-    let cartItems   = JSON.parse(localStorage.getItem('bazario_cart')     || '[]');
+    let wishlist    = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
+    let cartItems   = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
     let currentSort = 'recent';
 
     // ─── INIT ───
@@ -446,6 +447,11 @@
       // });
       // ─────────────────────────────────────────────────────────────
     }
+
+    function getCartKey() {
+        const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+        }
 
     // ─── RENDER ───
     function render() {
@@ -536,10 +542,15 @@
       `).join('');
     }
 
+    function getWishlistKey() {
+        const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
+        }
+
     // ─── REMOVE FROM WISHLIST ───
     function removeFromWishlist(id) {
       wishlist = wishlist.filter(i => i.id !== id);
-      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
 
       // ─────────────────────────────────────────────────────────────
       // Later: CleverTap event — "Removed from Wishlist"
@@ -565,7 +576,7 @@
         cartItems.push({ ...item, qty: 1 });
       }
 
-      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
       updateCartCount();
 
       // Remove from wishlist
@@ -594,7 +605,7 @@
         else cartItems.push({ ...item, qty: 1 });
       });
 
-      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
       wishlist = [];
       localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
       updateCartCount();

@@ -793,13 +793,20 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/clevertap.js"></script>
+  <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
     let product = null;
     let qty = 1;
     let selectedVariant = null;
-    let cartItems = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
+    function getCartKey() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+    }
+
+    let cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
 
     // ─── INIT ───
     function init() {
@@ -989,7 +996,7 @@
       } else {
         cartItems.push({ ...product, qty, variant: selectedVariant });
       }
-      localStorage.setItem('bazario_cart', JSON.stringify(cartItems));
+      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
       updateCartCount();
 
       // ─────────────────────────────────────────────────────────────
@@ -1026,6 +1033,11 @@
       setTimeout(() => window.location.href = 'cart.html', 600);
     }
 
+    function getWishlistKey() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
+    }
+
     function handleWishlist() {
       if (!product) return;
       const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
@@ -1049,7 +1061,7 @@
         addedAt:       new Date().toISOString()
       });
 
-      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
       updateWishlistCount();
 
       // ─────────────────────────────────────────────────────────────
@@ -1081,7 +1093,7 @@
     }
 
     function updateWishlistCount() {
-      const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+      const wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
       const el = document.getElementById('wishlistCount');
       if (el) el.textContent = wishlist.length;
     }
@@ -1099,6 +1111,5 @@
       if (e.key === 'Enter') handleSearch();
     });
   </script>
-  <script src="js/auth.js"></script>
 </body>
 </html>

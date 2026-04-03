@@ -39,7 +39,9 @@ function initAuthNav() {
 function initWishlistCount() {
   const el = document.getElementById('wishlistCount');
   if (!el) return;
-  const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+  const user     = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+  const wishKey  = user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
+  const wishlist = JSON.parse(localStorage.getItem(wishKey) || '[]');
   el.textContent = wishlist.length;
 }
 
@@ -47,8 +49,10 @@ function initWishlistCount() {
 function initCartCount() {
   const el = document.getElementById('cartCount');
   if (!el) return;
-  const cart  = JSON.parse(localStorage.getItem('bazario_cart') || '[]');
-  const total = cart.reduce((s, i) => s + i.qty, 0);
+  const user    = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+  const cartKey = user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
+  const cart    = JSON.parse(localStorage.getItem(cartKey) || '[]');
+  const total   = cart.reduce((s, i) => s + i.qty, 0);
   el.textContent = total;
 }
 
