@@ -819,7 +819,7 @@
     <div class="nav-actions">
       <button class="nav-btn-login" onclick="handleLogin()">Login / Sign Up</button>
 
-      <button class="nav-btn" onclick="window.location.href='ecommerce/wishlist.html'">
+      <button class="nav-btn" onclick="window.location.href='wishlist.html'">
         <span class="label">Wishlist</span>
         <span class="value">♡ <span id="wishlistCount">0</span></span>
       </button>
@@ -881,7 +881,7 @@
               <span class="hero-tag" style="background:#ff6f00">⚡ Flash Sale</span>
               <h1>Electronics<br/><span style="color:#a5d6a7">Under ₹15,000</span></h1>
               <p>Laptops, phones, tablets and accessories at prices you won't believe.</p>
-              <button class="hero-cta" style="background:#ff6f00" onclick="handleCategoryNav('Electronics')">Shop Electronics →</button>
+              <button class="hero-cta" style="background:#ff6f00" onclick="handleBannerClick('Electronics Flash Sale','hero_slide_2','Electronics')">Shop Electronics →</button>
             </div>
             <div class="hero-graphic">
               <div class="hero-circles">
@@ -903,7 +903,7 @@
               <span class="hero-tag" style="background:#fff;color:#c2185b">👗 End of Season</span>
               <h1>Fashion Sale<br/><span style="color:#f48fb1">Min 50% Off</span></h1>
               <p>Top brands in clothing, footwear and accessories — all at their lowest prices.</p>
-              <button class="hero-cta" style="background:#fff;color:#c2185b" onclick="handleCategoryNav('Fashion')">Shop Fashion →</button>
+              <button class="hero-cta" style="background:#fff;color:#c2185b" onclick="handleBannerClick('Fashion End of Season','hero_slide_3','Fashion')">Shop Fashion →</button>
             </div>
             <div class="hero-graphic">
               <div class="hero-circles">
@@ -925,7 +925,7 @@
               <span class="hero-tag" style="background:#fff;color:#e65100">🥦 Daily Fresh</span>
               <h1>Groceries<br/><span style="color:#ffe0b2">2-Hour Delivery</span></h1>
               <p>Fresh fruits, vegetables, dairy and household essentials — straight to your door.</p>
-              <button class="hero-cta" style="background:#fff;color:#e65100" onclick="handleCategoryNav('Grocery')">Shop Grocery →</button>
+              <button class="hero-cta" style="background:#fff;color:#e65100" onclick="handleBannerClick('Grocery Daily Fresh','hero_slide_4','Grocery')">Shop Grocery →</button>
             </div>
             <div class="hero-graphic">
               <div class="hero-circles">
@@ -1045,7 +1045,7 @@
         <br/>
         <div class="products-grid">
 
-          <div class="product-card" onclick="handleProductClick('boAt Airdopes 141', 'Electronics', 1299, 4499)">
+          <div class="product-card" onclick="handleProductClick('E004')">
             <div class="product-img">🎧</div>
             <div class="product-badge">71% off</div>
             <div class="product-name">boAt Airdopes 141 TWS Earbuds with 42H Playback</div>
@@ -1060,7 +1060,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Noise ColorFit Pro 4', 'Electronics', 2499, 6999)">
+          <div class="product-card" onclick="handleProductClick('E005')">
             <div class="product-img">⌚</div>
             <div class="product-badge">64% off</div>
             <div class="product-name">Noise ColorFit Pro 4 Smartwatch with 1.72" Display</div>
@@ -1075,7 +1075,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Samsung Galaxy M14', 'Electronics', 10999, 14999)">
+          <div class="product-card" onclick="handleProductClick('E001')">
             <div class="product-img">📱</div>
             <div class="product-badge">Bestseller</div>
             <div class="product-name">Samsung Galaxy M14 5G (4GB RAM, 128GB Storage)</div>
@@ -1090,7 +1090,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Prestige Iris 750W Mixer', 'Appliances', 1795, 3495)">
+          <div class="product-card" onclick="handleProductClick('A001')">
             <div class="product-img">🍹</div>
             <div class="product-badge">49% off</div>
             <div class="product-name">Prestige Iris 750W Mixer Grinder with 3 Jars</div>
@@ -1105,7 +1105,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Nike Air Max 270', 'Fashion', 6995, 11995)">
+          <div class="product-card" onclick="handleProductClick('F003')">
             <div class="product-img">👟</div>
             <div class="product-badge">42% off</div>
             <div class="product-name">Nike Air Max 270 Running Shoes for Men</div>
@@ -1160,7 +1160,7 @@
         <h2 class="section-title">🆕 New Arrivals</h2>
         <div class="products-grid">
 
-          <div class="product-card" onclick="handleProductClick('Levi\'s 511 Slim Jeans', 'Fashion', 2399, 3999)">
+          <div class="product-card" onclick="handleProductClick('F001')">
             <div class="product-img">👖</div>
             <div class="product-name">Levi's 511 Slim Fit Men's Jeans — Dark Blue</div>
             <div class="product-rating">
@@ -1174,12 +1174,12 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Instant Pot Duo 5.7L', 'Appliances', 8999, 13999)">
-            <div class="product-img">🍲</div>
-            <div class="product-name">Instant Pot Duo 5.7L Electric Pressure Cooker</div>
+          <div class="product-card" onclick="handleProductClick('A001')">
+            <div class="product-img">🫧</div>
+            <div class="product-name">LG 8kg 5 Star Inverter Fully-Automatic Washing Machine</div>
             <div class="product-rating">
-              <span class="rating-badge">4.6 ★</span>
-              <span class="rating-count">(34,891)</span>
+              <span class="rating-badge">4.5 ★</span>
+              <span class="rating-count">(28,432)</span>
             </div>
             <div class="product-price">
               <span class="price-current">₹8,999</span>
@@ -1188,7 +1188,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Atomberg Renesa 1200mm Fan', 'Appliances', 2849, 4500)">
+          <div class="product-card" onclick="handleProductClick('A004')">
             <div class="product-img">💨</div>
             <div class="product-name">Atomberg Renesa 1200mm BLDC Ceiling Fan with Remote</div>
             <div class="product-rating">
@@ -1202,7 +1202,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Himalaya Face Wash Kit', 'Beauty', 349, 620)">
+          <div class="product-card" onclick="handleProductClick('B001')">
             <div class="product-img">🧴</div>
             <div class="product-name">Himalaya Purifying Neem Face Wash Combo Pack of 3</div>
             <div class="product-rating">
@@ -1216,7 +1216,7 @@
             </div>
           </div>
 
-          <div class="product-card" onclick="handleProductClick('Cosco Champion Cricket Kit', 'Sports', 1899, 3200)">
+          <div class="product-card" onclick="handleProductClick('SP001')">
             <div class="product-img">🏏</div>
             <div class="product-name">Cosco Champion Cricket Kit — Full Set with Bag</div>
             <div class="product-rating">
@@ -1297,6 +1297,7 @@
   <div class="toast" id="toast"></div>
 
   <!-- ─── JAVASCRIPT ─── -->
+   <script src="js/catalogue.js"></script>
    <script src="js/clevertap.js"></script>
    <script src="js/auth.js"></script>
    <script>
@@ -1321,36 +1322,34 @@
     function handleSearch() {
       const q = document.getElementById('searchInput').value.trim();
       if (!q) return;
-      window.location.href = `listing.html?search=${encodeURIComponent(q)}`;
+      window.location.href = `listing.html?search=${encodeURIComponent(q)}&source=homepage`;
     }
 
     // ── Category navigation ──
     function handleCategoryNav(category) {
-      // Later: CleverTap event — "Category Viewed", { category_name: category }
-      showToast(`Browsing ${category}...`);
-      setTimeout(() => window.location.href = `listing.html?category=${encodeURIComponent(category)}`, 800);
+      window.location.href = `listing.html?category=${encodeURIComponent(category)}&source=home_subnav`;
     }
 
     function handleCategoryClick(category) {
-      // Later: CleverTap event — "Category Viewed", { category_name: category, source: 'home_grid' }
-      showToast(`Opening ${category}...`);
-      setTimeout(() => window.location.href = `listing.html?category=${encodeURIComponent(category)}`, 800);
+      window.location.href = `listing.html?category=${encodeURIComponent(category)}&source=home_category_grid`;
     }
 
     // ── Hero CTA ──
     function handleShopNow() {
-      // Later: CleverTap event — "Banner Clicked", { banner_name: 'Mega Sale', position: 'hero' }
-      showToast('Loading deals...');
-      window.location.href = 'listing.html?category=Deals';
+      window.location.href = `listing.html?category=Deals&source=hero_banner&banner=Mega Sale&position=hero_slide_1`;
+    }
+
+    function handleBannerClick(bannerName, position, category) {
+      window.location.href = `listing.html?category=${encodeURIComponent(category)}&source=hero_banner&banner=${encodeURIComponent(bannerName)}&position=${position}`;
     }
 
     // ── Product click ──
-    function handleProductClick(name, category, price, originalPrice) {
-      // Later: CleverTap event — "Product Viewed", { product_name, category, price, original_price }
-      showToast(`Opening ${name}...`);
-      setTimeout(() => {
-        window.location.href = `product.html?name=${encodeURIComponent(name)}&category=${encodeURIComponent(category)}&price=${price}`;
-      }, 800);
+    function handleProductClick(productId) {
+      const product = getAllProducts().find(p => p.id === productId);
+      if (!product) return;
+
+      const params = `id=${product.id}&category=${encodeURIComponent(product.category)}&source=homepage`;
+      window.location.href = `product.html?${params}`;
     }
 
     // ── Countdown timer ──

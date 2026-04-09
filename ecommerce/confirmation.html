@@ -450,30 +450,15 @@
       renderOrderDetails();
       setDeliveryDates();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Order Confirmed"
-      // Fires when the confirmation page loads after a successful order.
-      // The Charged event fires on checkout.html just before redirect —
-      // this event is a secondary confirmation signal useful for
-      // post-purchase campaign triggers.
-      //
-      // clevertap.event.push("Order Confirmed", {
-      //   order_id:       orderData.orderId,
-      //   order_value:    orderData.total,
-      //   item_count:     orderData.items.reduce((s, i) => s + i.qty, 0),
-      //   payment_method: orderData.paymentMethod,
-      //   top_category:   getMostFrequentCategory()
-      // });
-      //
-      // Also update user profile properties on purchase:
-      //
-      // clevertap.profile.push({
-      //   "Site": {
-      //     "Last Order Date":  new Date().toISOString(),
-      //     "Last Order Value": orderData.total
-      //   }
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Order Confirmed", {
+        order_id:       orderData.orderId,
+        order_value:    orderData.total,
+        item_count:     orderData.items
+          ? orderData.items.reduce((s, i) => s + i.qty, 0)
+          : 0,
+        payment_method: orderData.paymentMethod,
+        top_category:   getMostFrequentCategory()
+      });
     }
 
     // ─── LOAD ORDER DATA FROM LOCALSTORAGE ───
@@ -607,15 +592,11 @@
     function submitRating() {
       if (!userRating) { showToast('Please select a rating first'); return; }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Order Rated"
-      //
-      // clevertap.event.push("Order Rated", {
-      //   order_id: orderData.orderId,
-      //   rating:   userRating,
-      //   context:  "post_purchase"
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Order Rated", {
+        order_id: orderData.orderId,
+        rating:   userRating,
+        context:  "post_purchase"
+      });
 
       showToast(`Thanks for your ${userRating}★ rating!`);
       document.querySelector('.rate-section').style.opacity       = '0.5';

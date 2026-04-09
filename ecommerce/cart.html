@@ -320,21 +320,12 @@
       renderSummary();
       updateCartCount();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Cart Viewed"
-      // Fires every time a user opens the cart page.
-      //
-      // IMPORTANT: No array properties allowed outside the Charged event.
-      // top_category (string) and unique_categories (number) are scalar
-      // representations of cart composition used instead of an array.
-      //
-      // clevertap.event.push("Cart Viewed", {
-      //   item_count:        cartItems.reduce((s, i) => s + i.qty, 0),
-      //   cart_value:        getCartTotal(),
-      //   top_category:      getMostFrequentCategory(),
-      //   unique_categories: getUniqueCategoryCount()
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Cart Viewed", {
+        item_count:        cartItems.reduce((s, i) => s + i.qty, 0),
+        cart_value:        getCartTotal(),
+        top_category:      getMostFrequentCategory(),
+        unique_categories: getUniqueCategoryCount()
+      });
     }
 
     // ─── RENDER CART ───
@@ -444,36 +435,28 @@
       renderSummary();
       updateCartCount();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Cart Quantity Updated"
-      //
-      // clevertap.event.push("Cart Quantity Updated", {
-      //   product_id:   cartItems[idx].id,
-      //   product_name: cartItems[idx].name,
-      //   category:     cartItems[idx].category,
-      //   new_quantity: newQty,
-      //   cart_value:   getCartTotal()
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Cart Quantity Updated", {
+        product_id:   cartItems[idx].id,
+        product_name: cartItems[idx].name,
+        category:     cartItems[idx].category,
+        new_quantity: newQty,
+        cart_value:   getCartTotal()
+      });
     }
 
     // ─── REMOVE ITEM ───
     function removeItem(idx) {
       const removed = cartItems[idx];
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Removed from Cart"
-      //
-      // clevertap.event.push("Removed from Cart", {
-      //   product_id:   removed.id,
-      //   product_name: removed.name,
-      //   category:     removed.category,
-      //   brand:        removed.brand,
-      //   price:        removed.price,
-      //   quantity:     removed.qty,
-      //   cart_value:   getCartTotal() - (removed.price * removed.qty)
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Removed from Cart", {
+        product_id:   removed.id,
+        product_name: removed.name,
+        category:     removed.category,
+        brand:        removed.brand,
+        price:        removed.price,
+        quantity:     removed.qty,
+        cart_value:   getCartTotal() - (removed.price * removed.qty)
+      });
 
       cartItems.splice(idx, 1);
       saveToStorage();
@@ -487,13 +470,12 @@
     function saveForLater(idx) {
       const item = cartItems[idx];
 
-      // Later: CleverTap event — "Saved for Later"
-      // clevertap.event.push("Saved for Later", {
-      //   product_id:   item.id,
-      //   product_name: item.name,
-      //   category:     item.category,
-      //   price:        item.price
-      // });
+      ctEvent("Saved for Later", {
+        product_id:   item.id,
+        product_name: item.name,
+        category:     item.category,
+        price:        item.price
+      });
 
       cartItems.splice(idx, 1);
       saveToStorage();
@@ -520,27 +502,19 @@
         couponCode     = code;
         couponDiscount = coupons[code];
 
-        // ─────────────────────────────────────────────────────────
-        // Later: CleverTap event — "Coupon Applied"
-        //
-        // clevertap.event.push("Coupon Applied", {
-        //   coupon_code:  code,
-        //   discount_pct: coupons[code],
-        //   cart_value:   getCartTotal()
-        // });
-        // ─────────────────────────────────────────────────────────
+        ctEvent("Coupon Applied", {
+          coupon_code:  code,
+          discount_pct: coupons[code],
+          cart_value:   getCartTotal()
+        });
 
         showToast(`✓ Coupon ${code} applied! ${coupons[code]}% off`);
       } else {
 
-        // ─────────────────────────────────────────────────────────
-        // Later: CleverTap event — "Coupon Failed"
-        //
-        // clevertap.event.push("Coupon Failed", {
-        //   coupon_code: code,
-        //   cart_value:  getCartTotal()
-        // });
-        // ─────────────────────────────────────────────────────────
+        ctEvent("Coupon Failed", {
+          coupon_code: code,
+          cart_value:  getCartTotal()
+        });
 
         showToast('✗ Invalid coupon code');
       }
@@ -555,14 +529,8 @@
     // ─── CHECKOUT ───
     function handleCheckout() {
       if (cartItems.length === 0) return;
-      
-      // ── Login gate ──
-      // If the user is not logged in, save a redirect flag and
-      // send them to the account page. After login/signup they
-      // will be automatically returned to cart.html.
-      
+
       const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      
       if (!user) {
         localStorage.setItem('bazario_login_redirect', 'cart.html');
         showToast('Please login to place your order...');
@@ -570,20 +538,17 @@
         return;
       }
 
-      // Later: CleverTap event — "Checkout Started"
-      // Fires when user clicks "Place Order" button with items in cart.
-      //
-      // clevertap.event.push("Checkout Started", {
-      //   item_count:        cartItems.reduce((s, i) => s + i.qty, 0),
-      //   cart_value:        getCartTotal(),
-      //   top_category:      getMostFrequentCategory(),
-      //   unique_categories: getUniqueCategoryCount(),
-      //   coupon_applied:    couponApplied,
-      //   coupon_code:       couponCode,
-      //   coupon_discount:   couponDiscount
-      // });
+      // Pass checkout context via URL — event fires on checkout.html
+      const params = new URLSearchParams({
+        item_count:     cartItems.reduce((s, i) => s + i.qty, 0),
+        cart_value:     getCartTotal(),
+        top_category:   getMostFrequentCategory(),
+        category_count: getUniqueCategoryCount(),
+        coupon_applied: couponApplied,
+        coupon_code:    couponCode || ''
+      });
 
-      window.location.href = 'checkout.html';
+      window.location.href = `checkout.html?${params.toString()}`;
     }
 
     // ─── NAVIGATE TO PRODUCT ───

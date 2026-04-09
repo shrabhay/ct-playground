@@ -440,12 +440,9 @@
       render();
       renderSuggestions();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Wishlist Viewed"
-      // clevertap.event.push("Wishlist Viewed", {
-      //   item_count: wishlist.length
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Wishlist Viewed", {
+        item_count: wishlist.length
+      });
     }
 
     function getCartKey() {
@@ -549,15 +546,24 @@
 
     // ─── REMOVE FROM WISHLIST ───
     function removeFromWishlist(id) {
+      // Capture item details BEFORE removing from array
+      const removedItem = wishlist.find(i => i.id === id);
+
+      // Now remove from array
       wishlist = wishlist.filter(i => i.id !== id);
       localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Removed from Wishlist"
-      // clevertap.event.push("Removed from Wishlist", {
-      //   product_id: id
-      // });
-      // ─────────────────────────────────────────────────────────────
+      // Fire CT event with captured details
+      ctEvent("Removed from Wishlist", {
+        product_id:   removedItem ? removedItem.id       : id,
+        product_name: removedItem ? removedItem.name     : '',
+        category:     removedItem ? removedItem.category : '',
+        price:        removedItem ? removedItem.price     : 0
+      });
+
+      // Update UI
+      const el = document.getElementById('wishlistCount');
+      if (el) el.textContent = wishlist.length;
 
       render();
       renderSuggestions();
@@ -583,15 +589,14 @@
       wishlist = wishlist.filter(i => i.id !== id);
       localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Moved to Cart from Wishlist"
-      // clevertap.event.push("Moved to Cart from Wishlist", {
-      //   product_id:   item.id,
-      //   product_name: item.name,
-      //   category:     item.category,
-      //   price:        item.price
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Moved to Cart from Wishlist", {
+        product_id:   item.id,
+        product_name: item.name,
+        category:     item.category,
+        brand:        item.brand || '',
+        price:        item.price,
+        cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0)
+      });
 
       render();
       showToast(`✓ ${item.name.substring(0, 28)}... moved to cart`);
@@ -599,6 +604,13 @@
 
     // ─── ADD ALL TO CART ───
     function addAllToCart() {
+      if (wishlist.length === 0) return;
+
+      // Capture values BEFORE clearing wishlist
+      const itemCount  = wishlist.length;
+      const totalValue = wishlist.reduce((s, i) => s + i.price, 0);
+
+      // Move all items to cart
       wishlist.forEach(item => {
         const existing = cartItems.find(i => i.id === item.id);
         if (existing) existing.qty++;
@@ -606,27 +618,33 @@
       });
 
       localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
+
+      // Now clear wishlist
       wishlist = [];
-      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+
       updateCartCount();
+
+      // Fire CT event with captured values
+      ctEvent("Add All Wishlist to Cart", {
+        item_count: itemCount,
+        cart_value: totalValue
+      });
+
       render();
-
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Add All Wishlist to Cart"
-      // clevertap.event.push("Add All Wishlist to Cart", {
-      //   item_count: wishlist.length
-      // });
-      // ─────────────────────────────────────────────────────────────
-
       showToast('All items moved to cart ✓');
       setTimeout(() => window.location.href = 'cart.html', 1200);
     }
 
     // ─── CLEAR WISHLIST ───
     function clearWishlist() {
-      if (!confirm('Remove all items from your wishlist?')) return;
       wishlist = [];
-      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+
+      // Update wishlist count in navbar immediately
+      const el = document.getElementById('wishlistCount');
+      if (el) el.textContent = '0';
+
       render();
       renderSuggestions();
       showToast('Wishlist cleared');

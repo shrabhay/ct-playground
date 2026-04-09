@@ -694,16 +694,25 @@
       }
       renderSummary();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Checkout Page Viewed"
-      // Fires when the user lands on the checkout page.
-      //
-      // clevertap.event.push("Checkout Page Viewed", {
-      //   item_count:   cartItems.reduce((s, i) => s + i.qty, 0),
-      //   cart_value:   getCartTotal(),
-      //   step:         "address"
-      // });
-      // ─────────────────────────────────────────────────────────────
+      // ── CT: Checkout Initiated ──
+      // Fired here instead of cart.html to avoid beacon/replay duplicate issue
+      const checkoutParams = new URLSearchParams(window.location.search);
+      if (checkoutParams.get('cart_value')) {
+        ctEvent("Checkout Initiated", {
+          item_count:     parseInt(checkoutParams.get('item_count'))     || 0,
+          cart_value:     parseFloat(checkoutParams.get('cart_value'))   || 0,
+          top_category:   checkoutParams.get('top_category')             || '',
+          category_count: parseInt(checkoutParams.get('category_count')) || 1,
+          coupon_applied: checkoutParams.get('coupon_applied') === 'true',
+          coupon_code:    checkoutParams.get('coupon_code')              || ''
+        });
+      }
+
+      ctEvent("Checkout Page Viewed", {
+        item_count: cartItems.reduce((s, i) => s + i.qty, 0),
+        cart_value: getCartTotal(),
+        step:       "address"
+      });
     }
 
     // ─── RENDER ORDER SUMMARY ───
@@ -844,17 +853,13 @@
       document.getElementById('addressNum').classList.add('done');
       document.getElementById('addressNum').textContent = '✓';
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Address Selected"
-      //
-      // clevertap.event.push("Address Selected", {
-      //   address_type: document.querySelector('input[name="addrType"]:checked')?.value || 'Home',
-      //   city:         document.getElementById('city')?.value || 'Gurugram',
-      //   state:        document.getElementById('state')?.value || 'Haryana',
-      //   is_new:       document.getElementById('newAddressForm').classList.contains('show'),
-      //   cart_value:   getCartTotal()
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Address Selected", {
+        address_type: document.querySelector('input[name="addrType"]:checked')?.value || 'Saved',
+        city:         document.getElementById('city')?.value || '',
+        state:        document.getElementById('state')?.value || '',
+        is_new:       document.getElementById('newAddressForm').classList.contains('show'),
+        cart_value:   getCartTotal()
+      });
 
       showToast('Address confirmed ✓');
       document.getElementById('paymentPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -873,14 +878,10 @@
         el.querySelector('input[type="radio"]').checked = true;
       }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Payment Method Selected"
-      //
-      // clevertap.event.push("Payment Method Selected", {
-      //   payment_method: method,
-      //   cart_value:     getCartTotal()
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Payment Method Selected", {
+        payment_method: method,
+        cart_value:     getCartTotal()
+      });
     }
 
     function verifyUPI() {
@@ -918,14 +919,10 @@
       document.getElementById('paymentNum').classList.add('done');
       document.getElementById('paymentNum').textContent = '✓';
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Payment Step Completed"
-      //
-      // clevertap.event.push("Payment Step Completed", {
-      //   payment_method: selectedPayment,
-      //   cart_value:     getCartTotal()
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Payment Step Completed", {
+        payment_method: selectedPayment,
+        cart_value:     getCartTotal()
+      });
 
       showToast('Payment method confirmed ✓');
       document.getElementById('reviewPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -954,35 +951,27 @@
       };
       localStorage.setItem('bazario_last_order', JSON.stringify(orderData));
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap reserved event — "Charged"
-      // This is CleverTap's purchase event. It is the ONLY event that
-      // supports an Items array for line items. All other properties
-      // must be scalars. Note the Title Case property names — these
-      // are CleverTap reserved property names for the Charged event.
-      //
-      // clevertap.event.push("Charged", {
-      //   "Amount":         grandTotal,
-      //   "Payment mode":   selectedPayment,
-      //   "Order ID":       orderId,
-      //   "Items": cartItems.map(i => ({
-      //     "Product name": i.name,
-      //     "Category":     i.category,
-      //     "Brand":        i.brand,
-      //     "Price":        i.price,
-      //     "Quantity":     i.qty
-      //   }))
-      // });
-      //
-      // Additionally update user properties on purchase:
-      // clevertap.profile.push({
-      //   "Site": {
-      //     "Total Orders":    1,   // increment server-side ideally
-      //     "Last Order Date": new Date().toISOString(),
-      //     "Last Order Value": grandTotal
-      //   }
-      // });
-      // ─────────────────────────────────────────────────────────────
+      // ── CT: Charged — Reserved purchase event ──────────────────────────────────
+      // IMPORTANT: Title Case property names are CT reserved — do not change them.
+      // Items array is ONLY allowed on the Charged event — not on any other event.
+      clevertap.event.push("Charged", {
+        "Amount":       grandTotal,
+        "Payment mode": selectedPayment,
+        "Order ID":     orderId,
+        "Items":        cartItems.map(i => ({
+          "Product name": i.name,
+          "Category":     i.category,
+          "Brand":        i.brand || '',
+          "Price":        i.price,
+          "Quantity":     i.qty
+        }))
+      });
+
+      // ── CT: Update user profile after purchase ─────────────────────────────────
+      ctUpdateProfile({
+        "Last Order Date":  new Date().toISOString(),
+        "Last Order Value": grandTotal
+      });
 
       // Save order to user-specific orders list
       const loggedUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');

@@ -396,7 +396,6 @@
       .prod-image { width: 120px; height: 120px; font-size: 44px; }
     }
   </style>
-  <script src="js/catalogue.js"></script>
 </head>
 <body>
 
@@ -579,6 +578,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -612,44 +612,97 @@
 };
 
     // ─── INIT ───
+    let initialised = false;
+
     function init() {
+      if (initialised) return;
+      initialised = true;
+
       const params = new URLSearchParams(window.location.search);
-      const cat    = params.get('category');
+
+      // ── Detect mode: Search, Deals, or Category ──
       const searchParam = params.get('search');
       if (searchParam) {
         currentSearch   = searchParam.trim();
         currentCategory = 'Search';
-      } else if (cat === 'Deals') {
+      } else if (params.get('category') === 'Deals') {
         currentCategory = 'Deals';
-      } else if (cat && catalogue[cat]) {
-        currentCategory = cat;
+      } else if (params.get('category') && catalogue[params.get('category')]) {
+        currentCategory = params.get('category');
       }
-      
+
+      // ── Display name ──
       let displayName;
-      if (currentCategory === 'Deals')  displayName = "Today's Deals 🔥";
-      else if (currentCategory === 'Search') displayName = `Results for "${currentSearch}"`;
-      else displayName = currentCategory;
+      if (currentCategory === 'Deals')        displayName = "Today's Deals 🔥";
+      else if (currentCategory === 'Search')  displayName = `Results for "${currentSearch}"`;
+      else                                     displayName = currentCategory;
 
       document.title = `Bazario — ${displayName}`;
       document.getElementById('breadcrumbCategory').textContent = displayName;
       document.getElementById('categoryLabel').textContent      = displayName;
-      
-      renderBrandFilters(currentCategory);
-      applyFiltersAndSort(); // renders products + pagination
-      updateCartCount();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Category Viewed"
-      // clevertap.event.push("Category Viewed", {
-      //   category_name: currentCategory,
-      //   source:        "listing_page"
-      // });
-      // ─────────────────────────────────────────────────────────────
-
-      // Pre-fill search bar if search mode
+      // ── Pre-fill search bar if in search mode ──
       if (currentSearch) {
         const searchInput = document.getElementById('searchInput');
         if (searchInput) searchInput.value = currentSearch;
+      }
+
+      renderBrandFilters(currentCategory);
+      applyFiltersAndSort();
+      updateCartCount();
+
+      // ── Calculate total products for CT ──
+      let totalProducts;
+      if (currentCategory === 'Search') {
+        const q = currentSearch.toLowerCase();
+        totalProducts = getAllProducts().filter(p =>
+          p.name.toLowerCase().includes(q)     ||
+          p.brand.toLowerCase().includes(q)    ||
+          p.category.toLowerCase().includes(q) ||
+          (p.highlights || []).some(h => h.toLowerCase().includes(q))
+        ).length;
+      } else if (currentCategory === 'Deals') {
+        totalProducts = getAllProducts().filter(p => p.discount >= 30).length;
+      } else {
+        totalProducts = (catalogue[currentCategory] || []).length;
+      }
+
+      // ── Read navigation source from URL ──
+      const source   = params.get('source')   || 'direct';
+      const banner   = params.get('banner')   || '';
+      const position = params.get('position') || '';
+
+      // ── CT: Category Viewed — always fires on listing page load ──
+      ctEvent("Category Viewed", {
+        category_name:  currentCategory,
+        source:         currentCategory === 'Search' ? 'search' : source,
+        total_products: totalProducts
+      });
+
+      // ── CT: Category Clicked — fires if user came from homepage navigation ──
+      if (source === 'home_category_grid' || source === 'home_subnav') {
+        ctEvent("Category Clicked", {
+          category_name: currentCategory,
+          source:        source
+        });
+      }
+
+      // ── CT: Banner Clicked — fires if user came from a hero banner ──
+      if (source === 'hero_banner' && banner) {
+        ctEvent("Banner Clicked", {
+          banner_name:     banner,
+          banner_position: position,
+          destination:     currentCategory
+        });
+      }
+
+      // ── CT: Product Searched — fires if user searched from homepage ──
+      if (source === 'homepage' && currentCategory === 'Search') {
+        ctEvent("Product Searched", {
+          query:         currentSearch,
+          results_count: totalProducts,
+          source:        "homepage"
+        });
       }
     }
 
@@ -817,31 +870,20 @@
 
     // ─── PRODUCT CLICK → goes to product.html ───
     function handleProductClick(product) {
-      // Later: CleverTap event — "Product Viewed"
-      // clevertap.event.push("Product Viewed", {
-      //   product_id:     product.id,
-      //   product_name:   product.name,
-      //   category:       product.category,
-      //   price:          product.price,
-      //   original_price: product.originalPrice,
-      //   discount_pct:   product.discount,
-      //   brand:          product.brand,
-      //   rating:         product.rating,
-      //   source:         "listing_page"
-      // });
       const params = new URLSearchParams({
-        id:       product.id,
-        name:     product.name,
-        category: product.category,
-        price:    product.price,
-        original: product.originalPrice,
-        discount: product.discount,
-        brand:    product.brand,
-        rating:   product.rating,
-        reviews:  product.reviews,
-        emoji:    product.emoji,
+        id:         product.id,
+        name:       product.name,
+        category:   product.category,
+        price:      product.price,
+        original:   product.originalPrice,
+        discount:   product.discount,
+        brand:      product.brand,
+        rating:     product.rating,
+        reviews:    product.reviews,
+        emoji:      product.emoji,
         highlights: product.highlights.join('|'),
-        tags:     product.tags.join(',')
+        tags:       product.tags.join(','),
+        source:     'listing_page'
       });
       window.location.href = `product.html?${params.toString()}`;
     }
@@ -861,16 +903,16 @@
       localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
       updateCartCount();
 
-      // Later: CleverTap event — "Added to Cart"
-      // clevertap.event.push("Added to Cart", {
-      //   product_id:   product.id,
-      //   product_name: product.name,
-      //   category:     product.category,
-      //   price:        product.price,
-      //   quantity:     1,
-      //   cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0),
-      //   source:       "listing_page"
-      // });
+      ctEvent("Added to Cart", {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        product.brand,
+        price:        product.price,
+        quantity:     1,
+        cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0),
+        source:       "listing_page"
+      });
 
       showToast(`✓ ${product.name.substring(0, 30)}... added to cart`);
     }
@@ -892,6 +934,16 @@
       });
 
       localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+
+      ctEvent("Added to Wishlist", {
+        product_id:   p.id,
+        product_name: p.name,
+        category:     p.category,
+        brand:        p.brand,
+        price:        p.price,
+        source:       "listing_page"
+      });
+
       showToast(`♡ ${p.name.substring(0, 30)}... added to Wishlist`);
 
       const el = document.getElementById('wishlistCount');
@@ -929,14 +981,11 @@
         activeFilters.discount = activeFilters.discount === num ? null : num;
       }
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Filter Applied"
-      // clevertap.event.push("Filter Applied", {
-      //   filter_type:  type,
-      //   filter_value: value,
-      //   category:     currentCategory
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Filter Applied", {
+        filter_type:  type,
+        filter_value: value,
+        category:     currentCategory
+      });
 
       applyFiltersAndSort();
     }
@@ -970,13 +1019,10 @@
       currentPage = 1;
       applyFiltersAndSort();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Sort Applied"
-      // clevertap.event.push("Sort Applied", {
-      //   sort_type:  type,
-      //   category:   currentCategory
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Sort Applied", {
+        sort_type: type,
+        category:  currentCategory
+      });
     }
 
     // ─── SEARCH ───
@@ -988,25 +1034,25 @@
       currentCategory = 'Search';
       currentPage     = 1;
 
-      // Update URL without reloading the page
       const url = new URL(window.location.href);
       url.searchParams.set('search', q);
       url.searchParams.delete('category');
       window.history.pushState({}, '', url);
 
-      // Update display
       const displayName = `Results for "${q}"`;
       document.getElementById('breadcrumbCategory').textContent = displayName;
       document.getElementById('categoryLabel').textContent      = displayName;
       document.title = `Bazario — ${displayName}`;
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Product Searched"
-      // clevertap.event.push("Product Searched", {
-      //   query:        q,
-      //   source:       "listing_search_bar"
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Product Searched", {
+        query:         q,
+        results_count: getAllProducts().filter(p =>
+          p.name.toLowerCase().includes(q.toLowerCase()) ||
+          p.brand.toLowerCase().includes(q.toLowerCase()) ||
+          p.category.toLowerCase().includes(q.toLowerCase())
+        ).length,
+        source: "listing_search_bar"
+      });
 
       renderBrandFilters('Search');
       applyFiltersAndSort();
@@ -1072,13 +1118,10 @@
       applyFiltersAndSort();
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Listing Page Changed"
-      // clevertap.event.push("Listing Page Changed", {
-      //   category:     currentCategory,
-      //   page_number:  page
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Listing Page Changed", {
+        category:    currentCategory,
+        page_number: page
+      });
     }
 
     // ─── CART COUNT ───

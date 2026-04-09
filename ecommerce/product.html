@@ -572,7 +572,6 @@
       .related-grid { grid-template-columns: repeat(2, 1fr); }
     }
   </style>
-  <script src="js/catalogue.js"></script>
 </head>
 <body>
 
@@ -793,6 +792,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -812,12 +812,15 @@
     function init() {
       const params = new URLSearchParams(window.location.search);
 
-      // Try to find product by id first
-      const productId = params.get('id');
+      // ── Read source from URL ──
+      const pdpSource = params.get('source') || 'pdp';
+
+      // ── Try to find product by ID first ──
+      const productId  = params.get('id');
       const allProducts = Object.values(catalogue).flat();
       product = allProducts.find(p => p.id === productId);
 
-      // Fallback: reconstruct from URL params (from homepage quick click)
+      // ── Fallback: reconstruct from URL params ──
       if (!product) {
         const name     = params.get('name')     || 'Product';
         const category = params.get('category') || 'Electronics';
@@ -831,30 +834,37 @@
         const highlights = (params.get('highlights') || '').split('|').filter(Boolean);
         const tags     = (params.get('tags')    || '').split(',').filter(Boolean);
 
-        product = { id: 'TEMP', name, category, price, originalPrice: original, discount, brand, rating, reviews, emoji, highlights, tags, variants: { label: 'Option', options: ['Default'] }, desc: `${name} — a quality product by ${brand}.`, specs: [['Brand', brand], ['Category', category], ['Price', `₹${price.toLocaleString('en-IN')}`]] };
+        product = {
+          id: 'TEMP', name, category, price,
+          originalPrice: original, discount, brand,
+          rating, reviews, emoji, highlights, tags,
+          variants: { label: 'Option', options: ['Default'] },
+          desc: `${name} — a quality product by ${brand}.`,
+          specs: [['Brand', brand], ['Category', category], ['Price', `₹${price.toLocaleString('en-IN')}`]]
+        };
       }
 
       renderProduct(product);
       renderRelated(product);
       updateCartCount();
+      updateWishlistCount();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Product Viewed"
-      // This fires every time a user lands on any product detail page.
-      // This is one of the most important events in ecommerce analytics.
-      //
-      // clevertap.event.push("Product Viewed", {
-      //   product_id:     product.id,
-      //   product_name:   product.name,
-      //   category:       product.category,
-      //   brand:          product.brand,
-      //   price:          product.price,
-      //   original_price: product.originalPrice,
-      //   discount_pct:   product.discount,
-      //   rating:         product.rating,
-      //   source:         "pdp"
-      // });
-      // ─────────────────────────────────────────────────────────────
+      // ── CT: Product Viewed ──
+      // source reflects where the user came from:
+      // "homepage" — clicked from index.html
+      // "listing_page" — clicked from listing.html
+      // "pdp" — arrived directly or from related products
+      ctEvent("Product Viewed", {
+        product_id:     product.id,
+        product_name:   product.name,
+        category:       product.category,
+        brand:          product.brand,
+        price:          product.price,
+        original_price: product.originalPrice,
+        discount_pct:   product.discount,
+        rating:         product.rating,
+        source:         pdpSource
+      });
     }
 
     // ─── RENDER PRODUCT ───
@@ -963,8 +973,12 @@
       document.querySelectorAll('.variant-btn').forEach(b => b.classList.remove('active'));
       el.classList.add('active');
       selectedVariant = value;
-      // Later: CleverTap event — "Variant Selected"
-      // clevertap.event.push("Variant Selected", { product_id: product.id, variant: value });
+      ctEvent("Variant Selected", {
+        product_id:    product.id,
+        product_name:  product.name,
+        variant_type:  product.variants ? product.variants.label : '',
+        variant_value: value
+      });
     }
 
     function changeQty(delta) {
@@ -975,6 +989,13 @@
     function handleSearch() {
       const q = document.getElementById('searchInput').value.trim();
       if (!q) return;
+
+      ctEvent("Product Searched", {
+        query:         q,
+        results_count: 0,
+        source:        "pdp"
+      });
+
       window.location.href = `listing.html?search=${encodeURIComponent(q)}`;
     }
 
@@ -985,7 +1006,12 @@
         return;
       }
       showToast(`Checking delivery to ${pin}...`);
-      // Later: CleverTap event — "Delivery Check", { pincode: pin, product_id: product.id }
+      ctEvent("Delivery Check", {
+        pincode:      pin,
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category
+      });
     }
 
     function handleAddToCart() {
@@ -999,37 +1025,32 @@
       localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
       updateCartCount();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Added to Cart"
-      // clevertap.event.push("Added to Cart", {
-      //   product_id:   product.id,
-      //   product_name: product.name,
-      //   category:     product.category,
-      //   brand:        product.brand,
-      //   price:        product.price,
-      //   quantity:     qty,
-      //   variant:      selectedVariant,
-      //   cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0),
-      //   source:       "pdp"
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Added to Cart", {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        product.brand,
+        price:        product.price,
+        quantity:     qty,
+        variant:      selectedVariant || '',
+        cart_value:   cartItems.reduce((s, i) => s + i.price * i.qty, 0),
+        source:       "pdp"
+      });
 
       showToast(`✓ Added to cart — ${product.name.substring(0, 28)}...`);
     }
 
     function handleBuyNow() {
       handleAddToCart();
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Buy Now Clicked"
-      // clevertap.event.push("Buy Now Clicked", {
-      //   product_id:   product.id,
-      //   product_name: product.name,
-      //   category:     product.category,
-      //   price:        product.price,
-      //   quantity:     qty,
-      //   variant:      selectedVariant
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Buy Now Clicked", {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        product.brand,
+        price:        product.price,
+        quantity:     qty,
+        variant:      selectedVariant || ''
+      });
       setTimeout(() => window.location.href = 'cart.html', 600);
     }
 
@@ -1040,7 +1061,7 @@
 
     function handleWishlist() {
       if (!product) return;
-      const wishlist = JSON.parse(localStorage.getItem('bazario_wishlist') || '[]');
+      const wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
       const exists   = wishlist.find(i => i.id === product.id);
 
       if (exists) {
@@ -1064,15 +1085,14 @@
       localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
       updateWishlistCount();
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap event — "Added to Wishlist"
-      // clevertap.event.push("Added to Wishlist", {
-      //   product_id:   product.id,
-      //   product_name: product.name,
-      //   category:     product.category,
-      //   price:        product.price
-      // });
-      // ─────────────────────────────────────────────────────────────
+      ctEvent("Added to Wishlist", {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        product.brand,
+        price:        product.price,
+        source:       "pdp"
+      });
 
       showToast('♡ Added to Wishlist');
     }
