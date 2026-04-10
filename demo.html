@@ -1148,15 +1148,6 @@
                     <option value="false">false</option>
                 </select>
                 </div>
-                <div class="form-group">
-                <label class="form-label">MSG-email</label>
-                <select class="form-input" id="profileMsgEmail"
-                    onchange="updateProfilePayloadPreview()">
-                    <option value="">Select</option>
-                    <option value="true">true</option>
-                    <option value="false">false</option>
-                </select>
-                </div>
             </div>
 
             <!-- Custom properties -->
@@ -1224,14 +1215,6 @@
                 <div class="profile-prop-row">
                     <span class="prop-key">Is Prime</span>
                     <span class="prop-value" id="previewPrime">—</span>
-                </div>
-                <div class="profile-prop-row">
-                    <span class="prop-key">MSG-email</span>
-                    <span class="prop-value" id="previewMsgEmail">—</span>
-                </div>
-                <div class="profile-prop-row">
-                    <span class="prop-key">MSG-sms</span>
-                    <span class="prop-value" id="previewMsgSms">—</span>
                 </div>
                 <div class="profile-prop-row">
                     <span class="prop-key">Last Order Value</span>
@@ -1552,6 +1535,7 @@
               <div class="payload-box" id="warehousePayload">{
   "d": [{
     "type": "profile",
+    "identity": "priya@example.com",
     "profileData": {
       "Name": "Priya Sharma",
       "Email": "priya@example.com",
@@ -1583,6 +1567,7 @@
               <div class="payload-box" id="crmPayload">{
   "d": [{
     "type": "profile",
+    "identity": "rahul@corp.com",
     "profileData": {
       "Name": "Rahul Verma",
       "Email": "rahul@corp.com",
@@ -1644,6 +1629,7 @@
               <div class="payload-box" id="importPayload">{
   "d": [{
     "type": "event",
+    "identity": "priya@example.com",
     "evtName": "Charged",
     "evtData": {
       "Amount": 12999,
@@ -1652,11 +1638,11 @@
       "Items": [{
         "Product name": "Samsung Galaxy M14",
         "Category": "Electronics",
+        "Brand": "Samsung",
         "Price": 12999,
         "Quantity": 1
       }]
     },
-    "identity": "priya@example.com",
     "ts": 1709000000
   }]
 }</div>
@@ -2198,8 +2184,6 @@
             profileData.gender || '';
             document.getElementById('profileIsPrime').value =
             profileData.isprime !== undefined ? String(profileData.isprime) : '';
-            document.getElementById('profileMsgEmail').value =
-            profileData['msg-email'] !== undefined ? String(profileData['msg-email']) : '';
 
             // Convert CT epoch timestamps to readable dates
             function ctEpochToDate(val) {
@@ -2221,8 +2205,6 @@
             city:           profileData.city,
             gender:         profileData.gender,
             isPrime:        profileData.isprime,
-            'MSG-email':    profileData['msg-email'],
-            'MSG-sms':      profileData['msg-sms'],
             lastOrderValue: profileData.lastordervalue,
             lastOrderDate:  ctEpochToDate(profileData.lastorderdate)
             });
@@ -2253,12 +2235,6 @@
         primeEl.textContent = user.isPrime !== undefined ? String(user.isPrime) : '—';
         primeEl.className   = `prop-value ${user.isPrime}`;
 
-        const msgEmailEl = document.getElementById('previewMsgEmail');
-        msgEmailEl.textContent = user['MSG-email'] !== undefined ? String(user['MSG-email']) : '—';
-
-        const msgSmsEl = document.getElementById('previewMsgSms');
-        msgSmsEl.textContent = user['MSG-sms'] !== undefined ? String(user['MSG-sms']) : '—';
-
         document.getElementById('previewLOV').textContent = user.lastOrderValue
             ? `₹${Number(user.lastOrderValue).toLocaleString('en-IN')}` : '—';
 
@@ -2273,7 +2249,6 @@
         const city   = document.getElementById('profileCity').value.trim();
         const gender = document.getElementById('profileGender').value;
         const prime  = document.getElementById('profileIsPrime').value;
-        const msgEmail = document.getElementById('profileMsgEmail').value;
 
         const profileData = {};
         if (name)     profileData['Name']      = name;
@@ -2282,7 +2257,6 @@
         if (city)     profileData['City']      = city;
         if (gender)   profileData['Gender']    = gender;
         if (prime)    profileData['Is Prime']  = prime === 'true';
-        if (msgEmail) profileData['MSG-email'] = msgEmail === 'true';
 
         // Custom props
         document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {
@@ -2335,7 +2309,7 @@
         ['profileEmail','profileName','profilePhone','profileCity'].forEach(id => {
             document.getElementById(id).value = '';
         });
-        ['profileGender','profileIsPrime','profileMsgEmail'].forEach(id => {
+        ['profileGender','profileIsPrime'].forEach(id => {
             document.getElementById(id).value = '';
         });
         document.getElementById('profilePropsEditor').innerHTML = `
@@ -2361,7 +2335,6 @@
         const city     = document.getElementById('profileCity').value.trim();
         const gender   = document.getElementById('profileGender').value;
         const prime    = document.getElementById('profileIsPrime').value;
-        const msgEmail = document.getElementById('profileMsgEmail').value;
 
         const profileData = {};
         if (name)     profileData['Name']      = name;
@@ -2370,7 +2343,6 @@
         if (city)     profileData['City']      = city;
         if (gender)   profileData['Gender']    = gender;
         if (prime)    profileData['Is Prime']  = prime === 'true';
-        if (msgEmail) profileData['MSG-email'] = msgEmail === 'true';
 
         // Custom props
         document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {
