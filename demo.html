@@ -2173,41 +2173,58 @@
 
             // Populate form fields from CT profile
             // CT Profile API nests data inside profile.record
-            const record  = data.profile?.record  || data.profile || {};
+            const record      = data.profile?.record || {};
+            const profileData = record.profileData   || {};
+            const platform    = record.platformInfo  || [];
 
-            // CT stores properties in profileData or directly on the record
-            // depending on how they were originally pushed
-            const props   = record.profileData || record;
+            // Phone comes from platformInfo as a number — convert to string with +
+            const rawPhone = platform[0]?.phone
+            ? '+' + String(platform[0].phone)
+            : '';
 
-            // Platform info (device/session data) is separate
-            const platform = record.platformInfo || [];
-
-            // Show raw CT response in preview first
+            // Show raw CT response
             document.getElementById('profileResponsePreview').textContent =
             JSON.stringify(data, null, 2);
 
-            // Populate form fields
-            document.getElementById('profileName').value     = props.Name     || props.name     || '';
-            document.getElementById('profilePhone').value    = props.Phone    || props.phone    || '';
-            document.getElementById('profileCity').value     = props.City     || props.city     || '';
-            document.getElementById('profileGender').value   = props.Gender   || props.gender   || '';
-            document.getElementById('profileIsPrime').value  = props['Is Prime']  !== undefined
-            ? String(props['Is Prime'])  : '';
-            document.getElementById('profileMsgEmail').value = props['MSG-email'] !== undefined
-            ? String(props['MSG-email']) : '';
+            // CT stores name/email directly on record (lowercase)
+            // Custom properties are in record.profileData (also lowercase)
+            document.getElementById('profileName').value =
+            record.name    || '';
+            document.getElementById('profilePhone').value =
+            rawPhone       || '';
+            document.getElementById('profileCity').value =
+            profileData.city || '';
+            document.getElementById('profileGender').value =
+            profileData.gender || '';
+            document.getElementById('profileIsPrime').value =
+            profileData.isprime !== undefined ? String(profileData.isprime) : '';
+            document.getElementById('profileMsgEmail').value =
+            profileData['msg-email'] !== undefined ? String(profileData['msg-email']) : '';
+
+            // Convert CT epoch timestamps to readable dates
+            function ctEpochToDate(val) {
+            if (!val) return '';
+            // CT stores dates as "$D_EPOCH" strings
+            const epoch = typeof val === 'string' && val.startsWith('$D_')
+                ? parseInt(val.replace('$D_', '')) * 1000
+                : null;
+            return epoch ? new Date(epoch).toLocaleDateString('en-IN', {
+                day: 'numeric', month: 'short', year: 'numeric'
+            }) : '';
+            }
 
             // Update the profile preview panel
             updateProfilePreview({
-                name:           props.Name     || props.name,
-                email:          email,
-                phone:          props.Phone    || props.phone,
-                city:           props.City     || props.city,
-                gender:         props.Gender   === 'M' ? 'Male' : props.Gender === 'F' ? 'Female' : '',
-                isPrime:        props['Is Prime'],
-                'MSG-email':    props['MSG-email'],
-                'MSG-sms':      props['MSG-sms'],
-                lastOrderValue: props['Last Order Value'],
-                lastOrderDate:  props['Last Order Date']
+            name:           record.name,
+            email:          record.email,
+            phone:          rawPhone,
+            city:           profileData.city,
+            gender:         profileData.gender,
+            isPrime:        profileData.isprime,
+            'MSG-email':    profileData['msg-email'],
+            'MSG-sms':      profileData['msg-sms'],
+            lastOrderValue: profileData.lastordervalue,
+            lastOrderDate:  ctEpochToDate(profileData.lastorderdate)
             });
 
             updateProfilePayloadPreview();
@@ -2245,9 +2262,7 @@
         document.getElementById('previewLOV').textContent = user.lastOrderValue
             ? `₹${Number(user.lastOrderValue).toLocaleString('en-IN')}` : '—';
 
-        document.getElementById('previewLOD').textContent = user.lastOrderDate
-            ? new Date(user.lastOrderDate).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
-            : '—';
+        document.getElementById('previewLOD').textContent = user.lastOrderDate || '—';
     }
 
     // ─── Update profile payload preview ───
