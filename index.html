@@ -3,40 +3,380 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CT Playground — Coming Soon</title>
+  <title>CT Playground — Select Vertical</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <style>
-    body {
-      margin: 0;
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0a0a0f;
+      --surface:  #13131a;
+      --border:   rgba(255,255,255,0.07);
+      --text:     #e8e8f0;
+      --muted:    #6b6b80;
+      --ct-red:   #e8412a;
+    }
+
+    html, body {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #0a0a0f;
-      font-family: sans-serif;
-      color: #e8e8f0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    a { text-decoration: none; color: inherit; }
+
+    /* ─── NOISE ─── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+      opacity: 0.03;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.25rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10,10,15,0.8);
+      backdrop-filter: blur(12px);
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: 0.6rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em;
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--ct-red);
+      box-shadow: 0 0 10px var(--ct-red);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.6;transform:scale(0.85)} }
+
+    .topbar-right { display: flex; align-items: center; gap: 12px; }
+
+    .btn-demo {
+      padding: 7px 18px;
+      background: rgba(232,65,42,0.12);
+      border: 1px solid rgba(232,65,42,0.3);
+      border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+      color: var(--ct-red);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-demo:hover { background: rgba(232,65,42,0.2); }
+
+    .badge {
+      font-size: 0.7rem; font-family: 'DM Sans', sans-serif;
+      font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 0.25rem 0.65rem; border-radius: 999px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      position: relative; z-index: 1;
       text-align: center;
+      padding: 5rem 2rem 3rem;
     }
-    h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-    p  { color: #6b6b80; }
-    .dot {
-      display: inline-block;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #e8412a;
-      margin-right: 8px;
-      animation: pulse 1.5s ease-in-out infinite;
+
+    .eyebrow {
+      font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ct-red); margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 0.6s 0.1s ease forwards;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.4; }
+
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: clamp(2.4rem, 5vw, 3.6rem);
+      line-height: 1.05; letter-spacing: -0.03em;
+      margin-bottom: 1.2rem;
+      opacity: 0; animation: fadeUp 0.6s 0.2s ease forwards;
+    }
+
+    .hero-title span {
+      background: linear-gradient(135deg, #ff8c42 0%, #ff4d6a 50%, #a78bfa 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.05rem; font-weight: 300; color: var(--muted);
+      max-width: 480px; margin: 0 auto 1rem; line-height: 1.7;
+      opacity: 0; animation: fadeUp 0.6s 0.3s ease forwards;
+    }
+
+    .hero-sub-note {
+      font-size: 0.8rem; color: var(--muted);
+      opacity: 0; animation: fadeUp 0.6s 0.35s ease forwards;
+      margin-bottom: 3rem;
+    }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ─── CHOOSE LABEL ─── */
+    .choose-label {
+      font-size: 0.7rem; letter-spacing: 0.14em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 0.6s 0.4s ease forwards;
+    }
+
+    /* ─── VERTICAL CARDS ─── */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 2rem;
+      opacity: 0; animation: fadeUp 0.7s 0.5s ease forwards;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem 1.5rem;
+      background: var(--surface);
+      cursor: pointer;
+      overflow: hidden;
+      text-align: left;
+      transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 3px; background: var(--accent);
+      border-radius: 0 0 16px 16px;
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover { transform: translateY(-6px); border-color: var(--accent); box-shadow: 0 0 30px -8px var(--accent); }
+    .card:hover::after { transform: scaleX(1); }
+
+    .card.live   { --accent: var(--card-color); }
+    .card.coming { opacity: 0.5; cursor: not-allowed; }
+    .card.coming:hover { transform: none; border-color: var(--border); box-shadow: none; }
+    .card.coming::after { display: none; }
+
+    .card-ec { --card-color: #ff8c42; }
+    .card-ft { --card-color: #3ecfcf; }
+    .card-sb { --card-color: #a78bfa; }
+    .card-fd { --card-color: #ff4d6a; }
+
+    .card-arrow {
+      position: absolute; top: 1.25rem; right: 1.25rem;
+      font-size: 0.9rem; color: var(--muted);
+      transition: color 0.25s, transform 0.25s;
+    }
+
+    .card:hover .card-arrow { color: var(--card-color); transform: translate(3px, -3px); }
+
+    .card-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      background: color-mix(in srgb, var(--card-color) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--card-color) 20%, transparent);
+    }
+
+    .card-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 1.15rem; letter-spacing: -0.02em;
+    }
+
+    .card-tagline { font-size: 0.8rem; color: var(--card-color); font-weight: 500; }
+
+    .card-desc {
+      font-size: 0.82rem; color: var(--muted);
+      line-height: 1.6; flex: 1;
+    }
+
+    .card-status {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; padding: 3px 10px; border-radius: 4px;
+      align-self: flex-start;
+    }
+
+    .status-live   { background: rgba(34,197,94,0.1); color: #22c55e; border: 1px solid rgba(34,197,94,0.2); }
+    .status-soon   { background: rgba(107,107,128,0.1); color: var(--muted); border: 1px solid var(--border); }
+
+    .status-live::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: #22c55e; animation: pulse 1.5s ease-in-out infinite; }
+
+    /* ─── FEATURES STRIP ─── */
+    .features {
+      display: flex; align-items: center; justify-content: center;
+      flex-wrap: wrap; gap: 0.6rem;
+      padding: 3rem 2rem 2rem;
+      opacity: 0; animation: fadeUp 0.7s 0.7s ease forwards;
+      position: relative; z-index: 1;
+    }
+
+    .feature-pill {
+      display: flex; align-items: center; gap: 0.4rem;
+      font-size: 0.75rem; color: var(--muted);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: 0.35rem 0.85rem;
+    }
+
+    .feature-pill .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--ct-red); }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      text-align: center; padding: 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem; color: var(--muted);
+      letter-spacing: 0.05em;
+      position: relative; z-index: 1;
+    }
+
+    /* ─── GLOW BLOBS ─── */
+    .glow { position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none; z-index: 0; }
+    .glow-1 { width: 500px; height: 500px; background: rgba(255,140,66,0.06); top: -150px; left: -100px; }
+    .glow-2 { width: 400px; height: 400px; background: rgba(167,139,250,0.06); bottom: -100px; right: -80px; }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 800px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .topbar { padding: 1rem 1.25rem; }
+    }
+    @media (max-width: 500px) {
+      .cards { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <div>
-    <p><span class="dot"></span>Setting up</p>
-    <h1>CT Playground</h1>
-    <p>CleverTap Integration Sandbox — Building live from my laptop</p>
-  </div>
+
+  <div class="glow glow-1"></div>
+  <div class="glow glow-2"></div>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-dot"></div>
+      CT Playground
+    </div>
+    <div class="topbar-right">
+      <span class="badge">v1.0 · Bazario Live</span>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <main>
+    <div class="hero">
+      <p class="eyebrow">CleverTap Integration Sandbox</p>
+      <h1 class="hero-title">Pick a vertical.<br/><span>Start the demo.</span></h1>
+      <p class="hero-sub">
+        Four fully integrated business verticals — each with a real website,
+        live CleverTap events, and a shared demo console.
+      </p>
+      <p class="hero-sub-note">Select a vertical below to begin. Your choice sets the context for the Live Demo as well.</p>
+      <p class="choose-label">Select a vertical</p>
+    </div>
+
+    <!-- CARDS -->
+    <div class="cards">
+
+      <!-- Ecommerce — LIVE -->
+      <div class="card card-ec live" onclick="selectVertical('bazario', 'ecommerce/index.html')">
+        <span class="card-arrow">↗</span>
+        <div class="card-icon">🛍️</div>
+        <div class="card-name">Bazario</div>
+        <div class="card-tagline">General Marketplace</div>
+        <div class="card-desc">Browse, wishlist, cart, checkout — modelled on Flipkart / Amazon. Full CT integration live.</div>
+        <span class="card-status status-live">Live</span>
+      </div>
+
+      <!-- Fintech — COMING SOON -->
+      <div class="card card-ft coming" onclick="showComingSoon('Fintech')">
+        <div class="card-icon">💳</div>
+        <div class="card-name">Fintech</div>
+        <div class="card-tagline">Banking & Loans</div>
+        <div class="card-desc">Account opening, KYC, transactions, loans — modelled on PhonePe / Groww.</div>
+        <span class="card-status status-soon">Coming Soon</span>
+      </div>
+
+      <!-- Subscription — COMING SOON -->
+      <div class="card card-sb coming" onclick="showComingSoon('Subscription')">
+        <div class="card-icon">📺</div>
+        <div class="card-name">Subscription</div>
+        <div class="card-tagline">SaaS & Streaming</div>
+        <div class="card-desc">Plan selection, trial, upgrade, churn — modelled on Hotstar / Zerodha.</div>
+        <span class="card-status status-soon">Coming Soon</span>
+      </div>
+
+      <!-- Foodtech — COMING SOON -->
+      <div class="card card-fd coming" onclick="showComingSoon('Foodtech')">
+        <div class="card-icon">🍕</div>
+        <div class="card-name">Foodtech</div>
+        <div class="card-tagline">Food Delivery</div>
+        <div class="card-desc">Restaurant browse, order, delivery tracking — modelled on Swiggy / Zomato.</div>
+        <span class="card-status status-soon">Coming Soon</span>
+      </div>
+
+    </div>
+
+    <!-- FEATURES STRIP -->
+    <div class="features">
+      <div class="feature-pill"><span class="dot"></span> Web SDK Integration</div>
+      <div class="feature-pill"><span class="dot"></span> Live CT Events</div>
+      <div class="feature-pill"><span class="dot"></span> Real User Profiles</div>
+      <div class="feature-pill"><span class="dot"></span> Revenue Analytics</div>
+      <div class="feature-pill"><span class="dot"></span> Multi-device Ready</div>
+      <div class="feature-pill"><span class="dot"></span> Channel Demos</div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    © 2025 CT Playground · Built for CleverTap demo and learning
+  </footer>
+
+  <!-- TOAST -->
+  <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:#323232;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;font-weight:500;z-index:9999;transition:transform 0.3s ease;white-space:nowrap;font-family:'DM Sans',sans-serif;"></div>
+
+  <script>
+    function selectVertical(verticalKey, url) {
+      // Set active vertical in localStorage — demo.html reads this
+      localStorage.setItem('ct_active_vertical', verticalKey);
+      // Navigate to vertical site
+      window.location.href = url;
+    }
+
+    function openDemo() {
+      // Open demo with whatever vertical is currently active
+      // Default to bazario if none set
+      if (!localStorage.getItem('ct_active_vertical')) {
+        localStorage.setItem('ct_active_vertical', 'bazario');
+      }
+      window.location.href = 'demo.html';
+    }
+
+    function showComingSoon(name) {
+      const t = document.getElementById('toast');
+      t.textContent = `${name} vertical coming soon!`;
+      t.style.transform = 'translateX(-50%) translateY(0)';
+      setTimeout(() => { t.style.transform = 'translateX(-50%) translateY(80px)'; }, 2000);
+    }
+  </script>
 </body>
 </html>

@@ -1,0 +1,22 @@
+# =============================================================================
+# netlify.toml — Netlify Configuration for CT Playground
+# =============================================================================
+
+[build]
+  # Functions directory
+  functions = "netlify/functions"
+
+# ─── Function-specific settings ───────────────────────────────────────────────
+[functions]
+  # Node.js runtime for all functions
+  node_bundler = "esbuild"
+
+# ─── Redirect rules ───────────────────────────────────────────────────────────
+# Make proxy endpoints accessible at clean URLs
+# /ct-proxy/upload  → /.netlify/functions/ct-proxy/upload
+# /ct-proxy/profile → /.netlify/functions/ct-proxy/profile
+
+[[redirects]]
+  from   = "/ct-proxy/*"
+  to     = "/.netlify/functions/ct-proxy/:splat"
+  status = 200

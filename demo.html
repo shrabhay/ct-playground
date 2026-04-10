@@ -1,0 +1,2169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CT Playground — Demo Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ─── VERTICAL THEMES ─── */
+    :root {
+      /* Default / Bazario */
+      --v-primary:    #2874f0;
+      --v-accent:     #ff6f00;
+      --v-secondary:  #1a5dc8;
+      --v-glow:       rgba(40, 116, 240, 0.3);
+      --v-name:       "Bazario";
+
+      /* Base */
+      --bg:           #0c0e14;
+      --surface:      #13151f;
+      --surface2:     #1a1d2a;
+      --border:       rgba(255,255,255,0.06);
+      --border2:      rgba(255,255,255,0.1);
+      --text:         #e8eaf0;
+      --text-sec:     #8b8fa8;
+      --text-muted:   #4a4e65;
+      --success:      #22c55e;
+      --warning:      #f59e0b;
+      --danger:       #ef4444;
+      --mono:         'JetBrains Mono', monospace;
+    }
+
+    /* Vertical theme overrides */
+    body.vertical-bazario      { --v-primary: #2874f0; --v-accent: #ff6f00; --v-secondary: #1a5dc8; --v-glow: rgba(40,116,240,0.25); }
+    body.vertical-fintech      { --v-primary: #00c896; --v-accent: #0ea5e9; --v-secondary: #00a07a; --v-glow: rgba(0,200,150,0.25); }
+    body.vertical-subscription { --v-primary: #a855f7; --v-accent: #ec4899; --v-secondary: #7c3aed; --v-glow: rgba(168,85,247,0.25); }
+    body.vertical-foodtech     { --v-primary: #f97316; --v-accent: #ef4444; --v-secondary: #ea580c; --v-glow: rgba(249,115,22,0.25); }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      overflow-x: hidden;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PIN GATE
+    ═══════════════════════════════════════════════════════════ */
+    .pin-gate {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    .pin-gate.hidden { display: none; }
+
+    .pin-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 2rem;
+      letter-spacing: -0.04em;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .pin-logo span { color: var(--v-primary); }
+
+    .pin-subtitle {
+      font-size: 13px;
+      color: var(--text-sec);
+      margin-bottom: 48px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .pin-box {
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 16px;
+      padding: 36px 40px;
+      width: 340px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      box-shadow: 0 0 60px var(--v-glow);
+    }
+
+    .pin-label {
+      font-size: 13px;
+      color: var(--text-sec);
+      text-align: center;
+      letter-spacing: 0.04em;
+    }
+
+    .pin-dots {
+      display: flex;
+      gap: 12px;
+    }
+
+    .pin-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      border: 2px solid var(--border2);
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .pin-dot.filled {
+      background: var(--v-primary);
+      border-color: var(--v-primary);
+      box-shadow: 0 0 8px var(--v-glow);
+    }
+
+    .pin-keypad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      width: 100%;
+    }
+
+    .pin-key {
+      padding: 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text);
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+      font-family: 'JetBrains Mono', monospace;
+      user-select: none;
+    }
+
+    .pin-key:hover  { background: var(--border2); border-color: var(--v-primary); color: var(--v-primary); }
+    .pin-key:active { transform: scale(0.95); }
+    .pin-key.del    { font-size: 14px; color: var(--text-sec); }
+    .pin-key.enter  { background: var(--v-primary); border-color: var(--v-primary); color: #fff; grid-column: span 2; }
+    .pin-key.enter:hover { filter: brightness(1.1); }
+
+    .pin-error {
+      font-size: 12px;
+      color: var(--danger);
+      height: 16px;
+      text-align: center;
+      transition: opacity 0.2s;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MAIN LAYOUT
+    ═══════════════════════════════════════════════════════════ */
+    .app {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: 60px 1fr;
+      min-height: 100vh;
+    }
+
+    /* ─── TOPBAR ─── */
+    .topbar {
+      grid-column: 1 / -1;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.03em;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .topbar-logo span { color: var(--v-primary); }
+
+    .topbar-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border2);
+    }
+
+    .vertical-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--v-primary);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .vertical-badge:hover { border-color: var(--v-primary); box-shadow: 0 0 12px var(--v-glow); }
+    .vertical-badge .dot  { width: 7px; height: 7px; border-radius: 50%; background: var(--v-primary); box-shadow: 0 0 6px var(--v-primary); animation: pulse 2s ease-in-out infinite; }
+
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+
+    .topbar-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+    }
+
+    .topbar-stat .label { font-size: 10px; color: var(--text-muted); letter-spacing: 0.06em; text-transform: uppercase; }
+    .topbar-stat .value { font-size: 13px; font-weight: 600; color: var(--v-primary); font-family: var(--mono); }
+
+    .btn-visit-site {
+      padding: 7px 16px;
+      background: var(--v-primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: filter 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-visit-site:hover { filter: brightness(1.1); }
+
+    .btn-lock {
+      padding: 7px 12px;
+      background: var(--surface2);
+      color: var(--text-sec);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-lock:hover { border-color: var(--danger); color: var(--danger); }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 20px 0;
+      overflow-y: auto;
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+    }
+
+    .sidebar-section {
+      padding: 0 12px;
+      margin-bottom: 24px;
+    }
+
+    .sidebar-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 0 8px;
+      margin-bottom: 6px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      margin-bottom: 2px;
+    }
+
+    .nav-item:hover { background: var(--surface2); color: var(--text); }
+    .nav-item.active { background: color-mix(in srgb, var(--v-primary) 12%, transparent); color: var(--v-primary); border-color: color-mix(in srgb, var(--v-primary) 20%, transparent); }
+    .nav-item .nav-icon { font-size: 15px; width: 20px; text-align: center; }
+    .nav-item .nav-badge { margin-left: auto; font-size: 10px; background: var(--v-primary); color: #fff; padding: 1px 6px; border-radius: 999px; font-weight: 700; }
+    .nav-item .nav-stub { margin-left: auto; font-size: 10px; color: var(--text-muted); background: var(--surface2); border: 1px solid var(--border); padding: 1px 6px; border-radius: 4px; }
+
+    /* Vertical switcher in sidebar */
+    .vertical-switcher { padding: 0 12px; margin-bottom: 24px; }
+    .vertical-switcher-title { font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); padding: 0 8px; margin-bottom: 8px; }
+
+    .vertical-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s;
+      border: 1px solid transparent;
+      margin-bottom: 4px;
+    }
+
+    .vertical-option:hover { background: var(--surface2); }
+    .vertical-option.active { border-color: var(--v-primary); background: color-mix(in srgb, var(--v-primary) 10%, transparent); }
+
+    .v-icon { font-size: 20px; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: var(--surface2); flex-shrink: 0; }
+    .v-info .v-name  { font-size: 13px; font-weight: 600; color: var(--text); }
+    .v-info .v-type  { font-size: 11px; color: var(--text-sec); margin-top: 1px; }
+    .v-status { margin-left: auto; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+    .v-status.live   { background: rgba(34,197,94,0.12); color: var(--success); }
+    .v-status.soon   { background: var(--surface2); color: var(--text-muted); }
+
+    /* ─── MAIN CONTENT ─── */
+    .main {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ─── SECTION CARDS ─── */
+    .section-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .section-header {
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+    }
+
+    .section-title .icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--v-primary) 12%, transparent);
+      border: 1px solid color-mix(in srgb, var(--v-primary) 20%, transparent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+    }
+
+    .section-body { padding: 24px; }
+
+    .stub-banner {
+      background: var(--surface2);
+      border: 1px dashed var(--border2);
+      border-radius: 8px;
+      padding: 32px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .stub-banner .stub-icon { font-size: 32px; opacity: 0.5; }
+    .stub-banner .stub-title { font-size: 14px; font-weight: 600; color: var(--text-sec); }
+    .stub-banner .stub-desc  { font-size: 12px; color: var(--text-muted); max-width: 400px; line-height: 1.6; }
+    .stub-banner .stub-tag   { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warning); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 3px 10px; border-radius: 4px; }
+
+    /* ─── SECTION 1: EVENT FIRING ─── */
+    .event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-sec); }
+    .form-input {
+      padding: 10px 12px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      font-size: 13px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .form-input:focus { border-color: var(--v-primary); box-shadow: 0 0 0 3px var(--v-glow); }
+    .form-input::placeholder { color: var(--text-muted); }
+
+    select.form-input { cursor: pointer; }
+
+    .props-editor {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-height: 120px;
+    }
+
+    .prop-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .prop-input {
+      padding: 7px 10px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 12px;
+      color: var(--text);
+      font-family: var(--mono);
+      outline: none;
+    }
+
+    .prop-input:focus { border-color: var(--v-primary); }
+
+    .btn-remove-prop {
+      width: 24px; height: 24px;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .btn-remove-prop:hover { border-color: var(--danger); color: var(--danger); }
+
+    .btn-add-prop {
+      align-self: flex-start;
+      padding: 5px 12px;
+      background: none;
+      border: 1px dashed var(--border2);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-add-prop:hover { border-color: var(--v-primary); color: var(--v-primary); }
+
+    .payload-preview {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-sec);
+      line-height: 1.6;
+      min-height: 80px;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .payload-preview .key   { color: #7dd3fc; }
+    .payload-preview .str   { color: #86efac; }
+    .payload-preview .num   { color: #fca5a5; }
+    .payload-preview .bool  { color: #c4b5fd; }
+
+    .event-actions { display: flex; gap: 10px; margin-top: 16px; align-items: center; }
+
+    .btn-fire {
+      padding: 10px 24px;
+      background: var(--v-primary);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-fire:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 16px var(--v-glow); }
+    .btn-fire:active { transform: none; }
+    .btn-fire:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-secondary {
+      padding: 10px 16px;
+      background: var(--surface2);
+      color: var(--text-sec);
+      border: 1px solid var(--border2);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-secondary:hover { border-color: var(--v-primary); color: var(--v-primary); }
+
+    .fire-status {
+      font-size: 12px;
+      font-family: var(--mono);
+      padding: 4px 10px;
+      border-radius: 4px;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .fire-status.success { background: rgba(34,197,94,0.12); color: var(--success); opacity: 1; }
+    .fire-status.error   { background: rgba(239,68,68,0.12);  color: var(--danger);  opacity: 1; }
+
+    /* Quick events */
+    .quick-events {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .quick-event-btn {
+      padding: 6px 14px;
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 999px;
+      font-size: 12px;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .quick-event-btn:hover { border-color: var(--v-primary); color: var(--v-primary); background: color-mix(in srgb, var(--v-primary) 8%, transparent); }
+
+    /* ─── SECTION 2: PROFILE MANAGER ─── */
+    .profile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .profile-preview {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 16px;
+    }
+
+    .profile-preview-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .profile-avatar {
+      width: 40px; height: 40px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--v-primary) 20%, transparent);
+      border: 2px solid var(--v-primary);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700;
+      color: var(--v-primary);
+      font-family: 'Syne', sans-serif;
+    }
+
+    .profile-identity .name  { font-size: 14px; font-weight: 600; color: var(--text); }
+    .profile-identity .email { font-size: 12px; color: var(--text-sec); margin-top: 2px; }
+
+    .profile-props { display: flex; flex-direction: column; gap: 8px; }
+
+    .profile-prop-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+    }
+
+    .profile-prop-row .prop-key   { color: var(--text-muted); }
+    .profile-prop-row .prop-value { color: var(--text); font-family: var(--mono); font-size: 11px; }
+
+    .prop-value.true  { color: var(--success); }
+    .prop-value.false { color: var(--danger); }
+
+    /* ─── SECTION 4: DATA FLOW ─── */
+    .flow-tabs { display: flex; gap: 4px; margin-bottom: 20px; }
+
+    .flow-tab {
+      padding: 7px 16px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .flow-tab.active { background: color-mix(in srgb, var(--v-primary) 12%, transparent); border-color: var(--v-primary); color: var(--v-primary); }
+    .flow-tab:hover  { border-color: var(--v-primary); color: var(--v-primary); }
+
+    .flow-diagram {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 32px;
+      min-height: 280px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .flow-nodes {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .flow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .flow-node-box {
+      width: 110px;
+      padding: 14px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border2);
+      background: var(--bg);
+      text-align: center;
+      transition: all 0.3s;
+    }
+
+    .flow-node-box.active { border-color: var(--v-primary); box-shadow: 0 0 20px var(--v-glow); background: color-mix(in srgb, var(--v-primary) 8%, transparent); }
+    .flow-node-box .node-icon  { font-size: 24px; margin-bottom: 6px; }
+    .flow-node-box .node-label { font-size: 11px; font-weight: 600; color: var(--text); }
+    .flow-node-box .node-sub   { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+
+    .flow-arrow {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 0 8px;
+    }
+
+    .arrow-line {
+      width: 50px;
+      height: 2px;
+      background: var(--border2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .arrow-line.animated::after {
+      content: '';
+      position: absolute;
+      left: -100%;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, var(--v-primary), transparent);
+      animation: flowAnim 1.5s linear infinite;
+    }
+
+    @keyframes flowAnim { to { left: 100%; } }
+
+    .arrow-label { font-size: 9px; color: var(--text-muted); letter-spacing: 0.04em; white-space: nowrap; }
+
+    /* ─── SECTION 5: EXTERNAL FLOWS ─── */
+    .external-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+    .external-card {
+      background: var(--surface2);
+      border: 1px solid var(--border2);
+      border-radius: 8px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: border-color 0.15s;
+    }
+
+    .external-card:hover { border-color: var(--border2); }
+
+    .external-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .ext-icon {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .ext-title { font-size: 13px; font-weight: 700; color: var(--text); }
+    .ext-desc  { font-size: 12px; color: var(--text-sec); line-height: 1.5; }
+
+    .payload-box {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-sec);
+      line-height: 1.6;
+      white-space: pre-wrap;
+      max-height: 140px;
+      overflow-y: auto;
+    }
+
+    .ext-actions { display: flex; gap: 8px; }
+
+    .btn-copy {
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-copy:hover { border-color: var(--v-primary); color: var(--v-primary); }
+
+    .btn-fire-api {
+      padding: 6px 14px;
+      background: var(--v-primary);
+      border: none;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fff;
+      cursor: pointer;
+      transition: filter 0.15s;
+      font-family: inherit;
+      display: flex; align-items: center; gap: 6px;
+    }
+
+    .btn-fire-api:hover { filter: brightness(1.1); }
+    .btn-fire-api.stub  { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); cursor: not-allowed; }
+
+    /* ─── EVENT LOG ─── */
+    .event-log {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .event-log-header {
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .event-log-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px var(--success);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    .event-log-body {
+      padding: 12px;
+      min-height: 120px;
+      max-height: 200px;
+      overflow-y: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .log-entry {
+      display: flex;
+      gap: 10px;
+      padding: 6px 10px;
+      border-radius: 4px;
+      background: var(--surface2);
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform:none; } }
+
+    .log-time  { color: var(--text-muted); white-space: nowrap; }
+    .log-event { color: var(--v-primary); font-weight: 700; }
+    .log-props { color: var(--text-sec); }
+    .log-status.ok  { color: var(--success); }
+    .log-status.err { color: var(--danger); }
+
+    .log-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 80px;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    /* ─── TOAST ─── */
+    .toast { position: fixed; bottom: 24px; right: 24px; transform: translateY(80px); background: var(--surface2); color: var(--text); border: 1px solid var(--border2); padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 9998; transition: transform 0.3s ease; max-width: 300px; }
+    .toast.show { transform: translateY(0); }
+    .toast.success { border-color: var(--success); }
+    .toast.error   { border-color: var(--danger); }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .event-grid, .profile-grid, .external-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body class="vertical-bazario">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       PIN GATE
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="pin-gate" id="pinGate">
+    <div class="pin-logo">CT <span>Playground</span></div>
+    <div class="pin-subtitle">Demo Console · Restricted Access</div>
+
+    <div class="pin-box">
+      <div class="pin-label">Enter your access PIN to continue</div>
+      <div class="pin-dots" id="pinDots">
+        <div class="pin-dot" id="d0"></div>
+        <div class="pin-dot" id="d1"></div>
+        <div class="pin-dot" id="d2"></div>
+        <div class="pin-dot" id="d3"></div>
+        <div class="pin-dot" id="d4"></div>
+        <div class="pin-dot" id="d5"></div>
+      </div>
+      <div class="pin-keypad">
+        <button class="pin-key" onclick="pinPress('1')">1</button>
+        <button class="pin-key" onclick="pinPress('2')">2</button>
+        <button class="pin-key" onclick="pinPress('3')">3</button>
+        <button class="pin-key" onclick="pinPress('4')">4</button>
+        <button class="pin-key" onclick="pinPress('5')">5</button>
+        <button class="pin-key" onclick="pinPress('6')">6</button>
+        <button class="pin-key" onclick="pinPress('7')">7</button>
+        <button class="pin-key" onclick="pinPress('8')">8</button>
+        <button class="pin-key" onclick="pinPress('9')">9</button>
+        <button class="pin-key del" onclick="pinDelete()">⌫ Del</button>
+        <button class="pin-key" onclick="pinPress('0')">0</button>
+        <button class="pin-key enter" onclick="pinSubmit()">✓ Enter</button>
+      </div>
+      <div class="pin-error" id="pinError"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MAIN APP
+  ═══════════════════════════════════════════════════════════ -->
+  <div class="app" id="mainApp" style="display:none">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-logo">CT <span>Playground</span></div>
+      <div class="topbar-divider"></div>
+      <div class="vertical-badge" onclick="window.location.href='index.html'" title="Change vertical">
+        <span style="color:var(--text-muted);font-size:11px">←</span>
+        <div class="dot"></div>
+        <span id="topbarVerticalName">Bazario — Ecommerce</span>
+        <span style="color:var(--text-muted);font-size:10px;letter-spacing:0.04em;text-transform:uppercase;margin-left:2px">Change</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="topbar-stat">
+          <span class="label">Events Fired</span>
+          <span class="value" id="statEventsFired">0</span>
+        </div>
+        <div class="topbar-divider"></div>
+        <div class="topbar-stat">
+          <span class="label">Session</span>
+          <span class="value" id="statSession">Active</span>
+        </div>
+        <div class="topbar-divider"></div>
+        <button class="btn-visit-site" id="btnVisitSite" onclick="visitSite()">Visit Site ↗</button>
+        <button class="btn-lock" onclick="lockDemo()">🔒 Lock</button>
+      </div>
+    </header>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <!-- Vertical Switcher -->
+      <div class="vertical-switcher" id="verticalPanel">
+        <div class="vertical-switcher-title">Active Vertical</div>
+
+        <div class="vertical-option active" id="vo-bazario" onclick="switchVertical('bazario')">
+          <div class="v-icon">🛍️</div>
+          <div class="v-info">
+            <div class="v-name">Bazario</div>
+            <div class="v-type">Ecommerce</div>
+          </div>
+          <span class="v-status live">LIVE</span>
+        </div>
+
+        <div class="vertical-option" id="vo-fintech" onclick="switchVertical('fintech')">
+          <div class="v-icon">💳</div>
+          <div class="v-info">
+            <div class="v-name">Fintech</div>
+            <div class="v-type">Banking & Loans</div>
+          </div>
+          <span class="v-status soon">SOON</span>
+        </div>
+
+        <div class="vertical-option" id="vo-subscription" onclick="switchVertical('subscription')">
+          <div class="v-icon">📺</div>
+          <div class="v-info">
+            <div class="v-name">Subscription</div>
+            <div class="v-type">SaaS & Streaming</div>
+          </div>
+          <span class="v-status soon">SOON</span>
+        </div>
+
+        <div class="vertical-option" id="vo-foodtech" onclick="switchVertical('foodtech')">
+          <div class="v-icon">🍕</div>
+          <div class="v-info">
+            <div class="v-name">Foodtech</div>
+            <div class="v-type">Food Delivery</div>
+          </div>
+          <span class="v-status soon">SOON</span>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="sidebar-section">
+        <div class="sidebar-label">Demo Sections</div>
+        <div class="nav-item active" onclick="scrollTo('s1')">
+          <span class="nav-icon">⚡</span> Live Event Firing
+        </div>
+        <div class="nav-item" onclick="scrollTo('s2')">
+          <span class="nav-icon">👤</span> Profile Manager
+        </div>
+        <div class="nav-item" onclick="scrollTo('s3')">
+          <span class="nav-icon">📡</span> Channel Demos
+          <span class="nav-stub">Phase 6</span>
+        </div>
+        <div class="nav-item" onclick="scrollTo('s4')">
+          <span class="nav-icon">🔄</span> Data Flow
+        </div>
+        <div class="nav-item" onclick="scrollTo('s5')">
+          <span class="nav-icon">🏗️</span> External Integrations
+        </div>
+        <div class="nav-item" onclick="scrollTo('s6')">
+          <span class="nav-icon">🎯</span> Segment Preview
+          <span class="nav-stub">Phase 5</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Quick Links</div>
+        <div class="nav-item" onclick="openCTDashboard()">
+          <span class="nav-icon">📊</span> CT Dashboard ↗
+        </div>
+        <div class="nav-item" onclick="visitSite()">
+          <span class="nav-icon">🌐</span> Visit Site ↗
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="mainContent">
+
+      <!-- ── SECTION 1: LIVE EVENT FIRING ── -->
+      <div class="section-card" id="s1">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="icon">⚡</div>
+            Live Event Firing
+          </div>
+          <div style="font-size:12px;color:var(--text-muted)">Events fire directly to your CT project in real time</div>
+        </div>
+        <div class="section-body">
+
+          <!-- Quick fire buttons -->
+          <div class="form-label" style="margin-bottom:8px">Quick Fire — Common Events</div>
+          <div class="quick-events" id="quickEvents">
+            <!-- Populated by JS based on vertical -->
+          </div>
+
+          <!-- Custom event builder -->
+          <div class="form-label" style="margin-bottom:8px;margin-top:8px">Custom Event Builder</div>
+          <div class="event-grid">
+            <div class="form-group">
+              <label class="form-label">Event Name</label>
+              <input type="text" class="form-input" id="eventName" placeholder="e.g. Product Viewed" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Target User (Email)</label>
+              <input type="text" class="form-input" id="eventUserEmail" placeholder="Leave blank for current user" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top:14px">
+            <label class="form-label">Event Properties</label>
+            <div class="props-editor" id="propsEditor">
+              <div class="prop-row">
+                <input type="text" class="prop-input" placeholder="property_name" />
+                <input type="text" class="prop-input" placeholder="value" />
+                <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
+              </div>
+            </div>
+            <button class="btn-add-prop" onclick="addPropRow()" style="margin-top:8px">+ Add Property</button>
+          </div>
+
+          <div class="form-group" style="margin-top:14px">
+            <label class="form-label">Payload Preview</label>
+            <div class="payload-preview" id="payloadPreview">// Fill in event name and properties above</div>
+          </div>
+
+          <div class="event-actions">
+            <button class="btn-fire" onclick="fireEvent()" id="btnFireEvent">
+              ⚡ Fire Event
+            </button>
+            <button class="btn-secondary" onclick="clearEventForm()">Clear</button>
+            <span class="fire-status" id="fireStatus"></span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── SECTION 2: PROFILE MANAGER ── -->
+      <div class="section-card" id="s2">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="icon">👤</div>
+            User Profile Manager
+          </div>
+          <div style="font-size:12px;color:var(--text-muted)">Update CT user properties in real time</div>
+        </div>
+        <div class="section-body">
+          <div class="profile-grid">
+
+            <!-- Left: Edit form -->
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <div class="form-group">
+                <label class="form-label">Identity (Email)</label>
+                <input type="text" class="form-input" id="profileEmail" placeholder="user@email.com" />
+              </div>
+              <div class="event-grid" style="gap:10px">
+                <div class="form-group">
+                  <label class="form-label">Name</label>
+                  <input type="text" class="form-input" id="profileName" placeholder="Full Name" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Phone</label>
+                  <input type="text" class="form-input" id="profilePhone" placeholder="+91XXXXXXXXXX" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">City</label>
+                  <input type="text" class="form-input" id="profileCity" placeholder="Mumbai" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Gender</label>
+                  <select class="form-input" id="profileGender">
+                    <option value="">Select</option>
+                    <option value="M">Male (M)</option>
+                    <option value="F">Female (F)</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Custom properties -->
+              <div class="form-group">
+                <label class="form-label">Custom Properties</label>
+                <div class="props-editor" id="profilePropsEditor">
+                  <div class="prop-row">
+                    <input type="text" class="prop-input" placeholder="property_name" />
+                    <input type="text" class="prop-input" placeholder="value" />
+                    <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
+                  </div>
+                </div>
+                <button class="btn-add-prop" onclick="addProfilePropRow()" style="margin-top:8px">+ Add Property</button>
+              </div>
+
+              <div class="event-actions">
+                <button class="btn-fire" onclick="pushProfile()">👤 Push Profile</button>
+                <button class="btn-secondary" onclick="loadCurrentUser()">Load Current User</button>
+                <span class="fire-status" id="profileStatus"></span>
+              </div>
+            </div>
+
+            <!-- Right: Profile preview -->
+            <div>
+              <div class="form-label" style="margin-bottom:8px">Live Profile Preview</div>
+              <div class="profile-preview">
+                <div class="profile-preview-header">
+                  <div class="profile-avatar" id="previewAvatar">?</div>
+                  <div class="profile-identity">
+                    <div class="name"  id="previewName">No user loaded</div>
+                    <div class="email" id="previewEmail">—</div>
+                  </div>
+                </div>
+                <div class="profile-props" id="previewProps">
+                  <div class="profile-prop-row">
+                    <span class="prop-key">Phone</span>
+                    <span class="prop-value" id="previewPhone">—</span>
+                  </div>
+                  <div class="profile-prop-row">
+                    <span class="prop-key">City</span>
+                    <span class="prop-value" id="previewCity">—</span>
+                  </div>
+                  <div class="profile-prop-row">
+                    <span class="prop-key">Gender</span>
+                    <span class="prop-value" id="previewGender">—</span>
+                  </div>
+                  <div class="profile-prop-row">
+                    <span class="prop-key">Is Prime</span>
+                    <span class="prop-value" id="previewPrime">—</span>
+                  </div>
+                  <div class="profile-prop-row">
+                    <span class="prop-key">MSG-email</span>
+                    <span class="prop-value" id="previewMsgEmail">—</span>
+                  </div>
+                  <div class="profile-prop-row">
+                    <span class="prop-key">MSG-sms</span>
+                    <span class="prop-value" id="previewMsgSms">—</span>
+                  </div>
+                  <div class="profile-prop-row">
+                    <span class="prop-key">Last Order Value</span>
+                    <span class="prop-value" id="previewLOV">—</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 3: CHANNEL DEMOS (STUB) ── -->
+      <div class="section-card" id="s3">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="icon">📡</div>
+            Channel Demos
+          </div>
+          <span style="font-size:11px;background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.2);padding:3px 10px;border-radius:4px;font-weight:700">Phase 6</span>
+        </div>
+        <div class="section-body">
+          <div class="stub-banner">
+            <div class="stub-icon">📡</div>
+            <div class="stub-title">Channel demos coming in Phase 6</div>
+            <div class="stub-desc">
+              Web Push, Pop-ups, Exit Intent, Native Display, Web Inbox, Bulletins,
+              Product Experiences, Recommendations and Catalogs will all be
+              triggerable from here once channel integration is complete.
+            </div>
+            <span class="stub-tag">Coming Soon</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 4: DATA FLOW VISUALISER ── -->
+      <div class="section-card" id="s4">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="icon">🔄</div>
+            Data Flow Visualiser
+          </div>
+          <div style="font-size:12px;color:var(--text-muted)">How data travels into and out of CleverTap</div>
+        </div>
+        <div class="section-body">
+
+          <div class="flow-tabs">
+            <button class="flow-tab active" onclick="showFlow('sdk', this)">Web SDK</button>
+            <button class="flow-tab" onclick="showFlow('server', this)">Server-side API</button>
+            <button class="flow-tab" onclick="showFlow('warehouse', this)">Data Warehouse</button>
+            <button class="flow-tab" onclick="showFlow('crm', this)">CRM</button>
+            <button class="flow-tab" onclick="showFlow('cdp', this)">CDP</button>
+            <button class="flow-tab" onclick="showFlow('export', this)">Export / Webhook</button>
+          </div>
+
+          <!-- Web SDK Flow -->
+          <div class="flow-diagram" id="flow-sdk">
+            <div class="flow-nodes">
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🌐</div>
+                  <div class="node-label">Browser</div>
+                  <div class="node-sub">Bazario Website</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">JS SDK</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">📦</div>
+                  <div class="node-label">CT SDK</div>
+                  <div class="node-sub">clevertap.js</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">HTTPS</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚡</div>
+                  <div class="node-label">CleverTap</div>
+                  <div class="node-sub">India Region</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Real-time</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">📊</div>
+                  <div class="node-label">Dashboard</div>
+                  <div class="node-sub">Events & Profiles</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Server-side API Flow -->
+          <div class="flow-diagram" id="flow-server" style="display:none">
+            <div class="flow-nodes">
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚙️</div>
+                  <div class="node-label">Backend</div>
+                  <div class="node-sub">Node / Python</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">REST API</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🔐</div>
+                  <div class="node-label">CT Upload API</div>
+                  <div class="node-sub">Account ID + Passcode</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Batch 200</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚡</div>
+                  <div class="node-label">CleverTap</div>
+                  <div class="node-sub">Profile + Events</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Data Warehouse Flow -->
+          <div class="flow-diagram" id="flow-warehouse" style="display:none">
+            <div class="flow-nodes">
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🏭</div>
+                  <div class="node-label">Data Warehouse</div>
+                  <div class="node-sub">Snowflake / BigQuery</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">SQL Extract</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🔄</div>
+                  <div class="node-label">Transform</div>
+                  <div class="node-sub">CT API Format</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Upload API</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚡</div>
+                  <div class="node-label">CleverTap</div>
+                  <div class="node-sub">Historical Data</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CRM Flow -->
+          <div class="flow-diagram" id="flow-crm" style="display:none">
+            <div class="flow-nodes">
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🏢</div>
+                  <div class="node-label">CRM</div>
+                  <div class="node-sub">Salesforce / HubSpot</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Webhook / API</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🔄</div>
+                  <div class="node-label">Field Mapping</div>
+                  <div class="node-sub">CRM → CT Properties</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Profile Push</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚡</div>
+                  <div class="node-label">CleverTap</div>
+                  <div class="node-sub">Enriched Profiles</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CDP Flow -->
+          <div class="flow-diagram" id="flow-cdp" style="display:none">
+            <div class="flow-nodes">
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🧠</div>
+                  <div class="node-label">CDP</div>
+                  <div class="node-sub">Segment / Rudderstack</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Destination</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🔌</div>
+                  <div class="node-label">CT Integration</div>
+                  <div class="node-sub">Native Connector</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Events + Traits</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚡</div>
+                  <div class="node-label">CleverTap</div>
+                  <div class="node-sub">Unified Profile</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Export Flow -->
+          <div class="flow-diagram" id="flow-export" style="display:none">
+            <div class="flow-nodes">
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">⚡</div>
+                  <div class="node-label">CleverTap</div>
+                  <div class="node-sub">Campaign Trigger</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Webhook</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🔗</div>
+                  <div class="node-label">Your Endpoint</div>
+                  <div class="node-sub">POST Request</div>
+                </div>
+              </div>
+              <div class="flow-arrow">
+                <div class="arrow-line animated"></div>
+                <div class="arrow-label">Process</div>
+              </div>
+              <div class="flow-node">
+                <div class="flow-node-box active">
+                  <div class="node-icon">🏢</div>
+                  <div class="node-label">Your System</div>
+                  <div class="node-sub">CRM / Slack / DB</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ── SECTION 5: EXTERNAL INTEGRATIONS ── -->
+      <div class="section-card" id="s5">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="icon">🏗️</div>
+            External Data Integrations
+          </div>
+          <div style="font-size:12px;color:var(--text-muted)">Simulate how data flows from external systems into CT</div>
+        </div>
+        <div class="section-body">
+          <div class="external-grid">
+
+            <!-- Warehouse Sync -->
+            <div class="external-card">
+              <div class="external-card-header">
+                <div class="ext-icon">🏭</div>
+                <div>
+                  <div class="ext-title">Data Warehouse Sync</div>
+                </div>
+              </div>
+              <div class="ext-desc">Simulate pushing historical user data from Snowflake or BigQuery into CleverTap via the Upload API.</div>
+              <div class="payload-box" id="warehousePayload">{
+  "d": [{
+    "type": "profile",
+    "profileData": {
+      "Name": "Priya Sharma",
+      "Email": "priya@example.com",
+      "Phone": "+919876543210",
+      "City": "Mumbai",
+      "Total Orders": 12,
+      "Lifetime Value": 45000,
+      "Preferred Category": "Electronics"
+    }
+  }]
+}</div>
+              <div class="ext-actions">
+                <button class="btn-copy" onclick="copyPayload('warehousePayload')">📋 Copy Payload</button>
+                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+              </div>
+            </div>
+
+            <!-- CRM Push -->
+            <div class="external-card">
+              <div class="external-card-header">
+                <div class="ext-icon">🏢</div>
+                <div>
+                  <div class="ext-title">CRM Record Push</div>
+                </div>
+              </div>
+              <div class="ext-desc">Push a Salesforce or HubSpot customer record into CleverTap as a user profile with custom field mapping.</div>
+              <div class="payload-box" id="crmPayload">{
+  "d": [{
+    "type": "profile",
+    "profileData": {
+      "Name": "Rahul Verma",
+      "Email": "rahul@corp.com",
+      "Phone": "+919988776655",
+      "CRM Stage": "Qualified Lead",
+      "Account Manager": "Sneha Patel",
+      "Deal Value": 120000
+    }
+  }]
+}</div>
+              <div class="ext-actions">
+                <button class="btn-copy" onclick="copyPayload('crmPayload')">📋 Copy Payload</button>
+                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+              </div>
+            </div>
+
+            <!-- Server-side Event -->
+            <div class="external-card">
+              <div class="external-card-header">
+                <div class="ext-icon">⚙️</div>
+                <div>
+                  <div class="ext-title">Server-side Event</div>
+                </div>
+              </div>
+              <div class="ext-desc">Fire a backend event — like Order Delivered or Payment Confirmed — that originates from your server, not the browser.</div>
+              <div class="payload-box" id="serverPayload">{
+  "d": [{
+    "type": "event",
+    "evtName": "Order Delivered",
+    "evtData": {
+      "order_id": "BZ-20251234",
+      "delivery_time": "2 days",
+      "delivery_partner": "Delhivery",
+      "rating_prompt": true
+    },
+    "identity": "rahul@email.com",
+    "ts": 1710000000
+  }]
+}</div>
+              <div class="ext-actions">
+                <button class="btn-copy" onclick="copyPayload('serverPayload')">📋 Copy Payload</button>
+                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+              </div>
+            </div>
+
+            <!-- Historical Import -->
+            <div class="external-card">
+              <div class="external-card-header">
+                <div class="ext-icon">📥</div>
+                <div>
+                  <div class="ext-title">Historical Data Import</div>
+                </div>
+              </div>
+              <div class="ext-desc">Backfill past event history into CleverTap — useful when migrating from another platform or importing CSV data.</div>
+              <div class="payload-box" id="importPayload">{
+  "d": [{
+    "type": "event",
+    "evtName": "Charged",
+    "evtData": {
+      "Amount": 12999,
+      "Payment mode": "UPI",
+      "Order ID": "BZ-HIST-001",
+      "Items": [{
+        "Product name": "Samsung Galaxy M14",
+        "Category": "Electronics",
+        "Price": 12999,
+        "Quantity": 1
+      }]
+    },
+    "identity": "priya@example.com",
+    "ts": 1709000000
+  }]
+}</div>
+              <div class="ext-actions">
+                <button class="btn-copy" onclick="copyPayload('importPayload')">📋 Copy Payload</button>
+                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 6: SEGMENT PREVIEW (STUB) ── -->
+      <div class="section-card" id="s6">
+        <div class="section-header">
+          <div class="section-title">
+            <div class="icon">🎯</div>
+            Segment Preview
+          </div>
+          <span style="font-size:11px;background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.2);padding:3px 10px;border-radius:4px;font-weight:700">Phase 5</span>
+        </div>
+        <div class="section-body">
+          <div class="stub-banner">
+            <div class="stub-icon">🎯</div>
+            <div class="stub-title">Segment preview coming after dummy data is loaded</div>
+            <div class="stub-desc">
+              Once 5,000 users and 30 days of event history are pushed to CT,
+              this section will show which segments the current user falls into —
+              Cart Abandoners, High Value, Dormant, Prime Members, and more.
+            </div>
+            <span class="stub-tag">Requires Phase 5 — Dummy Data</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── EVENT LOG ── -->
+      <div class="event-log" id="eventLog">
+        <div class="event-log-header">
+          <div class="event-log-title">
+            <div class="live-dot"></div>
+            Session Event Log
+          </div>
+          <button class="btn-secondary" style="font-size:11px;padding:4px 10px" onclick="clearLog()">Clear</button>
+        </div>
+        <div class="event-log-body" id="logBody">
+          <div class="log-empty">No events fired this session yet</div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="ecommerce/js/clevertap.js"></script>
+  <script>
+
+    // ═══════════════════════════════════════════════════════════
+    // CONFIGURATION
+    // ═══════════════════════════════════════════════════════════
+
+    const DEMO_PIN = '610323'; // ← Replace with your PIN before committing
+
+    const VERTICAL_CONFIG = {
+      bazario: {
+        name:       'Bazario — Ecommerce',
+        shortName:  'Bazario',
+        siteUrl:    'ecommerce/index.html',
+        ctUrl:      'https://dashboard.clevertap.com',
+        quickEvents: [
+          { label: '🛍️ Product Viewed',    name: 'Product Viewed',    props: { product_id: 'E001', product_name: 'Samsung Galaxy M14', category: 'Electronics', price: 10999 } },
+          { label: '🛒 Added to Cart',      name: 'Added to Cart',     props: { product_id: 'E001', product_name: 'Samsung Galaxy M14', category: 'Electronics', price: 10999, quantity: 1, cart_value: 10999 } },
+          { label: '💳 Checkout Initiated', name: 'Checkout Initiated',props: { item_count: 2, cart_value: 21998, top_category: 'Electronics' } },
+          { label: '♡ Added to Wishlist',   name: 'Added to Wishlist', props: { product_id: 'E001', product_name: 'Samsung Galaxy M14', category: 'Electronics', price: 10999 } },
+          { label: '🔍 Product Searched',   name: 'Product Searched',  props: { query: 'samsung', results_count: 3, source: 'homepage' } },
+          { label: '📦 Order Confirmed',    name: 'Order Confirmed',   props: { order_id: 'BZ-' + Date.now().toString().slice(-8), order_value: 10999, item_count: 1, payment_method: 'upi' } },
+        ]
+      },
+      fintech: {
+        name:       'Fintech — Banking',
+        shortName:  'Fintech',
+        siteUrl:    'fintech/index.html',
+        ctUrl:      'https://dashboard.clevertap.com',
+        quickEvents: [
+          { label: '🏦 Account Opened',  name: 'Account Opened',  props: { account_type: 'Savings', kyc_status: 'pending' } },
+          { label: '📋 KYC Submitted',   name: 'KYC Submitted',   props: { method: 'aadhaar', status: 'submitted' } },
+          { label: '💸 Transaction Done',name: 'Transaction Done', props: { amount: 5000, type: 'UPI', merchant: 'Amazon' } },
+          { label: '💰 Loan Applied',    name: 'Loan Applied',    props: { amount: 200000, type: 'Personal', tenure: 24 } },
+        ]
+      },
+      subscription: {
+        name:       'Subscription — SaaS',
+        shortName:  'Subscription',
+        siteUrl:    'subscription/index.html',
+        ctUrl:      'https://dashboard.clevertap.com',
+        quickEvents: [
+          { label: '📋 Plan Viewed',    name: 'Plan Viewed',    props: { plan: 'Pro', price: 999, billing: 'monthly' } },
+          { label: '🎁 Trial Started',  name: 'Trial Started',  props: { plan: 'Pro', trial_days: 14 } },
+          { label: '⬆️ Upgraded',       name: 'Upgraded',       props: { from_plan: 'Basic', to_plan: 'Pro', mrr_change: 500 } },
+          { label: '😢 Churned',        name: 'Churned',        props: { plan: 'Pro', reason: 'too_expensive', tenure_months: 3 } },
+        ]
+      },
+      foodtech: {
+        name:       'Foodtech — Delivery',
+        shortName:  'Foodtech',
+        siteUrl:    'foodtech/index.html',
+        ctUrl:      'https://dashboard.clevertap.com',
+        quickEvents: [
+          { label: '🍕 Restaurant Browsed', name: 'Restaurant Browsed', props: { cuisine: 'Italian', restaurant: 'Pizza Palace', rating: 4.3 } },
+          { label: '🛒 Item Added',         name: 'Item Added',         props: { item: 'Margherita Pizza', price: 299, restaurant: 'Pizza Palace' } },
+          { label: '📦 Order Placed',       name: 'Order Placed',       props: { order_value: 599, items_count: 2, payment: 'UPI' } },
+          { label: '🚴 Delivery Tracked',   name: 'Delivery Tracked',   props: { status: 'out_for_delivery', eta_minutes: 12 } },
+        ]
+      }
+    };
+
+    // ═══════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════
+
+    let currentVertical = 'bazario';
+    let eventsFired     = 0;
+    let logEntries      = [];
+    let pinInput        = '';
+
+    // ═══════════════════════════════════════════════════════════
+    // PIN GATE
+    // ═══════════════════════════════════════════════════════════
+
+    function pinPress(digit) {
+      if (pinInput.length >= 6) return;
+      pinInput += digit;
+      updatePinDots();
+    }
+
+    function pinDelete() {
+      pinInput = pinInput.slice(0, -1);
+      updatePinDots();
+      document.getElementById('pinError').textContent = '';
+    }
+
+    function updatePinDots() {
+      for (let i = 0; i < 6; i++) {
+        document.getElementById(`d${i}`).classList.toggle('filled', i < pinInput.length);
+      }
+    }
+
+    function pinSubmit() {
+      if (pinInput === DEMO_PIN) {
+        document.getElementById('pinGate').classList.add('hidden');
+        document.getElementById('mainApp').style.display = 'grid';
+        sessionStorage.setItem('demo_unlocked', 'true');
+        init();
+      } else {
+        document.getElementById('pinError').textContent = 'Incorrect PIN — try again';
+        pinInput = '';
+        updatePinDots();
+        // Shake animation
+        const box = document.querySelector('.pin-box');
+        box.style.animation = 'none';
+        box.offsetHeight;
+        box.style.animation = 'shake 0.4s ease';
+      }
+    }
+
+    function lockDemo() {
+      sessionStorage.removeItem('demo_unlocked');
+      document.getElementById('pinGate').classList.remove('hidden');
+      document.getElementById('mainApp').style.display = 'none';
+      pinInput = '';
+      updatePinDots();
+    }
+
+    // Auto-unlock if already authenticated this session
+    if (sessionStorage.getItem('demo_unlocked') === 'true') {
+      document.getElementById('pinGate').classList.add('hidden');
+      document.getElementById('mainApp').style.display = 'grid';
+    }
+
+    // Also support Enter key on keypad
+    document.addEventListener('keydown', e => {
+      if (document.getElementById('pinGate').classList.contains('hidden')) return;
+      if (e.key >= '0' && e.key <= '9') pinPress(e.key);
+      if (e.key === 'Backspace') pinDelete();
+      if (e.key === 'Enter') pinSubmit();
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // INIT
+    // ═══════════════════════════════════════════════════════════
+
+    function init() {
+      // Read vertical from localStorage (set by vertical selector homepage)
+      const saved = localStorage.getItem('ct_active_vertical');
+      if (saved && VERTICAL_CONFIG[saved]) {
+        currentVertical = saved;
+      }
+
+      applyVerticalTheme(currentVertical);
+      renderQuickEvents();
+      loadCurrentUser();
+      updatePayloadPreview();
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // VERTICAL SWITCHING
+    // ═══════════════════════════════════════════════════════════
+
+    function switchVertical(v) {
+      if (!VERTICAL_CONFIG[v]) return;
+      if (VERTICAL_CONFIG[v].siteUrl.includes('fintech') ||
+          VERTICAL_CONFIG[v].siteUrl.includes('subscription') ||
+          VERTICAL_CONFIG[v].siteUrl.includes('foodtech')) {
+        showToast('This vertical is coming soon!', 'error');
+        return;
+      }
+
+      currentVertical = v;
+      localStorage.setItem('ct_active_vertical', v);
+      applyVerticalTheme(v);
+      renderQuickEvents();
+      showToast(`Switched to ${VERTICAL_CONFIG[v].shortName}`);
+    }
+
+    function applyVerticalTheme(v) {
+      // Remove all vertical classes
+      document.body.className = '';
+      document.body.classList.add(`vertical-${v}`);
+
+      // Update vertical options
+      document.querySelectorAll('.vertical-option').forEach(el => el.classList.remove('active'));
+      const vo = document.getElementById(`vo-${v}`);
+      if (vo) vo.classList.add('active');
+
+      // Update topbar badge
+      document.getElementById('topbarVerticalName').textContent = VERTICAL_CONFIG[v].name;
+    }
+
+    function toggleVerticalPanel() {
+      // Panel is always visible in sidebar — this is a no-op for now
+      // Will slide sidebar in on mobile
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 1 — EVENT FIRING
+    // ═══════════════════════════════════════════════════════════
+
+    function renderQuickEvents() {
+      const config = VERTICAL_CONFIG[currentVertical];
+      const container = document.getElementById('quickEvents');
+      container.innerHTML = config.quickEvents.map(e => `
+        <button class="quick-event-btn" onclick='fireQuickEvent(${JSON.stringify(e)})'>
+          ${e.label}
+        </button>
+      `).join('');
+    }
+
+    function fireQuickEvent(eventConfig) {
+      document.getElementById('eventName').value = eventConfig.name;
+
+      // Clear existing props
+      const editor = document.getElementById('propsEditor');
+      editor.innerHTML = '';
+
+      // Populate props
+      Object.entries(eventConfig.props).forEach(([k, v]) => {
+        addPropRowWithValues(k, v);
+      });
+
+      updatePayloadPreview();
+      fireEvent();
+    }
+
+    function addPropRow() {
+      addPropRowWithValues('', '');
+    }
+
+    function addPropRowWithValues(key, value) {
+      const editor = document.getElementById('propsEditor');
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      row.innerHTML = `
+        <input type="text" class="prop-input" placeholder="property_name" value="${key}" oninput="updatePayloadPreview()" />
+        <input type="text" class="prop-input" placeholder="value" value="${value}" oninput="updatePayloadPreview()" />
+        <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
+      `;
+      editor.appendChild(row);
+      updatePayloadPreview();
+    }
+
+    function removePropRow(btn) {
+      btn.closest('.prop-row').remove();
+      updatePayloadPreview();
+    }
+
+    function updatePayloadPreview() {
+      const name  = document.getElementById('eventName').value.trim();
+      const rows  = document.querySelectorAll('#propsEditor .prop-row');
+      const props = {};
+
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll('.prop-input');
+        const k = inputs[0].value.trim();
+        const v = inputs[1].value.trim();
+        if (k) {
+          // Auto-detect type
+          if (v === 'true')       props[k] = true;
+          else if (v === 'false') props[k] = false;
+          else if (!isNaN(v) && v !== '') props[k] = Number(v);
+          else props[k] = v;
+        }
+      });
+
+      const payload = name
+        ? { event: name, properties: props }
+        : { event: '(event name required)', properties: props };
+
+      document.getElementById('payloadPreview').textContent =
+        JSON.stringify(payload, null, 2);
+    }
+
+    function fireEvent() {
+      const name = document.getElementById('eventName').value.trim();
+      if (!name) { showToast('Please enter an event name', 'error'); return; }
+
+      const rows  = document.querySelectorAll('#propsEditor .prop-row');
+      const props = {};
+
+      rows.forEach(row => {
+        const inputs = row.querySelectorAll('.prop-input');
+        const k = inputs[0].value.trim();
+        const v = inputs[1].value.trim();
+        if (k) {
+          if (v === 'true')        props[k] = true;
+          else if (v === 'false')  props[k] = false;
+          else if (!isNaN(v) && v !== '') props[k] = Number(v);
+          else props[k] = v;
+        }
+      });
+
+      try {
+        if (Object.keys(props).length > 0) {
+          clevertap.event.push(name, props);
+        } else {
+          clevertap.event.push(name);
+        }
+
+        eventsFired++;
+        document.getElementById('statEventsFired').textContent = eventsFired;
+
+        addLogEntry(name, props, 'ok');
+        showFireStatus('✓ Fired successfully', 'success');
+        showToast(`⚡ ${name} fired!`, 'success');
+
+      } catch(e) {
+        addLogEntry(name, props, 'err');
+        showFireStatus('✗ Failed — check console', 'error');
+        showToast('Event failed — check console', 'error');
+        console.error('CT event error:', e);
+      }
+    }
+
+    function clearEventForm() {
+      document.getElementById('eventName').value = '';
+      document.getElementById('propsEditor').innerHTML = `
+        <div class="prop-row">
+          <input type="text" class="prop-input" placeholder="property_name" oninput="updatePayloadPreview()" />
+          <input type="text" class="prop-input" placeholder="value" oninput="updatePayloadPreview()" />
+          <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
+        </div>`;
+      updatePayloadPreview();
+    }
+
+    function showFireStatus(msg, type) {
+      const el = document.getElementById('fireStatus');
+      el.textContent = msg;
+      el.className   = `fire-status ${type}`;
+      setTimeout(() => { el.className = 'fire-status'; }, 3000);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 2 — PROFILE MANAGER
+    // ═══════════════════════════════════════════════════════════
+
+    function loadCurrentUser() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      if (!user) return;
+
+      document.getElementById('profileEmail').value  = user.email  || '';
+      document.getElementById('profileName').value   = user.name   || '';
+      document.getElementById('profilePhone').value  = user.phone  || '';
+      document.getElementById('profileCity').value   = user.city   || '';
+      document.getElementById('profileGender').value = user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '';
+
+      updateProfilePreview(user);
+    }
+
+    function updateProfilePreview(user) {
+      if (!user) return;
+      document.getElementById('previewAvatar').textContent = user.name ? user.name[0].toUpperCase() : '?';
+      document.getElementById('previewName').textContent   = user.name  || '—';
+      document.getElementById('previewEmail').textContent  = user.email || '—';
+      document.getElementById('previewPhone').textContent  = user.phone || '—';
+      document.getElementById('previewCity').textContent   = user.city  || '—';
+      document.getElementById('previewGender').textContent = user.gender || '—';
+
+      const primeEl = document.getElementById('previewPrime');
+      primeEl.textContent = user.isPrime ? 'true' : 'false';
+      primeEl.className   = `prop-value ${user.isPrime}`;
+
+      document.getElementById('previewMsgEmail').textContent = 'true';
+      document.getElementById('previewMsgEmail').className   = 'prop-value true';
+      document.getElementById('previewMsgSms').textContent   = 'true';
+      document.getElementById('previewMsgSms').className     = 'prop-value true';
+      document.getElementById('previewLOV').textContent      = user.lastOrderValue
+        ? `₹${user.lastOrderValue.toLocaleString('en-IN')}`
+        : '—';
+    }
+
+    function addProfilePropRow() {
+      const editor = document.getElementById('profilePropsEditor');
+      const row = document.createElement('div');
+      row.className = 'prop-row';
+      row.innerHTML = `
+        <input type="text" class="prop-input" placeholder="property_name" />
+        <input type="text" class="prop-input" placeholder="value" />
+        <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
+      `;
+      editor.appendChild(row);
+    }
+
+    function pushProfile() {
+      const email  = document.getElementById('profileEmail').value.trim();
+      const name   = document.getElementById('profileName').value.trim();
+      const phone  = document.getElementById('profilePhone').value.trim();
+      const city   = document.getElementById('profileCity').value.trim();
+      const gender = document.getElementById('profileGender').value;
+
+      if (!email) { showToast('Email is required to identify the user', 'error'); return; }
+
+      const profileData = {};
+      if (name)   profileData['Name']   = name;
+      if (email)  profileData['Email']  = email;
+      if (phone)  profileData['Phone']  = phone.replace(/\s+/g, '');
+      if (city)   profileData['City']   = city;
+      if (gender) profileData['Gender'] = gender;
+
+      // Custom props
+      document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {
+        const inputs = row.querySelectorAll('.prop-input');
+        const k = inputs[0].value.trim();
+        const v = inputs[1].value.trim();
+        if (k && v) {
+          if (v === 'true')        profileData[k] = true;
+          else if (v === 'false')  profileData[k] = false;
+          else if (!isNaN(v))     profileData[k] = Number(v);
+          else profileData[k] = v;
+        }
+      });
+
+      try {
+        clevertap.profile.push({ "Site": profileData });
+
+        updateProfilePreview({
+          name, email, phone, city,
+          gender: gender === 'M' ? 'Male' : gender === 'F' ? 'Female' : '',
+          isPrime: false
+        });
+
+        addLogEntry('profile.push', profileData, 'ok');
+
+        const statusEl = document.getElementById('profileStatus');
+        statusEl.textContent = '✓ Profile pushed';
+        statusEl.className   = 'fire-status success';
+        setTimeout(() => { statusEl.className = 'fire-status'; }, 3000);
+
+        showToast('👤 Profile pushed to CT!', 'success');
+
+      } catch(e) {
+        showToast('Profile push failed', 'error');
+        console.error(e);
+      }
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 4 — DATA FLOW
+    // ═══════════════════════════════════════════════════════════
+
+    function showFlow(type, btn) {
+      document.querySelectorAll('.flow-diagram').forEach(d => d.style.display = 'none');
+      document.querySelectorAll('.flow-tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(`flow-${type}`).style.display = 'flex';
+      btn.classList.add('active');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // SECTION 5 — EXTERNAL INTEGRATIONS
+    // ═══════════════════════════════════════════════════════════
+
+    function copyPayload(id) {
+      const text = document.getElementById(id).textContent;
+      navigator.clipboard.writeText(text)
+        .then(() => showToast('📋 Payload copied!', 'success'))
+        .catch(() => showToast('Copy failed', 'error'));
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // EVENT LOG
+    // ═══════════════════════════════════════════════════════════
+
+    function addLogEntry(eventName, props, status) {
+      const body = document.getElementById('logBody');
+
+      // Remove empty state
+      const empty = body.querySelector('.log-empty');
+      if (empty) empty.remove();
+
+      const now   = new Date();
+      const time  = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const propsStr = Object.keys(props).length
+        ? '{ ' + Object.entries(props).slice(0, 3).map(([k,v]) => `${k}: ${JSON.stringify(v)}`).join(', ') + (Object.keys(props).length > 3 ? ', ...' : '') + ' }'
+        : '{}';
+
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = `
+        <span class="log-time">${time}</span>
+        <span class="log-event">${eventName}</span>
+        <span class="log-props">${propsStr}</span>
+        <span class="log-status ${status}">${status === 'ok' ? '✓' : '✗'}</span>
+      `;
+
+      body.insertBefore(entry, body.firstChild);
+      logEntries.push({ time, eventName, props, status });
+    }
+
+    function clearLog() {
+      const body = document.getElementById('logBody');
+      body.innerHTML = '<div class="log-empty">No events fired this session yet</div>';
+      logEntries = [];
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // NAVIGATION
+    // ═══════════════════════════════════════════════════════════
+
+    function scrollTo(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      event.currentTarget.classList.add('active');
+    }
+
+    function visitSite() {
+      const config = VERTICAL_CONFIG[currentVertical];
+      window.open(config.siteUrl, '_blank');
+    }
+
+    function openCTDashboard() {
+      window.open('https://dashboard.clevertap.com', '_blank');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TOAST
+    // ═══════════════════════════════════════════════════════════
+
+    function showToast(msg, type = '') {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className   = `toast ${type} show`;
+      setTimeout(() => { t.className = 'toast'; }, 2500);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // AUTO-INIT
+    // ═══════════════════════════════════════════════════════════
+
+    if (sessionStorage.getItem('demo_unlocked') === 'true') {
+      init();
+    }
+
+  </script>
+</body>
+</html>
