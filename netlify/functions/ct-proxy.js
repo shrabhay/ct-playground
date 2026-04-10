@@ -151,11 +151,12 @@ exports.handler = async (event) => {
         statusCode: 200,
         headers:    CORS_HEADERS,
         body:       JSON.stringify({
-          status:  'success',
-          email,
-          profile: ctData.profile || ctData
+            status:  'success',
+            email,
+            profile: ctData.profile || ctData,
+            raw:     ctData  // full CT response for debugging
         })
-      };
+     };
     }
 
     // ─── Unknown path ───────────────────────────────────────────────────────

@@ -1094,102 +1094,170 @@
           <div style="font-size:12px;color:var(--text-muted)">Update CT user properties in real time</div>
         </div>
         <div class="section-body">
-          <div class="profile-grid">
+        <div class="profile-grid">
 
             <!-- Left: Edit form -->
             <div style="display:flex;flex-direction:column;gap:14px">
-              <div class="form-group">
-                <label class="form-label">Identity (Email)</label>
-                <input type="text" class="form-input" id="profileEmail" placeholder="user@email.com" />
-              </div>
-              <div class="event-grid" style="gap:10px">
+            <div class="form-group">
+                <label class="form-label">Identity (Email) *</label>
+                <div style="display:flex;gap:8px">
+                <input type="text" class="form-input" id="profileEmail"
+                    placeholder="user@email.com" style="flex:1"
+                    oninput="updateProfilePayloadPreview()" />
+                <button class="btn-fire" style="padding:10px 16px;white-space:nowrap"
+                    onclick="loadProfileFromCT()" id="btnLoadProfile">
+                    ↓ Load
+                </button>
+                </div>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px">
+                Fetches the full CT profile for this user via the API
+                </div>
+            </div>
+
+            <div class="event-grid" style="gap:10px">
                 <div class="form-group">
-                  <label class="form-label">Name</label>
-                  <input type="text" class="form-input" id="profileName" placeholder="Full Name" />
+                <label class="form-label">Name</label>
+                <input type="text" class="form-input" id="profileName"
+                    placeholder="Full Name" oninput="updateProfilePayloadPreview()" />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Phone</label>
-                  <input type="text" class="form-input" id="profilePhone" placeholder="+91XXXXXXXXXX" />
+                <label class="form-label">Phone</label>
+                <input type="text" class="form-input" id="profilePhone"
+                    placeholder="+91XXXXXXXXXX" oninput="updateProfilePayloadPreview()" />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">City</label>
-                  <input type="text" class="form-input" id="profileCity" placeholder="Mumbai" />
+                <label class="form-label">City</label>
+                <input type="text" class="form-input" id="profileCity"
+                    placeholder="Mumbai" oninput="updateProfilePayloadPreview()" />
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Gender</label>
-                  <select class="form-input" id="profileGender">
+                <label class="form-label">Gender</label>
+                <select class="form-input" id="profileGender"
+                    onchange="updateProfilePayloadPreview()">
                     <option value="">Select</option>
                     <option value="M">Male (M)</option>
                     <option value="F">Female (F)</option>
-                  </select>
+                </select>
                 </div>
-              </div>
+                <div class="form-group">
+                <label class="form-label">Is Prime</label>
+                <select class="form-input" id="profileIsPrime"
+                    onchange="updateProfilePayloadPreview()">
+                    <option value="">Select</option>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+                </div>
+                <div class="form-group">
+                <label class="form-label">MSG-email</label>
+                <select class="form-input" id="profileMsgEmail"
+                    onchange="updateProfilePayloadPreview()">
+                    <option value="">Select</option>
+                    <option value="true">true</option>
+                    <option value="false">false</option>
+                </select>
+                </div>
+            </div>
 
-              <!-- Custom properties -->
-              <div class="form-group">
+            <!-- Custom properties -->
+            <div class="form-group">
                 <label class="form-label">Custom Properties</label>
                 <div class="props-editor" id="profilePropsEditor">
-                  <div class="prop-row">
-                    <input type="text" class="prop-input" placeholder="property_name" />
-                    <input type="text" class="prop-input" placeholder="value" />
-                    <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
-                  </div>
+                <div class="prop-row">
+                    <input type="text" class="prop-input" placeholder="property_name"
+                    oninput="updateProfilePayloadPreview()" />
+                    <input type="text" class="prop-input" placeholder="value"
+                    oninput="updateProfilePayloadPreview()" />
+                    <button class="btn-remove-prop" onclick="removeProfilePropRow(this)">✕</button>
                 </div>
-                <button class="btn-add-prop" onclick="addProfilePropRow()" style="margin-top:8px">+ Add Property</button>
-              </div>
+                </div>
+                <button class="btn-add-prop" onclick="addProfilePropRow()"
+                style="margin-top:8px">+ Add Property</button>
+            </div>
 
-              <div class="event-actions">
-                <button class="btn-fire" onclick="pushProfile()">👤 Push Profile</button>
-                <button class="btn-secondary" onclick="loadCurrentUser()">Load Current User</button>
+            <!-- Payload Preview -->
+            <div class="form-group">
+                <label class="form-label">Payload Preview</label>
+                <div class="payload-preview" id="profilePayloadPreview">
+                // Fill in fields above to see the API payload
+                </div>
+            </div>
+
+            <div class="event-actions">
+                <button class="btn-fire" onclick="pushProfileViaCT()" id="btnPushProfile">
+                ↑ Push Profile
+                </button>
+                <button class="btn-secondary" onclick="loadCurrentUser()">
+                Load My Profile
+                </button>
+                <button class="btn-secondary" onclick="clearProfileForm()">
+                Clear
+                </button>
                 <span class="fire-status" id="profileStatus"></span>
-              </div>
+            </div>
             </div>
 
             <!-- Right: Profile preview -->
             <div>
-              <div class="form-label" style="margin-bottom:8px">Live Profile Preview</div>
-              <div class="profile-preview">
+            <div class="form-label" style="margin-bottom:8px">CT Profile Preview</div>
+            <div class="profile-preview">
                 <div class="profile-preview-header">
-                  <div class="profile-avatar" id="previewAvatar">?</div>
-                  <div class="profile-identity">
+                <div class="profile-avatar" id="previewAvatar">?</div>
+                <div class="profile-identity">
                     <div class="name"  id="previewName">No user loaded</div>
                     <div class="email" id="previewEmail">—</div>
-                  </div>
+                </div>
                 </div>
                 <div class="profile-props" id="previewProps">
-                  <div class="profile-prop-row">
+                <div class="profile-prop-row">
                     <span class="prop-key">Phone</span>
                     <span class="prop-value" id="previewPhone">—</span>
-                  </div>
-                  <div class="profile-prop-row">
+                </div>
+                <div class="profile-prop-row">
                     <span class="prop-key">City</span>
                     <span class="prop-value" id="previewCity">—</span>
-                  </div>
-                  <div class="profile-prop-row">
+                </div>
+                <div class="profile-prop-row">
                     <span class="prop-key">Gender</span>
                     <span class="prop-value" id="previewGender">—</span>
-                  </div>
-                  <div class="profile-prop-row">
+                </div>
+                <div class="profile-prop-row">
                     <span class="prop-key">Is Prime</span>
                     <span class="prop-value" id="previewPrime">—</span>
-                  </div>
-                  <div class="profile-prop-row">
+                </div>
+                <div class="profile-prop-row">
                     <span class="prop-key">MSG-email</span>
                     <span class="prop-value" id="previewMsgEmail">—</span>
-                  </div>
-                  <div class="profile-prop-row">
+                </div>
+                <div class="profile-prop-row">
                     <span class="prop-key">MSG-sms</span>
                     <span class="prop-value" id="previewMsgSms">—</span>
-                  </div>
-                  <div class="profile-prop-row">
+                </div>
+                <div class="profile-prop-row">
                     <span class="prop-key">Last Order Value</span>
                     <span class="prop-value" id="previewLOV">—</span>
-                  </div>
                 </div>
-              </div>
+                <div class="profile-prop-row">
+                    <span class="prop-key">Last Order Date</span>
+                    <span class="prop-value" id="previewLOD">—</span>
+                </div>
+                </div>
+
+                <!-- API Response preview -->
+                <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;
+                    letter-spacing:0.08em;color:var(--text-muted);margin-bottom:8px">
+                    API Response
+                </div>
+                <div class="payload-preview" id="profileResponsePreview"
+                    style="max-height:160px;overflow-y:auto;font-size:10px">
+                    // Load a profile to see the raw CT API response
+                </div>
+                </div>
+            </div>
             </div>
 
-          </div>
+        </div>
         </div>
       </div>
 
@@ -1497,7 +1565,9 @@
 }</div>
               <div class="ext-actions">
                 <button class="btn-copy" onclick="copyPayload('warehousePayload')">📋 Copy Payload</button>
-                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+                <button class="btn-fire-api" onclick="fireExternalPayload('warehousePayload', 'profile')">
+                ⚡ Fire via API
+                </button>
               </div>
             </div>
 
@@ -1525,7 +1595,9 @@
 }</div>
               <div class="ext-actions">
                 <button class="btn-copy" onclick="copyPayload('crmPayload')">📋 Copy Payload</button>
-                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+                <button class="btn-fire-api" onclick="fireExternalPayload('crmPayload', 'profile')">
+                ⚡ Fire via API
+                </button>
               </div>
             </div>
 
@@ -1554,7 +1626,9 @@
 }</div>
               <div class="ext-actions">
                 <button class="btn-copy" onclick="copyPayload('serverPayload')">📋 Copy Payload</button>
-                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+                <button class="btn-fire-api" onclick="fireExternalPayload('serverPayload', 'event')">
+                ⚡ Fire via API
+                </button>
               </div>
             </div>
 
@@ -1588,7 +1662,9 @@
 }</div>
               <div class="ext-actions">
                 <button class="btn-copy" onclick="copyPayload('importPayload')">📋 Copy Payload</button>
-                <button class="btn-fire-api stub" title="Requires Netlify proxy — Phase 4B">⚡ Fire via API</button>
+                <button class="btn-fire-api" onclick="fireExternalPayload('importPayload', 'charged')">
+                ⚡ Fire via API
+                </button>
               </div>
             </div>
 
@@ -1645,7 +1721,8 @@
     // CONFIGURATION
     // ═══════════════════════════════════════════════════════════
 
-    const DEMO_PIN = '610323'; // ← Replace with your PIN before committing
+    const DEMO_PIN = '610323';
+    const PROXY_URL  = 'https://ctplayground.netlify.app/ct-proxy';
 
     const VERTICAL_CONFIG = {
       bazario: {
@@ -1905,45 +1982,127 @@
         JSON.stringify(payload, null, 2);
     }
 
-    function fireEvent() {
-      const name = document.getElementById('eventName').value.trim();
-      if (!name) { showToast('Please enter an event name', 'error'); return; }
+    // ─── Fire external integration payloads via proxy ───
+    async function fireExternalPayload(payloadId, type) {
+        const payloadText = document.getElementById(payloadId).textContent;
 
-      const rows  = document.querySelectorAll('#propsEditor .prop-row');
-      const props = {};
-
-      rows.forEach(row => {
-        const inputs = row.querySelectorAll('.prop-input');
-        const k = inputs[0].value.trim();
-        const v = inputs[1].value.trim();
-        if (k) {
-          if (v === 'true')        props[k] = true;
-          else if (v === 'false')  props[k] = false;
-          else if (!isNaN(v) && v !== '') props[k] = Number(v);
-          else props[k] = v;
-        }
-      });
-
-      try {
-        if (Object.keys(props).length > 0) {
-          clevertap.event.push(name, props);
-        } else {
-          clevertap.event.push(name);
+        let payload;
+        try {
+            payload = JSON.parse(payloadText);
+        } catch(e) {
+            showToast('Invalid payload JSON', 'error');
+            return;
         }
 
-        eventsFired++;
-        document.getElementById('statEventsFired').textContent = eventsFired;
+        // Find the button that was clicked and update it
+        const btn = event.currentTarget;
+        btn.disabled    = true;
+        btn.textContent = 'Firing...';
 
-        addLogEntry(name, props, 'ok');
-        showFireStatus('✓ Fired successfully', 'success');
-        showToast(`⚡ ${name} fired!`, 'success');
+        try {
+            const response = await fetch(`${PROXY_URL}/upload`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
+            });
 
-      } catch(e) {
-        addLogEntry(name, props, 'err');
-        showFireStatus('✗ Failed — check console', 'error');
-        showToast('Event failed — check console', 'error');
-        console.error('CT event error:', e);
-      }
+            const data = await response.json();
+
+            if (data.status === 'success' || data.ct_response?.status === 'success') {
+            const label = type === 'profile' ? 'Profile pushed' : 'Event fired';
+            addLogEntry(`external.${type}`, { source: payloadId }, 'ok');
+            showToast(`✓ ${label} via API!`, 'success');
+            } else {
+            throw new Error(JSON.stringify(data));
+            }
+
+        } catch(e) {
+            showToast('API call failed — check console', 'error');
+            console.error('External payload error:', e);
+        } finally {
+            btn.disabled    = false;
+            btn.textContent = '⚡ Fire via API';
+        }
+    }
+
+    async function fireEvent() {
+        const name      = document.getElementById('eventName').value.trim();
+        const userEmail = document.getElementById('eventUserEmail').value.trim();
+        if (!name) { showToast('Please enter an event name', 'error'); return; }
+
+        const rows  = document.querySelectorAll('#propsEditor .prop-row');
+        const props = {};
+        rows.forEach(row => {
+            const inputs = row.querySelectorAll('.prop-input');
+            const k = inputs[0].value.trim();
+            const v = inputs[1].value.trim();
+            if (k) {
+            if (v === 'true')             props[k] = true;
+            else if (v === 'false')       props[k] = false;
+            else if (!isNaN(v) && v !=='') props[k] = Number(v);
+            else                          props[k] = v;
+            }
+        });
+
+        const btn = document.getElementById('btnFireEvent');
+        btn.disabled = true;
+        btn.textContent = 'Firing...';
+
+        try {
+            if (userEmail) {
+            // ── Target user specified — use proxy (server-side) ──
+            const payload = {
+                d: [{
+                type:     'event',
+                identity: userEmail,
+                evtName:  name,
+                evtData:  props,
+                ts:       Math.floor(Date.now() / 1000)
+                }]
+            };
+
+            const response = await fetch(`${PROXY_URL}/upload`, {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success' || data.ct_response?.status === 'success') {
+                eventsFired++;
+                document.getElementById('statEventsFired').textContent = eventsFired;
+                addLogEntry(name, { ...props, _target: userEmail }, 'ok');
+                showFireStatus('✓ Fired via API', 'success');
+                showToast(`⚡ ${name} fired for ${userEmail}!`, 'success');
+            } else {
+                throw new Error(JSON.stringify(data));
+            }
+
+            } else {
+            // ── No target user — use SDK (current session) ──
+            if (Object.keys(props).length > 0) {
+                clevertap.event.push(name, props);
+            } else {
+                clevertap.event.push(name);
+            }
+
+            eventsFired++;
+            document.getElementById('statEventsFired').textContent = eventsFired;
+            addLogEntry(name, props, 'ok');
+            showFireStatus('✓ Fired via SDK', 'success');
+            showToast(`⚡ ${name} fired!`, 'success');
+            }
+
+        } catch(e) {
+            addLogEntry(name, props, 'err');
+            showFireStatus('✗ Failed — check console', 'error');
+            showToast('Event failed — check console', 'error');
+            console.error('CT event error:', e);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = '⚡ Fire Event';
+        }
     }
 
     function clearEventForm() {
@@ -1969,103 +2128,293 @@
     // ═══════════════════════════════════════════════════════════
 
     function loadCurrentUser() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      if (!user) return;
+        const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        if (!user) {
+            showToast('No user logged in — visit Bazario and sign in first', 'error');
+            return;
+        }
 
-      document.getElementById('profileEmail').value  = user.email  || '';
-      document.getElementById('profileName').value   = user.name   || '';
-      document.getElementById('profilePhone').value  = user.phone  || '';
-      document.getElementById('profileCity').value   = user.city   || '';
-      document.getElementById('profileGender').value = user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '';
+        document.getElementById('profileEmail').value   = user.email  || '';
+        document.getElementById('profileName').value    = user.name   || '';
+        document.getElementById('profilePhone').value   = user.phone  || '';
+        document.getElementById('profileCity').value    = user.city   || '';
+        document.getElementById('profileGender').value  = user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '';
+        document.getElementById('profileIsPrime').value = user.isPrime ? 'true' : 'false';
 
-      updateProfilePreview(user);
+        updateProfilePreview(user);
+        updateProfilePayloadPreview();
+        showToast('Current user loaded', 'success');
+    }
+
+    async function loadProfileFromCT() {
+        const email = document.getElementById('profileEmail').value.trim();
+        if (!email) { showToast('Enter an email to load', 'error'); return; }
+
+        const btn = document.getElementById('btnLoadProfile');
+        btn.disabled    = true;
+        btn.textContent = 'Loading...';
+
+        try {
+            const response = await fetch(`${PROXY_URL}/profile?email=${encodeURIComponent(email)}`);
+            const data     = await response.json();
+
+            if (data.status === 'not_found') {
+            showToast(`No CT profile found for ${email}`, 'error');
+            document.getElementById('profileResponsePreview').textContent =
+                JSON.stringify(data, null, 2);
+            return;
+            }
+
+            if (data.status !== 'success') {
+            throw new Error(JSON.stringify(data));
+            }
+
+            const profile = data.profile || {};
+
+            // Populate form fields from CT profile
+            // CT Profile API nests data inside profile.record
+            const record  = data.profile?.record  || data.profile || {};
+
+            // CT stores properties in profileData or directly on the record
+            // depending on how they were originally pushed
+            const props   = record.profileData || record;
+
+            // Platform info (device/session data) is separate
+            const platform = record.platformInfo || [];
+
+            // Show raw CT response in preview first
+            document.getElementById('profileResponsePreview').textContent =
+            JSON.stringify(data, null, 2);
+
+            // Populate form fields
+            document.getElementById('profileName').value     = props.Name     || props.name     || '';
+            document.getElementById('profilePhone').value    = props.Phone    || props.phone    || '';
+            document.getElementById('profileCity').value     = props.City     || props.city     || '';
+            document.getElementById('profileGender').value   = props.Gender   || props.gender   || '';
+            document.getElementById('profileIsPrime').value  = props['Is Prime']  !== undefined
+            ? String(props['Is Prime'])  : '';
+            document.getElementById('profileMsgEmail').value = props['MSG-email'] !== undefined
+            ? String(props['MSG-email']) : '';
+
+            // Update the profile preview panel
+            updateProfilePreview({
+                name:           props.Name     || props.name,
+                email:          email,
+                phone:          props.Phone    || props.phone,
+                city:           props.City     || props.city,
+                gender:         props.Gender   === 'M' ? 'Male' : props.Gender === 'F' ? 'Female' : '',
+                isPrime:        props['Is Prime'],
+                'MSG-email':    props['MSG-email'],
+                'MSG-sms':      props['MSG-sms'],
+                lastOrderValue: props['Last Order Value'],
+                lastOrderDate:  props['Last Order Date']
+            });
+
+            updateProfilePayloadPreview();
+            addLogEntry('profile.fetch', { email }, 'ok');
+            showToast(`✓ Profile loaded for ${email}`, 'success');
+
+        } catch(e) {
+            showToast('Failed to load profile — check console', 'error');
+            console.error('Load profile error:', e);
+        } finally {
+            btn.disabled    = false;
+            btn.textContent = '↓ Load';
+        }
     }
 
     function updateProfilePreview(user) {
-      if (!user) return;
-      document.getElementById('previewAvatar').textContent = user.name ? user.name[0].toUpperCase() : '?';
-      document.getElementById('previewName').textContent   = user.name  || '—';
-      document.getElementById('previewEmail').textContent  = user.email || '—';
-      document.getElementById('previewPhone').textContent  = user.phone || '—';
-      document.getElementById('previewCity').textContent   = user.city  || '—';
-      document.getElementById('previewGender').textContent = user.gender || '—';
+        if (!user) return;
+        document.getElementById('previewAvatar').textContent = user.name ? user.name[0].toUpperCase() : '?';
+        document.getElementById('previewName').textContent   = user.name  || '—';
+        document.getElementById('previewEmail').textContent  = user.email || '—';
+        document.getElementById('previewPhone').textContent  = user.phone || '—';
+        document.getElementById('previewCity').textContent   = user.city  || '—';
+        document.getElementById('previewGender').textContent = user.gender || '—';
 
-      const primeEl = document.getElementById('previewPrime');
-      primeEl.textContent = user.isPrime ? 'true' : 'false';
-      primeEl.className   = `prop-value ${user.isPrime}`;
+        const primeEl = document.getElementById('previewPrime');
+        primeEl.textContent = user.isPrime !== undefined ? String(user.isPrime) : '—';
+        primeEl.className   = `prop-value ${user.isPrime}`;
 
-      document.getElementById('previewMsgEmail').textContent = 'true';
-      document.getElementById('previewMsgEmail').className   = 'prop-value true';
-      document.getElementById('previewMsgSms').textContent   = 'true';
-      document.getElementById('previewMsgSms').className     = 'prop-value true';
-      document.getElementById('previewLOV').textContent      = user.lastOrderValue
-        ? `₹${user.lastOrderValue.toLocaleString('en-IN')}`
-        : '—';
+        const msgEmailEl = document.getElementById('previewMsgEmail');
+        msgEmailEl.textContent = user['MSG-email'] !== undefined ? String(user['MSG-email']) : '—';
+
+        const msgSmsEl = document.getElementById('previewMsgSms');
+        msgSmsEl.textContent = user['MSG-sms'] !== undefined ? String(user['MSG-sms']) : '—';
+
+        document.getElementById('previewLOV').textContent = user.lastOrderValue
+            ? `₹${Number(user.lastOrderValue).toLocaleString('en-IN')}` : '—';
+
+        document.getElementById('previewLOD').textContent = user.lastOrderDate
+            ? new Date(user.lastOrderDate).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' })
+            : '—';
     }
 
-    function addProfilePropRow() {
-      const editor = document.getElementById('profilePropsEditor');
-      const row = document.createElement('div');
-      row.className = 'prop-row';
-      row.innerHTML = `
-        <input type="text" class="prop-input" placeholder="property_name" />
-        <input type="text" class="prop-input" placeholder="value" />
-        <button class="btn-remove-prop" onclick="removePropRow(this)">✕</button>
-      `;
-      editor.appendChild(row);
-    }
+    // ─── Update profile payload preview ───
+    function updateProfilePayloadPreview() {
+        const email  = document.getElementById('profileEmail').value.trim();
+        const name   = document.getElementById('profileName').value.trim();
+        const phone  = document.getElementById('profilePhone').value.trim();
+        const city   = document.getElementById('profileCity').value.trim();
+        const gender = document.getElementById('profileGender').value;
+        const prime  = document.getElementById('profileIsPrime').value;
+        const msgEmail = document.getElementById('profileMsgEmail').value;
 
-    function pushProfile() {
-      const email  = document.getElementById('profileEmail').value.trim();
-      const name   = document.getElementById('profileName').value.trim();
-      const phone  = document.getElementById('profilePhone').value.trim();
-      const city   = document.getElementById('profileCity').value.trim();
-      const gender = document.getElementById('profileGender').value;
+        const profileData = {};
+        if (name)     profileData['Name']      = name;
+        if (email)    profileData['Email']     = email;
+        if (phone)    profileData['Phone']     = phone.replace(/\s+/g, '');
+        if (city)     profileData['City']      = city;
+        if (gender)   profileData['Gender']    = gender;
+        if (prime)    profileData['Is Prime']  = prime === 'true';
+        if (msgEmail) profileData['MSG-email'] = msgEmail === 'true';
 
-      if (!email) { showToast('Email is required to identify the user', 'error'); return; }
-
-      const profileData = {};
-      if (name)   profileData['Name']   = name;
-      if (email)  profileData['Email']  = email;
-      if (phone)  profileData['Phone']  = phone.replace(/\s+/g, '');
-      if (city)   profileData['City']   = city;
-      if (gender) profileData['Gender'] = gender;
-
-      // Custom props
-      document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {
-        const inputs = row.querySelectorAll('.prop-input');
-        const k = inputs[0].value.trim();
-        const v = inputs[1].value.trim();
-        if (k && v) {
-          if (v === 'true')        profileData[k] = true;
-          else if (v === 'false')  profileData[k] = false;
-          else if (!isNaN(v))     profileData[k] = Number(v);
-          else profileData[k] = v;
-        }
-      });
-
-      try {
-        clevertap.profile.push({ "Site": profileData });
-
-        updateProfilePreview({
-          name, email, phone, city,
-          gender: gender === 'M' ? 'Male' : gender === 'F' ? 'Female' : '',
-          isPrime: false
+        // Custom props
+        document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {
+            const inputs = row.querySelectorAll('.prop-input');
+            const k = inputs[0].value.trim();
+            const v = inputs[1].value.trim();
+            if (k && v) {
+            if (v === 'true')        profileData[k] = true;
+            else if (v === 'false')  profileData[k] = false;
+            else if (!isNaN(v))      profileData[k] = Number(v);
+            else                     profileData[k] = v;
+            }
         });
 
-        addLogEntry('profile.push', profileData, 'ok');
+        const payload = {
+            d: [{
+            type:        'profile',
+            identity:    email || '(email required)',
+            profileData: profileData
+            }]
+        };
 
-        const statusEl = document.getElementById('profileStatus');
-        statusEl.textContent = '✓ Profile pushed';
-        statusEl.className   = 'fire-status success';
-        setTimeout(() => { statusEl.className = 'fire-status'; }, 3000);
+        document.getElementById('profilePayloadPreview').textContent =
+            JSON.stringify(payload, null, 2);
+    }
 
-        showToast('👤 Profile pushed to CT!', 'success');
+    // ─── Add custom property row to profile editor ───
+    function addProfilePropRow() {
+        const editor = document.getElementById('profilePropsEditor');
+        const row = document.createElement('div');
+        row.className = 'prop-row';
+        row.innerHTML = `
+            <input type="text" class="prop-input" placeholder="property_name"
+            oninput="updateProfilePayloadPreview()" />
+            <input type="text" class="prop-input" placeholder="value"
+            oninput="updateProfilePayloadPreview()" />
+            <button class="btn-remove-prop" onclick="removeProfilePropRow(this)">✕</button>
+        `;
+        editor.appendChild(row);
+    }
 
-      } catch(e) {
-        showToast('Profile push failed', 'error');
-        console.error(e);
-      }
+    // ─── Remove property row from profile editor ───
+    function removeProfilePropRow(btn) {
+        btn.closest('.prop-row').remove();
+        updateProfilePayloadPreview();
+    }
+
+    // ─── Clear profile form ───
+    function clearProfileForm() {
+        ['profileEmail','profileName','profilePhone','profileCity'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        ['profileGender','profileIsPrime','profileMsgEmail'].forEach(id => {
+            document.getElementById(id).value = '';
+        });
+        document.getElementById('profilePropsEditor').innerHTML = `
+            <div class="prop-row">
+            <input type="text" class="prop-input" placeholder="property_name"
+                oninput="updateProfilePayloadPreview()" />
+            <input type="text" class="prop-input" placeholder="value"
+                oninput="updateProfilePayloadPreview()" />
+            <button class="btn-remove-prop" onclick="removeProfilePropRow(this)">✕</button>
+            </div>`;
+        document.getElementById('profilePayloadPreview').textContent  = '// Fill in fields above to see the API payload';
+        document.getElementById('profileResponsePreview').textContent = '// Load a profile to see the raw CT API response';
+        updateProfilePreview({});
+    }
+
+    // ─── Push profile via proxy ───
+    async function pushProfileViaCT() {
+        const email = document.getElementById('profileEmail').value.trim();
+        if (!email) { showToast('Email is required to identify the user', 'error'); return; }
+
+        const name     = document.getElementById('profileName').value.trim();
+        const phone    = document.getElementById('profilePhone').value.trim();
+        const city     = document.getElementById('profileCity').value.trim();
+        const gender   = document.getElementById('profileGender').value;
+        const prime    = document.getElementById('profileIsPrime').value;
+        const msgEmail = document.getElementById('profileMsgEmail').value;
+
+        const profileData = {};
+        if (name)     profileData['Name']      = name;
+        if (email)    profileData['Email']     = email;
+        if (phone)    profileData['Phone']     = phone.replace(/\s+/g, '');
+        if (city)     profileData['City']      = city;
+        if (gender)   profileData['Gender']    = gender;
+        if (prime)    profileData['Is Prime']  = prime === 'true';
+        if (msgEmail) profileData['MSG-email'] = msgEmail === 'true';
+
+        // Custom props
+        document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {
+            const inputs = row.querySelectorAll('.prop-input');
+            const k = inputs[0].value.trim();
+            const v = inputs[1].value.trim();
+            if (k && v) {
+            if (v === 'true')        profileData[k] = true;
+            else if (v === 'false')  profileData[k] = false;
+            else if (!isNaN(v))      profileData[k] = Number(v);
+            else                     profileData[k] = v;
+            }
+        });
+
+        const payload = {
+            d: [{
+            type:        'profile',
+            identity:    email,
+            profileData: profileData
+            }]
+        };
+
+        const btn = document.getElementById('btnPushProfile');
+        btn.disabled    = true;
+        btn.textContent = 'Pushing...';
+
+        try {
+            const response = await fetch(`${PROXY_URL}/upload`, {
+            method:  'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body:    JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (data.status === 'success' || data.ct_response?.status === 'success') {
+            addLogEntry('profile.push', profileData, 'ok');
+
+            const statusEl = document.getElementById('profileStatus');
+            statusEl.textContent = '✓ Profile pushed via API';
+            statusEl.className   = 'fire-status success';
+            setTimeout(() => { statusEl.className = 'fire-status'; }, 3000);
+
+            // Update response preview
+            document.getElementById('profileResponsePreview').textContent =
+                JSON.stringify(data, null, 2);
+
+            showToast(`👤 Profile pushed for ${email}!`, 'success');
+            } else {
+            throw new Error(JSON.stringify(data));
+            }
+
+        } catch(e) {
+            showToast('Profile push failed — check console', 'error');
+            console.error('Push profile error:', e);
+        } finally {
+            btn.disabled    = false;
+            btn.textContent = '↑ Push Profile';
+        }
     }
 
     // ═══════════════════════════════════════════════════════════
