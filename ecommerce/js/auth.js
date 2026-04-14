@@ -109,6 +109,24 @@ window.addEventListener('message', function(e) {
     }, 300);
   }
 
+  if (action === 'nothanks') {
+    if (typeof clevertap !== 'undefined') {
+      clevertap.event.push("Web Popup Dismissed", Object.assign({}, payload, {
+        dismiss_action: "no_thanks_link",
+        dismiss_text: "No thanks, I'll pay the full price"
+      }));
+      clevertap.profile.push({
+        "Site": {
+          "Last Popup Dismissed":    payload.campaign_name,
+          "Last Popup Dismissed At": epoch
+        }
+      });
+    }
+    setTimeout(function() {
+      window.location.href = 'account.html';
+    }, 300);
+  }
+
   if (action === 'dismissed') {
     if (typeof clevertap !== 'undefined') {
       clevertap.event.push("Web Popup Dismissed", Object.assign({}, payload, {
@@ -121,6 +139,9 @@ window.addEventListener('message', function(e) {
         }
       });
     }
+    setTimeout(function() {
+      window.location.href = 'account.html';
+    }, 300);
   }
 
   if (action === 'close') {
