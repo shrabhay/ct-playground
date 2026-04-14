@@ -124,12 +124,14 @@ window.addEventListener('message', function(e) {
   }
 
   if (action === 'close') {
-    console.log('Close message received — looking for intentPreview');
-    var overlay = document.getElementById('intentPreview');
-    console.log('intentPreview found:', overlay);
-    if (overlay) {
-      overlay.style.display = 'none';
-      console.log('intentPreview hidden');
+    function removeCtOverlay(attempts) {
+      var overlay = document.getElementById('intentPreview');
+      if (overlay) {
+        overlay.parentElement.removeChild(overlay);
+      } else if (attempts > 0) {
+        setTimeout(function() { removeCtOverlay(attempts - 1); }, 100);
+      }
     }
+    removeCtOverlay(5);
   }
 });
