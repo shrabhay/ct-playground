@@ -419,11 +419,11 @@ def user_to_ct_profile(user):
         "MSG-email":        True,
         "MSG-sms":          True,
         "MSG-push":         True,
-        "Joined At":        to_epoch(user["joined_at"]),
+        "Joined At": f"$D_{to_epoch(user['joined_at'])}",
     }
 
     if user["last_order_date"]:
-        profile_data["Last Order Date"]  = to_epoch(user["last_order_date"])
+        profile_data["Last Order Date"]  = f"$D_{to_epoch(user['last_order_date'])}"
         profile_data["Last Order Value"] = user["last_order_value"]
 
     return {
