@@ -30,34 +30,34 @@ Built by a Solutions Engineer to demonstrate CleverTap's capabilities across ind
 ```
 ct-playground/
 │
-├── index.html                               # Vertical selector homepage
-├── demo.html                                # Shared demo console (PIN protected)
-├── netlify.toml                             # Netlify build config + proxy redirects
+├── index.html                                   # Vertical selector homepage
+├── demo.html                                    # Shared demo console (PIN protected)
+├── netlify.toml                                 # Netlify build config + proxy redirects
 │
-├── ecommerce/                               # Bazario ecommerce vertical
-│   ├── index.html                           # Homepage with carousel
-│   ├── listing.html                         # Category listing with filters + pagination
-│   ├── product.html                         # Product detail page
-│   ├── cart.html                            # Cart with coupons
-│   ├── checkout.html                        # Multi-step checkout
-│   ├── confirmation.html                    # Order confirmation
-│   ├── account.html                         # Login, signup, profile
-│   ├── wishlist.html                        # Wishlist management
+├── ecommerce/                                   # Bazario ecommerce vertical
+│   ├── index.html                               # Homepage with carousel
+│   ├── listing.html                             # Category listing with filters + pagination
+│   ├── product.html                             # Product detail page
+│   ├── cart.html                                # Cart with coupons
+│   ├── checkout.html                            # Multi-step checkout
+│   ├── confirmation.html                        # Order confirmation
+│   ├── account.html                             # Login, signup, profile
+│   ├── wishlist.html                            # Wishlist management
 │   └── js/
-│       ├── catalogue.js                     # 104 products across 8 categories
-│       ├── clevertap.js                     # CT SDK init + helper functions
-│       └── auth.js                          # Shared navbar state (login, counts)
+│       ├── catalogue.js                         # 104 products across 8 categories
+│       ├── clevertap.js                         # CT SDK init + helper functions
+│       └── auth.js                              # Shared navbar state (login, counts)
 │
 ├── netlify/
 │   └── functions/
-│       └── ct-proxy.js                      # CT API proxy (keeps passcode server-side)
+│       └── ct-proxy.js                          # CT API proxy (keeps passcode server-side)
 │
-└── dummy_users_data_scripts/                # Dummy data generation scripts
-    ├── README.md                            # Script usage instructions
-    ├── generate_dummy_users_and_upload.py   # Generate + upload 15,000 users + events
-    ├── update_vertical_from_csv.py          # Push Vertical property from CSV
-    ├── create_cart_abandoners.py            # Create cart abandonment events
-    └── fix_joined_at.py                     # Fix date properties to $D_EPOCH format
+└── dummy_users_data_scripts/                    # Dummy data generation scripts
+    ├── README.md                                # Script usage instructions
+    ├── generate_ecommerce_users_and_upload.py   # Generate + upload 15,000 users + events
+    ├── update_vertical_for_ecommerce_users.py   # Push Vertical property from CSV
+    ├── create_cart_abandoners.py                # Create cart abandonment events
+    └── fix_joined_at.py                         # Fix date properties to $D_EPOCH format
 ```
 
 ---
@@ -84,19 +84,19 @@ ct-playground/
 
 **Events tracked:**
 ```
-User Signed Up          User Logged In          User Logged Out
-Profile Updated         Preference Changed       Order History Viewed
-Product Viewed          Category Viewed          Category Clicked
-Banner Clicked          Product Searched         Filter Applied
-Sort Applied            Listing Page Changed      Variant Selected
-Added to Cart           Removed from Cart         Cart Viewed
-Cart Quantity Updated   Saved for Later           Coupon Applied
-Coupon Failed           Checkout Initiated        Checkout Page Viewed
-Address Selected        Payment Method Selected   Payment Step Completed
-Charged                 Order Confirmed           Order Rated
-Added to Wishlist       Removed from Wishlist     Wishlist Viewed
-Moved to Cart from Wishlist                       Add All Wishlist to Cart
-Buy Now Clicked         Delivery Check
+User Signed Up              User Logged In              User Logged Out
+Profile Updated             Preference Changed          Order History Viewed
+Product Viewed              Category Viewed             Category Clicked
+Banner Clicked              Product Searched            Filter Applied
+Sort Applied                Listing Page Changed        Variant Selected
+Added to Cart               Removed from Cart           Cart Viewed
+Cart Quantity Updated       Saved for Later             Coupon Applied
+Coupon Failed               Checkout Initiated          Checkout Page Viewed
+Address Selected            Payment Method Selected     Payment Step Completed
+Charged                     Order Confirmed             Order Rated
+Added to Wishlist           Removed from Wishlist       Wishlist Viewed
+Moved to Cart from Wishlist                             Add All Wishlist to Cart
+Buy Now Clicked             Delivery Check
 ```
 
 ### Demo Console (`demo.html`)
@@ -176,7 +176,7 @@ Open `ecommerce/index.html` with Live Server in VS Code.
 ### Dummy Data
 
 ```bash
-cd data-scripts
+cd dummy_users_data_scripts
 pip3 install requests
 
 export CT_ACCOUNT_ID=your-account-id
@@ -185,7 +185,7 @@ export CT_PASSCODE=your-passcode
 python3 generate_and_upload.py
 ```
 
-See `data-scripts/README.md` for full instructions.
+See `dummy_users_data-scripts/README.md` for full instructions.
 
 ---
 
