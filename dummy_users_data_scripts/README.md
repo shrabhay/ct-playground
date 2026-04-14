@@ -13,8 +13,8 @@ pip3 install requests
 
 | Script | Purpose | Run Once? |
 |---|---|---|
-| `generate_and_upload.py` | Generate 15,000 Bazario users + 3.2M events | ✓ Done |
-| `update_vertical_from_csv.py` | Push Vertical property to all profiles | ✓ Done |
+| `generate_ecommerce_users_and_upload.py` | Generate 15,000 Bazario users + 3.2M events | ✓ Done |
+| `update_vertical_for_ecommerce_users.py` | Push Vertical property to all profiles | ✓ Done |
 | `create_cart_abandoners.py` | Create cart abandonment events for ~25% of users | ✓ Done |
 | `fix_joined_at.py` | Fix Joined At + Last Order Date as CT date properties | ✓ Done |
 
