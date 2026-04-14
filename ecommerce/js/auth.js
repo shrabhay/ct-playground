@@ -68,3 +68,58 @@ if (document.readyState === 'loading') {
 } else {
   initSharedNav();
 }
+
+// ── CT Web Pop-up message handler ──────────────────────────────
+// Listens for postMessage events from CT pop-up iframes
+// and fires CT events + profile updates on the parent page
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'bz_popup') return;
+
+  var action  = e.data.action;
+  var payload = e.data.payload || {};
+  var epoch   = "$D_" + Math.floor(Date.now() / 1000);
+
+  if (action === 'viewed') {
+    if (typeof clevertap !== 'undefined') {
+      clevertap.event.push("Web Popup Viewed", payload);
+      clevertap.profile.push({
+        "Site": {
+          "Last Popup Seen":    payload.campaign_name,
+          "Last Popup Seen At": epoch
+        }
+      });
+    }
+  }
+
+  if (action === 'clicked') {
+    if (typeof clevertap !== 'undefined') {
+      clevertap.event.push("Web Popup Clicked", Object.assign({}, payload, {
+        cta_text:   "Shop Now & Save 20%",
+        cta_action: "shop_now"
+      }));
+      clevertap.profile.push({
+        "Site": {
+          "Last Popup Clicked":    payload.campaign_name,
+          "Last Popup Clicked At": epoch
+        }
+      });
+    }
+    setTimeout(function() {
+      window.location.href = 'index.html';
+    }, 300);
+  }
+
+  if (action === 'dismissed') {
+    if (typeof clevertap !== 'undefined') {
+      clevertap.event.push("Web Popup Dismissed", Object.assign({}, payload, {
+        dismiss_action: "close_button"
+      }));
+      clevertap.profile.push({
+        "Site": {
+          "Last Popup Dismissed":    payload.campaign_name,
+          "Last Popup Dismissed At": epoch
+        }
+      });
+    }
+  }
+});
