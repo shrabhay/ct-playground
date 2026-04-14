@@ -124,25 +124,7 @@ window.addEventListener('message', function(e) {
   }
 
   if (action === 'close') {
-    // Target CT's iframe by its known ID
-    var iframe = document.getElementById('wiz-iframe-intent');
-    if (iframe) {
-      // Remove the parent container if it exists, otherwise remove iframe directly
-      var parent = iframe.parentElement;
-      if (parent && parent !== document.body) {
-        parent.style.display = 'none';
-      } else {
-        iframe.style.display = 'none';
-      }
-    }
-
-    // Also remove any backdrop CT added behind the iframe
-    document.querySelectorAll('[id*="wzrk"]').forEach(function(el) {
-      el.style.display = 'none';
-    });
-
-    document.querySelectorAll('[class*="wzrk"]').forEach(function(el) {
-      el.style.display = 'none';
-    });
+    var overlay = document.getElementById('intentPreview');
+    if (overlay) overlay.style.display = 'none';
   }
 });
