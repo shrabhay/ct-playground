@@ -253,7 +253,7 @@
   </nav>
 
   <!-- ─── AUTH PAGE ─── -->
-  <div class="auth-page" id="authPage">
+  <div class="auth-page" id="authPage" style="display:none">
     <div class="auth-box">
 
       <div class="auth-brand">
@@ -626,7 +626,7 @@
           showSection(section, navItem);
         }
       } else {
-        showAuthPage();
+        document.getElementById('authPage').style.display = 'flex';
       }
     }
 
