@@ -124,7 +124,12 @@ window.addEventListener('message', function(e) {
   }
 
   if (action === 'close') {
+    console.log('Close message received — looking for intentPreview');
     var overlay = document.getElementById('intentPreview');
-    if (overlay) overlay.style.display = 'none';
+    console.log('intentPreview found:', overlay);
+    if (overlay) {
+      overlay.style.display = 'none';
+      console.log('intentPreview hidden');
+    }
   }
 });
