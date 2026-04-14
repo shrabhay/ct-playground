@@ -124,21 +124,25 @@ window.addEventListener('message', function(e) {
   }
 
   if (action === 'close') {
-    // Remove CT's own overlay wrapper from the parent page
-    var ctOverlay = document.querySelector('.ct-web-popup-overlay');
-    if (ctOverlay) ctOverlay.remove();
+    // Target CT's iframe by its known ID
+    var iframe = document.getElementById('wiz-iframe-intent');
+    if (iframe) {
+      // Remove the parent container if it exists, otherwise remove iframe directly
+      var parent = iframe.parentElement;
+      if (parent && parent !== document.body) {
+        parent.style.display = 'none';
+      } else {
+        iframe.style.display = 'none';
+      }
+    }
 
-    // Also try common CT wrapper class names
-    var ctWrapper = document.querySelector('.ct-web-popup')
-      || document.querySelector('.wzrk-backdrop')
-      || document.querySelector('.wzrk-overlay');
-    if (ctWrapper) ctWrapper.remove();
+    // Also remove any backdrop CT added behind the iframe
+    document.querySelectorAll('[id*="wzrk"]').forEach(function(el) {
+      el.style.display = 'none';
+    });
 
-    // Remove any remaining fixed overlays added by CT
-    document.querySelectorAll('iframe[src*="clevertap"]').forEach(function(el) {
-      var parent = el.parentElement;
-      if (parent) parent.remove();
-      else el.remove();
+    document.querySelectorAll('[class*="wzrk"]').forEach(function(el) {
+      el.style.display = 'none';
     });
   }
 });
