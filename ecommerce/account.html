@@ -843,16 +843,18 @@
       // MSG-email, MSG-sms, MSG-push default to true at signup.
       clevertap.onUserLogin.push({
         "Site": {
-          "Name":      user.name   || '',
-          "Email":     user.email  || '',
-          "Phone":     (user.phone || '').replace(/\s+/g, ''),
-          "Gender":    user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
-          "DOB":       user.dob ? new Date(user.dob) : undefined,
-          "City":      user.city   || '',
-          "Is Prime":  false,
-          "MSG-email": true,
-          "MSG-sms":   true,
-          "MSG-push":  true
+          "Name":         user.name   || '',
+          "Email":        user.email  || '',
+          "Phone":        (user.phone || '').replace(/\s+/g, ''),
+          "Gender":       user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
+          "DOB":          user.dob ? new Date(user.dob) : undefined,
+          "City":         user.city   || '',
+          "Is Prime":     false,
+          "MSG-email":    true,
+          "MSG-sms":      true,
+          "MSG-push":     true,
+          "Vertical":     "Bazario",
+          "Vertical Type":"Ecommerce"
         }
       });
 

@@ -2338,13 +2338,29 @@
         const gender   = document.getElementById('profileGender').value;
         const prime    = document.getElementById('profileIsPrime').value;
 
+        const vertical = localStorage.getItem('ct_active_vertical') || 'bazario';
+        const verticalNames = {
+        bazario:      'Bazario',
+        fintech:      'Fintech',
+        subscription: 'Subscription',
+        foodtech:     'Foodtech'
+        };
+        const verticalTypes = {
+        bazario:      'Ecommerce',
+        fintech:      'Banking & Loans',
+        subscription: 'SaaS & Streaming',
+        foodtech:     'Food Delivery'
+        };
+
         const profileData = {};
-        if (name)     profileData['Name']      = name;
-        if (email)    profileData['Email']     = email;
-        if (phone)    profileData['Phone']     = phone.replace(/\s+/g, '');
-        if (city)     profileData['City']      = city;
-        if (gender)   profileData['Gender']    = gender;
-        if (prime)    profileData['Is Prime']  = prime === 'true';
+        if (name)     profileData['Name']          = name;
+        if (email)    profileData['Email']         = email;
+        if (phone)    profileData['Phone']         = phone.replace(/\s+/g, '');
+        if (city)     profileData['City']          = city;
+        if (gender)   profileData['Gender']        = gender;
+        if (prime)    profileData['Is Prime']      = prime === 'true';
+        profileData['Vertical']      = verticalNames[vertical]  || 'Bazario';
+        profileData['Vertical Type'] = verticalTypes[vertical]  || 'Ecommerce';
 
         // Custom props
         document.querySelectorAll('#profilePropsEditor .prop-row').forEach(row => {

@@ -973,9 +973,16 @@
       });
 
       // ── CT: Update user profile after purchase ─────────────────────────────────
+      // Calculate updated totals from order history
+      const userOrders    = JSON.parse(localStorage.getItem(`bazario_orders_${loggedUser.email}`) || '[]');
+      const totalOrders   = userOrders.length;
+      const lifetimeValue = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
       ctUpdateProfile({
         "Last Order Date":  new Date().toISOString(),
-        "Last Order Value": grandTotal
+        "Last Order Value": grandTotal,
+        "Total Orders":     totalOrders,
+        "Lifetime Value":   lifetimeValue
       });
 
       // Save order to user-specific orders list

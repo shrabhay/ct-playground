@@ -64,17 +64,18 @@ function getCTUser() {
 // Gender must be "M" or "F" — CT reserved values.
 function ctIdentifyUser(user) {
   if (!user) return;
-
   clevertap.onUserLogin.push({
     "Site": {
-      "Name":      user.name   || '',
-      "Email":     user.email  || '',
-      "Phone":     (user.phone || '').replace(/\s+/g, ''),
-      "Gender":    user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
-      "DOB":       user.dob ? new Date(user.dob) : undefined,
-      "City":      user.city   || '',
-      "Is Prime":  user.isPrime || false,
-      "Joined At": user.joinedAt || new Date().toISOString()
+      "Name":         user.name   || '',
+      "Email":        user.email  || '',
+      "Phone":        (user.phone || '').replace(/\s+/g, ''),
+      "Gender":       user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
+      "DOB":          user.dob ? new Date(user.dob) : undefined,
+      "City":         user.city   || '',
+      "Is Prime":     user.isPrime || false,
+      "Joined At":    user.joinedAt || new Date().toISOString(),
+      "Vertical":     "Bazario",
+      "Vertical Type":"Ecommerce"
     }
   });
 }
@@ -89,11 +90,12 @@ function ctUpdateProfile(properties) {
 // Convenience wrapper — same as clevertap.event.push() but with error handling.
 function ctEvent(eventName, properties) {
   try {
-    if (properties) {
-      clevertap.event.push(eventName, properties);
-    } else {
-      clevertap.event.push(eventName);
-    }
+    const vertical = localStorage.getItem('ct_active_vertical') || 'bazario';
+    const enriched = {
+      ...(properties || {}),
+      vertical: vertical
+    };
+    clevertap.event.push(eventName, enriched);
   } catch(e) {
     console.warn('CT event failed:', eventName, e);
   }

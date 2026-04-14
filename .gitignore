@@ -1,1 +1,3 @@
 # CleverTap credentials — never commit these
+ct_upload_checkpoint.json
+ct_dummy_data/
