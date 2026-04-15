@@ -805,6 +805,44 @@
       completeSignup(user);
     }
 
+    // ─── SYNC IS PRIME FROM CT ───────────────────────────────────────────────────
+    // Fetches the user's CT profile after login and syncs isPrime to localStorage.
+    // This ensures dummy users (created via API) show correct Prime status in the app.
+    function syncPrimeFromCT(email) {
+      fetch(`/ct-proxy/profile?email=${encodeURIComponent(email)}`)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var isPrime = false;
+
+          // CT returns profileData.isprime as a lowercase string "true"/"false"
+          if (
+            data &&
+            data.profile &&
+            data.profile.record &&
+            data.profile.record.profileData &&
+            data.profile.record.profileData.isprime === "true"
+          ) {
+            isPrime = true;
+          }
+
+          if (isPrime) {
+            currentUser.isPrime = true;
+            localStorage.setItem('bazario_user', JSON.stringify(currentUser));
+            localStorage.setItem(
+              'bazario_profile_' + email,
+              JSON.stringify(currentUser)
+            );
+
+            // Refresh Prime badge in sidebar if profile page is already showing
+            var primeEl = document.getElementById('profilePrime');
+            if (primeEl) primeEl.style.display = 'inline-flex';
+          }
+        })
+        .catch(function(err) {
+          console.warn('CT profile sync failed (non-blocking):', err);
+        });
+    }
+
     // ──────────────────────────────────────────────────────────────
     // COMPLETE LOGIN / SIGNUP — CleverTap onUserLogin goes here
     // ──────────────────────────────────────────────────────────────
@@ -822,6 +860,8 @@
         method:   method,
         is_prime: user.isPrime || false
       });
+
+      syncPrimeFromCT(user.email);
 
       showToast(`Welcome back, ${user.name.split(' ')[0]}! 👋`);
       mergeGuestCart(user.email);
