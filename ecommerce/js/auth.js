@@ -72,12 +72,22 @@ if (document.readyState === 'loading') {
 // ── CT Web Pop-up message handler ──────────────────────────────
 // Listens for postMessage events from CT pop-up iframes
 // and fires CT events + profile updates on the parent page
+// Redirect URLs and text are campaign-driven via payload — no hardcoding here
 window.addEventListener('message', function(e) {
   if (!e.data || e.data.type !== 'bz_popup') return;
 
   var action  = e.data.action;
   var payload = e.data.payload || {};
   var epoch   = "$D_" + Math.floor(Date.now() / 1000);
+
+  // ── Helper: redirect only if a url is provided ──
+  function maybeRedirect(url) {
+    if (url) {
+      setTimeout(function() {
+        window.location.href = url;
+      }, 300);
+    }
+  }
 
   if (action === 'viewed') {
     if (typeof clevertap !== 'undefined') {
@@ -94,8 +104,8 @@ window.addEventListener('message', function(e) {
   if (action === 'clicked') {
     if (typeof clevertap !== 'undefined') {
       clevertap.event.push("Web Popup Clicked", Object.assign({}, payload, {
-        cta_text:   "Shop Now & Save 20%",
-        cta_action: "shop_now"
+        cta_text:   payload.cta_text   || "CTA Clicked",
+        cta_action: payload.cta_action || "cta_click"
       }));
       clevertap.profile.push({
         "Site": {
@@ -104,16 +114,14 @@ window.addEventListener('message', function(e) {
         }
       });
     }
-    setTimeout(function() {
-      window.location.href = 'index.html';
-    }, 300);
+    maybeRedirect(payload.cta_url);
   }
 
   if (action === 'nothanks') {
     if (typeof clevertap !== 'undefined') {
       clevertap.event.push("Web Popup Dismissed", Object.assign({}, payload, {
         dismiss_action: "no_thanks_link",
-        dismiss_text: "No thanks, I'll pay the full price"
+        dismiss_text:   payload.dismiss_text || "No thanks"
       }));
       clevertap.profile.push({
         "Site": {
@@ -122,9 +130,7 @@ window.addEventListener('message', function(e) {
         }
       });
     }
-    setTimeout(function() {
-      window.location.href = 'account.html';
-    }, 300);
+    maybeRedirect(payload.dismiss_url);
   }
 
   if (action === 'dismissed') {
@@ -139,9 +145,7 @@ window.addEventListener('message', function(e) {
         }
       });
     }
-    setTimeout(function() {
-      window.location.href = 'account.html';
-    }, 300);
+    maybeRedirect(payload.dismiss_url);
   }
 
   if (action === 'close') {
