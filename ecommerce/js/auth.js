@@ -82,6 +82,14 @@ window.addEventListener('message', function(e) {
   var payload = e.data.payload || {};
   var epoch   = "$D_" + Math.floor(Date.now() / 1000);
 
+  // Strip handler-only routing fields — these are for auth.js only, not CT events
+  var ctPayload = Object.assign({}, payload);
+  delete ctPayload.cta_url;
+  delete ctPayload.cta_text;
+  delete ctPayload.cta_action;
+  delete ctPayload.dismiss_url;
+  delete ctPayload.dismiss_text;
+
   // ── Helper: redirect only if a url is provided ──
   function maybeRedirect(url) {
     if (url) {
@@ -93,7 +101,7 @@ window.addEventListener('message', function(e) {
 
   if (action === 'viewed') {
     if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Viewed", payload);
+      clevertap.event.push("Web Popup Viewed", ctPayload);
       clevertap.profile.push({
         "Site": {
           "Last Popup Seen":    payload.campaign_name,
@@ -106,7 +114,7 @@ window.addEventListener('message', function(e) {
   if (action === 'clicked') {
     console.log('clicked — cta_url is:', payload.cta_url);
     if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Clicked", Object.assign({}, payload, {
+      clevertap.event.push("Web Popup Clicked", Object.assign({}, ctPayload, {
         cta_text:   payload.cta_text   || "CTA Clicked",
         cta_action: payload.cta_action || "cta_click"
       }));
@@ -122,7 +130,7 @@ window.addEventListener('message', function(e) {
 
   if (action === 'nothanks') {
     if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Dismissed", Object.assign({}, payload, {
+      clevertap.event.push("Web Popup Dismissed", Object.assign({}, ctPayload, {
         dismiss_action: "no_thanks_link",
         dismiss_text:   payload.dismiss_text || "No thanks"
       }));
@@ -138,7 +146,7 @@ window.addEventListener('message', function(e) {
 
   if (action === 'dismissed') {
     if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Dismissed", Object.assign({}, payload, {
+      clevertap.event.push("Web Popup Dismissed", Object.assign({}, ctPayload, {
         dismiss_action: "close_button"
       }));
       clevertap.profile.push({
