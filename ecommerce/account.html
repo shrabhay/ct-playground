@@ -847,6 +847,7 @@
     // COMPLETE LOGIN / SIGNUP — CleverTap onUserLogin goes here
     // ──────────────────────────────────────────────────────────────
     function completeLogin(user, method) {
+      console.log('completeLogin fired for:', user.email);
       currentUser = user;
       localStorage.setItem('bazario_user', JSON.stringify(user));
       // Save profile keyed by email so it survives logout
@@ -860,6 +861,7 @@
         method:   method,
         is_prime: user.isPrime || false
       });
+      console.log('About to call syncPrimeFromCT for:', user.email);
 
       syncPrimeFromCT(user.email);
 
