@@ -76,6 +76,8 @@ if (document.readyState === 'loading') {
 window.addEventListener('message', function(e) {
   if (!e.data || e.data.type !== 'bz_popup') return;
 
+  console.log('BZ_POPUP message received:', e.data);
+
   var action  = e.data.action;
   var payload = e.data.payload || {};
   var epoch   = "$D_" + Math.floor(Date.now() / 1000);
@@ -102,6 +104,7 @@ window.addEventListener('message', function(e) {
   }
 
   if (action === 'clicked') {
+    console.log('clicked — cta_url is:', payload.cta_url);
     if (typeof clevertap !== 'undefined') {
       clevertap.event.push("Web Popup Clicked", Object.assign({}, payload, {
         cta_text:   payload.cta_text   || "CTA Clicked",
