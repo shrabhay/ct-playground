@@ -416,6 +416,7 @@
             <div class="profile-nav-item"        data-section="personal"     onclick="showSection('personal',this)"><span class="nav-icon">👤</span> Personal Information</div>
             <div class="profile-nav-item"        data-section="addresses"    onclick="showSection('addresses',this)"><span class="nav-icon">📍</span> Manage Addresses</div>
             <div class="profile-nav-item"        data-section="preferences"  onclick="showSection('preferences',this)"><span class="nav-icon">⚙️</span> Preferences</div>
+            <div class="profile-nav-item"        data-section="prime"        onclick="showSection('prime',this)"><span class="nav-icon">⚡</span> Prime Membership</div>
           </nav>
           <div class="profile-logout">
             <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
@@ -550,6 +551,109 @@
               <div style="display:flex;gap:10px">
                 <button onclick="saveNewAddress()" style="padding:10px 20px;background:var(--primary);color:#fff;border:none;border-radius:4px;font-size:13px;font-weight:600;cursor:pointer">Save Address</button>
                 <button onclick="toggleNewAddressForm()" style="padding:10px 16px;background:none;border:1px solid var(--border);border-radius:4px;font-size:13px;cursor:pointer;color:var(--text-sec)">Cancel</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- PRIME MEMBERSHIP -->
+          <div class="profile-section" id="sectionPrime" style="display:none">
+            <div class="section-header">
+              <div class="section-title">Prime Membership</div>
+            </div>
+
+            <!-- STATE 1 — NOT PRIME -->
+            <div id="primeUpgradeState">
+              <div style="text-align:center;padding:16px 0 24px">
+                <div style="font-size:48px;margin-bottom:12px">⚡</div>
+                <div style="font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px">Unlock Bazario Prime</div>
+                <div style="font-size:14px;color:#666;line-height:1.7;margin-bottom:24px">
+                  Get exclusive benefits designed for India's most loyal shoppers.
+                </div>
+
+                <!-- Benefits -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:28px;text-align:left">
+                  <div style="background:#f8f9ff;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">🚚</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Free Delivery</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">On every order, no minimum</div>
+                    </div>
+                  </div>
+                  <div style="background:#f8f9ff;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">🏷️</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Member Prices</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">Exclusive discounts on 10,000+ products</div>
+                    </div>
+                  </div>
+                  <div style="background:#f8f9ff;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">⚡</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Early Access</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">Shop sales 24 hours before everyone</div>
+                    </div>
+                  </div>
+                  <div style="background:#f8f9ff;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">↩️</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Priority Returns</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">24-hour return pickup at your door</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pricing -->
+                <div style="background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:12px;padding:20px;margin-bottom:20px;color:#fff">
+                  <div style="font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:4px">Annual membership</div>
+                  <div style="font-size:32px;font-weight:700;margin-bottom:4px">₹999 <span style="font-size:16px;font-weight:400">/year</span></div>
+                  <div style="font-size:12px;color:rgba(255,255,255,0.7)">That's just ₹83/month — less than a cup of coffee ☕</div>
+                </div>
+
+                <button onclick="upgradeToPrime()" style="width:100%;background:linear-gradient(135deg,#ff6b35,#f7931e);color:#fff;font-size:15px;font-weight:700;padding:14px;border:none;border-radius:10px;cursor:pointer;letter-spacing:0.3px;">
+                  Upgrade to Prime →
+                </button>
+              </div>
+            </div>
+
+            <!-- STATE 2 — ALREADY PRIME -->
+            <div id="primeMemberState" style="display:none">
+              <div style="text-align:center;padding:16px 0 24px">
+                <div style="background:linear-gradient(135deg,#1a237e,#1565c0);border-radius:12px;padding:24px;margin-bottom:24px;color:#fff">
+                  <div style="font-size:40px;margin-bottom:10px">⚡</div>
+                  <div style="font-size:20px;font-weight:700;margin-bottom:6px">You're a Prime Member!</div>
+                  <div style="font-size:13px;color:rgba(255,255,255,0.8)">Enjoy all your exclusive benefits below.</div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;text-align:left">
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">🚚</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Free Delivery</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">Active on all orders</div>
+                    </div>
+                  </div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">🏷️</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Member Prices</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">Active on 10,000+ products</div>
+                    </div>
+                  </div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">⚡</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Early Access</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">Active on all sale events</div>
+                    </div>
+                  </div>
+                  <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:8px;padding:14px;display:flex;gap:10px;align-items:flex-start">
+                    <span style="font-size:20px">↩️</span>
+                    <div>
+                      <div style="font-size:13px;font-weight:600;color:#1a1a2e">Priority Returns</div>
+                      <div style="font-size:12px;color:#666;margin-top:2px">Active on all orders</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -976,6 +1080,15 @@
       document.getElementById('statSavings').textContent  = totalSavings > 0
         ? `₹${totalSavings.toLocaleString('en-IN')}`
         : '₹0';
+      
+      // Show correct Prime state based on isPrime
+      if (currentUser.isPrime) {
+        document.getElementById('primeUpgradeState').style.display = 'none';
+        document.getElementById('primeMemberState').style.display  = 'block';
+      } else {
+        document.getElementById('primeUpgradeState').style.display = 'block';
+        document.getElementById('primeMemberState').style.display  = 'none';
+      }
     }
 
     // ─── RENDER ORDER HISTORY ───
@@ -1157,11 +1270,41 @@
     function showSection(section, navEl) {
       document.querySelectorAll('.profile-nav-item').forEach(i => i.classList.remove('active'));
       if (navEl) navEl.classList.add('active');
-      const sections = ['overview','orders','personal','addresses','preferences'];
+      const sections = ['overview','orders','personal','addresses','preferences', 'prime'];
       sections.forEach(s => {
         document.getElementById(`section${s.charAt(0).toUpperCase()+s.slice(1)}`).style.display =
           s === section ? 'block' : 'none';
       });
+    }
+
+    // ─── PRIME UPGRADE ───────────────────────────────────────────────────────────
+    function upgradeToPrime() {
+      // 1. Update localStorage
+      currentUser.isPrime = true;
+      localStorage.setItem('bazario_user', JSON.stringify(currentUser));
+      if (currentUser.email) {
+        localStorage.setItem('bazario_profile_' + currentUser.email, JSON.stringify(currentUser));
+      }
+
+      // 2. Push to CT profile
+      clevertap.profile.push({
+        "Site": { "Is Prime": true }
+      });
+
+      // 3. Fire CT event
+      ctEvent("Prime Upgraded", {
+        plan:       "annual",
+        plan_value: 999
+      });
+
+      // 4. Update UI — switch states
+      document.getElementById('primeUpgradeState').style.display = 'none';
+      document.getElementById('primeMemberState').style.display  = 'block';
+
+      // 5. Show Prime badge in sidebar
+      document.getElementById('profilePrime').style.display = 'inline-flex';
+
+      showToast('🎉 Welcome to Bazario Prime!');
     }
 
     // ─── EDIT PERSONAL INFO ───
