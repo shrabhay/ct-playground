@@ -809,6 +809,7 @@
     // Fetches the user's CT profile after login and syncs isPrime to localStorage.
     // This ensures dummy users (created via API) show correct Prime status in the app.
     function syncPrimeFromCT(email) {
+      console.log('syncPrimeFromCT called for:', email);
       fetch(`/ct-proxy/profile?email=${encodeURIComponent(email)}`)
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -824,6 +825,7 @@
           ) {
             isPrime = true;
           }
+          console.log('isPrime resolved to:', isPrime);
 
           if (isPrime) {
             currentUser.isPrime = true;
