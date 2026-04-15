@@ -813,6 +813,7 @@
       fetch(`/ct-proxy/profile?email=${encodeURIComponent(email)}`)
         .then(function(r) { return r.json(); })
         .then(function(data) {
+          console.log('CT profile response:', data);
           var isPrime = false;
 
           // CT returns profileData.isprime as a lowercase string "true"/"false"
