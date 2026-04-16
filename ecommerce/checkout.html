@@ -718,6 +718,88 @@
         cart_value: getCartTotal(),
         step:       "address"
       });
+
+      // ── Auto-apply exit intent coupon if present ──
+      const exitCoupon = localStorage.getItem('bazario_exit_coupon');
+      if (exitCoupon) {
+        localStorage.removeItem('bazario_exit_coupon'); // consume immediately
+        applyExitCoupon(exitCoupon);
+      }
+    }
+
+    // ─── AUTO-APPLY EXIT INTENT COUPON ───────────────────────────────────────────
+    function applyExitCoupon(code) {
+      var discount = 0.10; // 10% off
+      var original = getCartTotal();
+      var saving   = Math.round(original * discount);
+      var newTotal = original - saving;
+
+      // Store for use during order placement
+      window._exitCouponCode    = code;
+      window._exitCouponSaving  = saving;
+      window._exitCouponApplied = true;
+
+      // Show green banner below navbar
+      var banner = document.createElement('div');
+      banner.id  = 'exitCouponBanner';
+      banner.style.cssText = `
+        background: #f0fdf4;
+        border-bottom: 1px solid #22c55e;
+        padding: 10px 16px;
+        text-align: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: #16a34a;
+        position: sticky;
+        top: 56px;
+        z-index: 99;
+      `;
+      banner.innerHTML = `
+        🎉 Coupon <strong>${code}</strong> auto-applied — 
+        You save ₹${saving.toLocaleString('en-IN')} (10% off)!
+      `;
+      document.body.insertBefore(banner, document.body.children[1]);
+
+      // Update order summary total display
+      updateSummaryWithDiscount(saving);
+
+      // Fire CT coupon applied event
+      ctEvent("Coupon Applied", {
+        coupon_code:  code,
+        discount_pct: 10,
+        cart_value:   newTotal
+      });
+    }
+
+    // ─── UPDATE SUMMARY WITH DISCOUNT ────────────────────────────────────────────
+    function updateSummaryWithDiscount(saving) {
+      // Add discount row to summary if not already present
+      var summaryDiscount = document.getElementById('summaryDiscountRow');
+      if (!summaryDiscount) {
+        var totalRow = document.querySelector('.summary-total');
+        if (totalRow) {
+          var discountRow = document.createElement('div');
+          discountRow.id  = 'summaryDiscountRow';
+          discountRow.className = 'summary-row';
+          discountRow.style.color = '#16a34a';
+          discountRow.style.fontWeight = '600';
+          discountRow.innerHTML = `
+            <span>Coupon Discount</span>
+            <span>− ₹${saving.toLocaleString('en-IN')}</span>
+          `;
+          totalRow.parentNode.insertBefore(discountRow, totalRow);
+        }
+      }
+
+      // Update the displayed total
+      var totalEl = document.querySelector('.summary-total .value') ||
+                    document.querySelector('.summary-total span:last-child');
+      if (totalEl) {
+        var original = getCartTotal();
+        var newTotal = original - saving;
+        totalEl.textContent = '₹' + newTotal.toLocaleString('en-IN');
+        totalEl.style.color = 'var(--success)';
+      }
     }
 
     // ─── RENDER ORDER SUMMARY ───
