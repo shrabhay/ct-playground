@@ -713,10 +713,17 @@
         });
       }
 
+      // Check if exit coupon is about to be applied
+      var exitCoupon  = localStorage.getItem('bazario_exit_coupon');
+      var finalTotal  = getCartTotal();
+      if (exitCoupon) finalTotal = Math.round(finalTotal * 0.90);
+
       ctEvent("Checkout Page Viewed", {
-        item_count: cartItems.reduce((s, i) => s + i.qty, 0),
-        cart_value: getCartTotal(),
-        step:       "address"
+        item_count:    cartItems.reduce((s, i) => s + i.qty, 0),
+        cart_value:    finalTotal,
+        coupon_code:   exitCoupon || '',
+        coupon_applied: !!exitCoupon,
+        step:          "address"
       });
 
       // ── Auto-apply exit intent coupon if present ──

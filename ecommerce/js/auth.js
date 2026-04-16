@@ -73,8 +73,17 @@ if (document.readyState === 'loading') {
 // Listens for postMessage events from CT pop-up iframes
 // and fires CT events + profile updates on the parent page
 // Redirect URLs and text are campaign-driven via payload — no hardcoding here
+
+var _bzLastProcessed = {};
+
 window.addEventListener('message', function(e) {
   if (!e.data || e.data.type !== 'bz_popup') return;
+
+  // ── Deduplicate — ignore same action+campaign within 1 second ──
+  var dedupeKey = e.data.action + '_' + (e.data.payload?.campaign_id || '');
+  var now       = Date.now();
+  if (_bzLastProcessed[dedupeKey] && now - _bzLastProcessed[dedupeKey] < 1000) return;
+  _bzLastProcessed[dedupeKey] = now;
 
   console.log('BZ_POPUP message received:', e.data);
 
