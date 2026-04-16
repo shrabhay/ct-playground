@@ -702,7 +702,10 @@
       // ── CT: Checkout Initiated ──
       // Fired here instead of cart.html to avoid beacon/replay duplicate issue
       const checkoutParams = new URLSearchParams(window.location.search);
-      if (checkoutParams.get('cart_value')) {
+      const alreadyFired   = sessionStorage.getItem('bz_checkout_initiated');
+
+      if (checkoutParams.get('cart_value') && !alreadyFired) {
+        sessionStorage.setItem('bz_checkout_initiated', '1');
         ctEvent("Checkout Initiated", {
           item_count:     parseInt(checkoutParams.get('item_count'))     || 0,
           cart_value:     parseFloat(checkoutParams.get('cart_value'))   || 0,
@@ -718,13 +721,18 @@
       var finalTotal  = getCartTotal();
       if (exitCoupon) finalTotal = Math.round(finalTotal * 0.90);
 
-      ctEvent("Checkout Page Viewed", {
-        item_count:    cartItems.reduce((s, i) => s + i.qty, 0),
-        cart_value:    finalTotal,
-        coupon_code:   exitCoupon || '',
-        coupon_applied: !!exitCoupon,
-        step:          "address"
-      });
+      // Checkout Page Viewed — with sessionStorage guard
+      const alreadyViewedFired = sessionStorage.getItem('bz_checkout_viewed');
+      if (!alreadyViewedFired) {
+        sessionStorage.setItem('bz_checkout_viewed', '1');
+        ctEvent("Checkout Page Viewed", {
+          item_count:     cartItems.reduce((s, i) => s + i.qty, 0),
+          cart_value:     finalTotal,
+          coupon_code:    exitCoupon || '',
+          coupon_applied: !!exitCoupon,
+          step:           "address"
+        });
+      }
 
       // ── Auto-apply exit intent coupon if present ──
       if (exitCoupon) {
