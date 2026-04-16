@@ -727,9 +727,8 @@
       });
 
       // ── Auto-apply exit intent coupon if present ──
-      const exitCoupon = localStorage.getItem('bazario_exit_coupon');
       if (exitCoupon) {
-        localStorage.removeItem('bazario_exit_coupon'); // consume immediately
+        localStorage.removeItem('bazario_exit_coupon');
         applyExitCoupon(exitCoupon);
       }
     }
