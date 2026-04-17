@@ -786,6 +786,9 @@
 
     </div><!-- /pdp-layout -->
 
+    <!-- CT Native Display — complementary category banner -->
+    <div id="ct-native-display-product" style="margin:12px 0;"></div>
+    
     <!-- RELATED PRODUCTS -->
     <div class="related-section">
       <div class="related-title">Similar Products</div>
@@ -1128,6 +1131,19 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ── CT Native Display click handler ──
+    function handleNativeDisplayClick(campaignName, categoryShown, ctaUrl) {
+      ctEvent("Native Display Clicked", {
+        campaign_name:  campaignName,
+        category_shown: categoryShown,
+        cta_url:        ctaUrl,
+        vertical:       "bazario"
+      });
+      setTimeout(function() {
+        window.location.href = ctaUrl;
+      }, 300);
     }
 
     init();

@@ -8,12 +8,13 @@
 // It sets up the queue that holds events fired before the SDK is ready.
 
 var clevertap = {
-  event:        [],
-  profile:      [],
-  account:      [],
-  onUserLogin:  [],
-  notifications:[],
-  privacy:      []
+  event:          [],
+  profile:        [],
+  account:        [],
+  onUserLogin:    [],
+  notifications:  [],
+  privacy:        [],
+  nativeDisplays: []
 };
 
 // ─── STEP 2: Set Your Credentials ───────────────────────────────────────────

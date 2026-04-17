@@ -853,114 +853,120 @@
   <main>
     <div class="container">
 
-      <!-- HERO BANNER -->
-      <div class="hero section" id="heroBanner" onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()">
-        <!-- Slides -->
-        <div class="hero-slides" id="heroSlides">
+      <!-- CT Native Display — personalised banner injected here when triggered -->
+      <div id="ct-personalised-banner"></div>
 
-          <!-- Slide 1 — Mega Sale -->
-          <div class="hero-slide active">
-            <div class="hero-content">
-              <span class="hero-tag">🔥 Mega Sale Live Now</span>
-              <h1>Up to <span>80% Off</span><br/>on Everything</h1>
-              <p>Electronics, fashion, groceries & more — delivered to your door in hours.</p>
-              <button class="hero-cta" onclick="handleShopNow()">Shop Now →</button>
-            </div>
-            <div class="hero-graphic">
-              <div class="hero-circles">
-                <div class="ring ring-1"></div>
-                <div class="ring ring-2"></div>
-                <div class="ring ring-3"></div>
-                <div class="hero-product-cards">
-                  <div class="hero-pcard"><div class="emoji">📱</div><div class="pname">Smartphones</div><div class="pprice">From ₹6,999</div></div>
-                  <div class="hero-pcard"><div class="emoji">👟</div><div class="pname">Footwear</div><div class="pprice">From ₹499</div></div>
-                  <div class="hero-pcard"><div class="emoji">🎧</div><div class="pname">Audio</div><div class="pprice">From ₹999</div></div>
+        <!-- Default hero carousel — hidden when CT injects personalised banner -->
+        <div id="default-hero-carousel">
+          <!-- HERO BANNER -->
+          <div class="hero section" id="heroBanner" onmouseenter="pauseCarousel()" onmouseleave="resumeCarousel()">
+            <!-- Slides -->
+            <div class="hero-slides" id="heroSlides">
+
+              <!-- Slide 1 — Mega Sale -->
+              <div class="hero-slide active">
+                <div class="hero-content">
+                  <span class="hero-tag">🔥 Mega Sale Live Now</span>
+                  <h1>Up to <span>80% Off</span><br/>on Everything</h1>
+                  <p>Electronics, fashion, groceries & more — delivered to your door in hours.</p>
+                  <button class="hero-cta" onclick="handleShopNow()">Shop Now →</button>
+                </div>
+                <div class="hero-graphic">
+                  <div class="hero-circles">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="hero-product-cards">
+                      <div class="hero-pcard"><div class="emoji">📱</div><div class="pname">Smartphones</div><div class="pprice">From ₹6,999</div></div>
+                      <div class="hero-pcard"><div class="emoji">👟</div><div class="pname">Footwear</div><div class="pprice">From ₹499</div></div>
+                      <div class="hero-pcard"><div class="emoji">🎧</div><div class="pname">Audio</div><div class="pprice">From ₹999</div></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Slide 2 — Electronics Sale -->
-          <div class="hero-slide" style="background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 40%,#388e3c 100%)">
-            <div class="hero-content">
-              <span class="hero-tag" style="background:#ff6f00">⚡ Flash Sale</span>
-              <h1>Electronics<br/><span style="color:#a5d6a7">Under ₹15,000</span></h1>
-              <p>Laptops, phones, tablets and accessories at prices you won't believe.</p>
-              <button class="hero-cta" style="background:#ff6f00" onclick="handleBannerClick('Electronics Flash Sale','hero_slide_2','Electronics')">Shop Electronics →</button>
-            </div>
-            <div class="hero-graphic">
-              <div class="hero-circles">
-                <div class="ring ring-1"></div>
-                <div class="ring ring-2"></div>
-                <div class="ring ring-3"></div>
-                <div class="hero-product-cards">
-                  <div class="hero-pcard"><div class="emoji">💻</div><div class="pname">Laptops</div><div class="pprice">From ₹29,999</div></div>
-                  <div class="hero-pcard"><div class="emoji">⌚</div><div class="pname">Wearables</div><div class="pprice">From ₹1,999</div></div>
-                  <div class="hero-pcard"><div class="emoji">📺</div><div class="pname">TVs</div><div class="pprice">From ₹14,999</div></div>
+              <!-- Slide 2 — Electronics Sale -->
+              <div class="hero-slide" style="background:linear-gradient(135deg,#1b5e20 0%,#2e7d32 40%,#388e3c 100%)">
+                <div class="hero-content">
+                  <span class="hero-tag" style="background:#ff6f00">⚡ Flash Sale</span>
+                  <h1>Electronics<br/><span style="color:#a5d6a7">Under ₹15,000</span></h1>
+                  <p>Laptops, phones, tablets and accessories at prices you won't believe.</p>
+                  <button class="hero-cta" style="background:#ff6f00" onclick="handleBannerClick('Electronics Flash Sale','hero_slide_2','Electronics')">Shop Electronics →</button>
+                </div>
+                <div class="hero-graphic">
+                  <div class="hero-circles">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="hero-product-cards">
+                      <div class="hero-pcard"><div class="emoji">💻</div><div class="pname">Laptops</div><div class="pprice">From ₹29,999</div></div>
+                      <div class="hero-pcard"><div class="emoji">⌚</div><div class="pname">Wearables</div><div class="pprice">From ₹1,999</div></div>
+                      <div class="hero-pcard"><div class="emoji">📺</div><div class="pname">TVs</div><div class="pprice">From ₹14,999</div></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Slide 3 — Fashion Sale -->
-          <div class="hero-slide" style="background:linear-gradient(135deg,#880e4f 0%,#ad1457 40%,#c2185b 100%)">
-            <div class="hero-content">
-              <span class="hero-tag" style="background:#fff;color:#c2185b">👗 End of Season</span>
-              <h1>Fashion Sale<br/><span style="color:#f48fb1">Min 50% Off</span></h1>
-              <p>Top brands in clothing, footwear and accessories — all at their lowest prices.</p>
-              <button class="hero-cta" style="background:#fff;color:#c2185b" onclick="handleBannerClick('Fashion End of Season','hero_slide_3','Fashion')">Shop Fashion →</button>
-            </div>
-            <div class="hero-graphic">
-              <div class="hero-circles">
-                <div class="ring ring-1"></div>
-                <div class="ring ring-2"></div>
-                <div class="ring ring-3"></div>
-                <div class="hero-product-cards">
-                  <div class="hero-pcard"><div class="emoji">👗</div><div class="pname">Dresses</div><div class="pprice">From ₹599</div></div>
-                  <div class="hero-pcard"><div class="emoji">👟</div><div class="pname">Sneakers</div><div class="pprice">From ₹999</div></div>
-                  <div class="hero-pcard"><div class="emoji">🎒</div><div class="pname">Bags</div><div class="pprice">From ₹799</div></div>
+              <!-- Slide 3 — Fashion Sale -->
+              <div class="hero-slide" style="background:linear-gradient(135deg,#880e4f 0%,#ad1457 40%,#c2185b 100%)">
+                <div class="hero-content">
+                  <span class="hero-tag" style="background:#fff;color:#c2185b">👗 End of Season</span>
+                  <h1>Fashion Sale<br/><span style="color:#f48fb1">Min 50% Off</span></h1>
+                  <p>Top brands in clothing, footwear and accessories — all at their lowest prices.</p>
+                  <button class="hero-cta" style="background:#fff;color:#c2185b" onclick="handleBannerClick('Fashion End of Season','hero_slide_3','Fashion')">Shop Fashion →</button>
+                </div>
+                <div class="hero-graphic">
+                  <div class="hero-circles">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="hero-product-cards">
+                      <div class="hero-pcard"><div class="emoji">👗</div><div class="pname">Dresses</div><div class="pprice">From ₹599</div></div>
+                      <div class="hero-pcard"><div class="emoji">👟</div><div class="pname">Sneakers</div><div class="pprice">From ₹999</div></div>
+                      <div class="hero-pcard"><div class="emoji">🎒</div><div class="pname">Bags</div><div class="pprice">From ₹799</div></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- Slide 4 — Grocery -->
-          <div class="hero-slide" style="background:linear-gradient(135deg,#e65100 0%,#ef6c00 40%,#f57c00 100%)">
-            <div class="hero-content">
-              <span class="hero-tag" style="background:#fff;color:#e65100">🥦 Daily Fresh</span>
-              <h1>Groceries<br/><span style="color:#ffe0b2">2-Hour Delivery</span></h1>
-              <p>Fresh fruits, vegetables, dairy and household essentials — straight to your door.</p>
-              <button class="hero-cta" style="background:#fff;color:#e65100" onclick="handleBannerClick('Grocery Daily Fresh','hero_slide_4','Grocery')">Shop Grocery →</button>
-            </div>
-            <div class="hero-graphic">
-              <div class="hero-circles">
-                <div class="ring ring-1"></div>
-                <div class="ring ring-2"></div>
-                <div class="ring ring-3"></div>
-                <div class="hero-product-cards">
-                  <div class="hero-pcard"><div class="emoji">🥦</div><div class="pname">Vegetables</div><div class="pprice">From ₹29</div></div>
-                  <div class="hero-pcard"><div class="emoji">🧈</div><div class="pname">Dairy</div><div class="pprice">From ₹49</div></div>
-                  <div class="hero-pcard"><div class="emoji">☕</div><div class="pname">Beverages</div><div class="pprice">From ₹99</div></div>
+              <!-- Slide 4 — Grocery -->
+              <div class="hero-slide" style="background:linear-gradient(135deg,#e65100 0%,#ef6c00 40%,#f57c00 100%)">
+                <div class="hero-content">
+                  <span class="hero-tag" style="background:#fff;color:#e65100">🥦 Daily Fresh</span>
+                  <h1>Groceries<br/><span style="color:#ffe0b2">2-Hour Delivery</span></h1>
+                  <p>Fresh fruits, vegetables, dairy and household essentials — straight to your door.</p>
+                  <button class="hero-cta" style="background:#fff;color:#e65100" onclick="handleBannerClick('Grocery Daily Fresh','hero_slide_4','Grocery')">Shop Grocery →</button>
+                </div>
+                <div class="hero-graphic">
+                  <div class="hero-circles">
+                    <div class="ring ring-1"></div>
+                    <div class="ring ring-2"></div>
+                    <div class="ring ring-3"></div>
+                    <div class="hero-product-cards">
+                      <div class="hero-pcard"><div class="emoji">🥦</div><div class="pname">Vegetables</div><div class="pprice">From ₹29</div></div>
+                      <div class="hero-pcard"><div class="emoji">🧈</div><div class="pname">Dairy</div><div class="pprice">From ₹49</div></div>
+                      <div class="hero-pcard"><div class="emoji">☕</div><div class="pname">Beverages</div><div class="pprice">From ₹99</div></div>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+            </div><!-- /hero-slides -->
+
+            <!-- Dots -->
+            <div class="hero-dots" id="heroDots">
+              <span class="active" onclick="goToSlide(0)"></span>
+              <span onclick="goToSlide(1)"></span>
+              <span onclick="goToSlide(2)"></span>
+              <span onclick="goToSlide(3)"></span>
             </div>
+
+            <!-- Arrow controls -->
+            <button class="hero-arrow hero-arrow-left"  onclick="prevSlide()">‹</button>
+            <button class="hero-arrow hero-arrow-right" onclick="nextSlide()">›</button>
+
           </div>
-
-        </div><!-- /hero-slides -->
-
-        <!-- Dots -->
-        <div class="hero-dots" id="heroDots">
-          <span class="active" onclick="goToSlide(0)"></span>
-          <span onclick="goToSlide(1)"></span>
-          <span onclick="goToSlide(2)"></span>
-          <span onclick="goToSlide(3)"></span>
-        </div>
-
-        <!-- Arrow controls -->
-        <button class="hero-arrow hero-arrow-left"  onclick="prevSlide()">‹</button>
-        <button class="hero-arrow hero-arrow-right" onclick="nextSlide()">›</button>
-
-      </div>
+        </div><!-- /default-hero-carousel -->
 
       <!-- CATEGORIES -->
       <div class="section section-card">
@@ -1427,9 +1433,35 @@
     }
 
     // ── Init ──
-    goToSlide(0);   // set initial positions
+    goToSlide(0);
     startTimer();
     startCarousel();
+
+    // ── CT Native Display — hide default carousel if personalised banner injected ──
+    function initNativeDisplay() {
+      setTimeout(function() {
+        var ctBanner = document.getElementById('ct-personalised-banner');
+        var carousel = document.getElementById('default-hero-carousel');
+        if (ctBanner && ctBanner.innerHTML.trim() !== '') {
+          carousel.style.display = 'none';
+        }
+      }, 1500);
+    }
+
+    // ── CT Native Display click handler ──
+    function handleNativeDisplayClick(campaignName, categoryShown, ctaUrl) {
+      ctEvent("Native Display Clicked", {
+        campaign_name:  campaignName,
+        category_shown: categoryShown,
+        cta_url:        ctaUrl,
+        vertical:       "bazario"
+      });
+      setTimeout(function() {
+        window.location.href = ctaUrl;
+      }, 300);
+    }
+    
+    initNativeDisplay();
   </script>
 </body>
 </html>

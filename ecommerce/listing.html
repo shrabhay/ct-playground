@@ -562,6 +562,9 @@
             </div>
           </div>
 
+          <!-- CT Native Display — category-specific offer banner -->
+          <div id="ct-native-display-listing" style="margin-bottom:12px;"></div>
+
           <!-- Products list -->
           <div class="products-list" id="productsList"></div>
 
@@ -1140,6 +1143,19 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ── CT Native Display click handler ──
+    function handleNativeDisplayClick(campaignName, categoryShown, ctaUrl) {
+      ctEvent("Native Display Clicked", {
+        campaign_name:  campaignName,
+        category_shown: categoryShown,
+        cta_url:        ctaUrl,
+        vertical:       "bazario"
+      });
+      setTimeout(function() {
+        window.location.href = ctaUrl;
+      }, 300);
     }
 
     // ─── SEARCH on Enter ───

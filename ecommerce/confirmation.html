@@ -382,6 +382,9 @@
 
         </div>
 
+        <!-- CT Native Display — post-purchase cross-sell banner -->
+        <div id="ct-native-display-confirmation" style="margin-bottom:16px;"></div>
+        
         <!-- NEXT STEPS -->
         <div class="next-steps">
           <div class="next-steps-title">What would you like to do next?</div>
@@ -613,6 +616,19 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ── CT Native Display click handler ──
+    function handleNativeDisplayClick(campaignName, categoryShown, ctaUrl) {
+      ctEvent("Native Display Clicked", {
+        campaign_name:  campaignName,
+        category_shown: categoryShown,
+        cta_url:        ctaUrl,
+        vertical:       "bazario"
+      });
+      setTimeout(function() {
+        window.location.href = ctaUrl;
+      }, 300);
     }
 
     init();
