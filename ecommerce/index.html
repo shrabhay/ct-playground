@@ -1437,17 +1437,6 @@
     startTimer();
     startCarousel();
 
-    // ── CT Native Display — hide default carousel if personalised banner injected ──
-    function initNativeDisplay() {
-      setTimeout(function() {
-        var ctBanner = document.getElementById('ct-personalised-banner');
-        var carousel = document.getElementById('default-hero-carousel');
-        if (ctBanner && ctBanner.innerHTML.trim() !== '') {
-          carousel.style.display = 'none';
-        }
-      }, 1500);
-    }
-
     // ── CT Native Display click handler ──
     function handleNativeDisplayClick(campaignName, categoryShown, ctaUrl) {
       ctEvent("Native Display Clicked", {
@@ -1460,8 +1449,215 @@
         window.location.href = ctaUrl;
       }, 300);
     }
-    
-    initNativeDisplay();
+
+    // =========================================================================
+    // CT NATIVE DISPLAY — KV PAIR HANDLER
+    // =========================================================================
+
+    // ── Shared banner HTML builder ──
+    function buildNDBannerHTML(config) {
+      var productsHTML = config.products.map(function(p) {
+        return `
+          <div style="background:rgba(255,255,255,0.12);backdrop-filter:blur(8px);
+            border:1px solid rgba(255,255,255,0.2);border-radius:10px;
+            padding:12px;text-align:center;color:#fff;">
+            <div style="font-size:28px;margin-bottom:6px;">${p.emoji}</div>
+            <div style="font-size:10px;font-weight:500;opacity:0.9;line-height:1.3;">${p.name}</div>
+            <div style="font-size:12px;font-weight:700;color:#ffe082;margin-top:4px;">${p.price}</div>
+          </div>`;
+      }).join('');
+
+      return `
+        <div id="bz-nd-banner" style="
+          background:${config.gradient};
+          border-radius:8px;padding:0;overflow:hidden;
+          display:flex;align-items:stretch;min-height:200px;
+          cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.15);
+          font-family:'Inter',sans-serif;margin:12px 0;position:relative;">
+          <div style="flex:1;padding:36px 40px;display:flex;flex-direction:column;
+            justify-content:center;position:relative;z-index:2;">
+            <div style="display:inline-block;background:rgba(255,255,255,0.2);color:#fff;
+              font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;
+              padding:4px 12px;border-radius:20px;margin-bottom:16px;width:fit-content;">
+              ${config.tag}
+            </div>
+            <div style="font-size:28px;font-weight:800;color:#fff;line-height:1.2;margin-bottom:8px;">
+              Top Picks in<br/><span style="color:#ffe082;">${config.category}</span>
+            </div>
+            <div style="font-size:14px;color:rgba(255,255,255,0.85);margin-bottom:24px;line-height:1.6;">
+              Based on your recent browsing —<br/>handpicked deals just for you.
+            </div>
+            <div style="display:inline-block;background:#ff6f00;color:#fff;
+              font-size:14px;font-weight:700;padding:12px 28px;border-radius:6px;
+              width:fit-content;letter-spacing:0.3px;">
+              Shop ${config.category} →
+            </div>
+          </div>
+          <div style="width:280px;display:flex;align-items:center;justify-content:center;
+            padding:24px;position:relative;flex-shrink:0;">
+            <div style="position:absolute;top:16px;right:16px;background:#ff6f00;color:#fff;
+              font-size:11px;font-weight:700;padding:6px 12px;border-radius:20px;">
+              ${config.badge}
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+              ${productsHTML}
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ── Shared render function ──
+    function renderNDBanner(data, config) {
+      var ctBanner = document.getElementById('ct-personalised-banner');
+      var carousel  = document.getElementById('default-hero-carousel');
+      if (!ctBanner) return;
+
+      ctBanner.innerHTML = buildNDBannerHTML(config);
+      if (carousel) carousel.style.display = 'none';
+
+      if (typeof clevertap.renderNotificationViewed === 'function') {
+        clevertap.renderNotificationViewed(data);
+      }
+
+      var banner = document.getElementById('bz-nd-banner');
+      if (banner) {
+        banner.addEventListener('click', function() {
+          if (typeof clevertap.renderNotificationClicked === 'function') {
+            clevertap.renderNotificationClicked(data);
+          }
+          handleNativeDisplayClick(config.campaignName, config.category, config.ctaUrl);
+        });
+      }
+    }
+
+    // ── Category configs ──
+    var ND_CONFIGS = {
+      electronics_homepage: {
+        campaignName: '[Bazario] ND — Electronics Homepage',
+        category:     'Electronics',
+        gradient:     'linear-gradient(135deg, #0d47a1, #1565c0, #0288d1)',
+        tag:          '📱 Picked for You',
+        badge:        'Up to 40% OFF',
+        ctaUrl:       'listing.html?category=Electronics&source=native_display',
+        products: [
+          { emoji: '📱', name: 'Smartphones', price: 'From ₹8,999' },
+          { emoji: '💻', name: 'Laptops',     price: 'From ₹34,999' },
+          { emoji: '🎧', name: 'Audio',       price: 'From ₹999' },
+          { emoji: '📷', name: 'Cameras',     price: 'From ₹12,999' }
+        ]
+      },
+      fashion_homepage: {
+        campaignName: '[Bazario] ND — Fashion Homepage',
+        category:     'Fashion',
+        gradient:     'linear-gradient(135deg, #880e4f, #c2185b, #e91e63)',
+        tag:          '👗 Picked for You',
+        badge:        'Up to 50% OFF',
+        ctaUrl:       'listing.html?category=Fashion&source=native_display',
+        products: [
+          { emoji: '👗', name: 'Dresses',  price: 'From ₹499' },
+          { emoji: '👟', name: 'Footwear', price: 'From ₹699' },
+          { emoji: '👜', name: 'Bags',     price: 'From ₹399' },
+          { emoji: '🧢', name: 'Caps',     price: 'From ₹199' }
+        ]
+      },
+      grocery_homepage: {
+        campaignName: '[Bazario] ND — Grocery Homepage',
+        category:     'Grocery',
+        gradient:     'linear-gradient(135deg, #1b5e20, #2e7d32, #43a047)',
+        tag:          '🛒 Picked for You',
+        badge:        'Up to 30% OFF',
+        ctaUrl:       'listing.html?category=Grocery&source=native_display',
+        products: [
+          { emoji: '🌾', name: 'Staples',  price: 'From ₹99' },
+          { emoji: '🥛', name: 'Dairy',    price: 'From ₹49' },
+          { emoji: '🍫', name: 'Snacks',   price: 'From ₹29' },
+          { emoji: '🧴', name: 'Personal', price: 'From ₹79' }
+        ]
+      },
+      home_furniture_homepage: {
+        campaignName: '[Bazario] ND — Home & Furniture Homepage',
+        category:     'Home & Furniture',
+        gradient:     'linear-gradient(135deg, #e65100, #f57c00, #ff9800)',
+        tag:          '🛋️ Picked for You',
+        badge:        'Up to 45% OFF',
+        ctaUrl:       'listing.html?category=Home%20%26%20Furniture&source=native_display',
+        products: [
+          { emoji: '🛋️', name: 'Sofas',    price: 'From ₹8,999' },
+          { emoji: '🛏️', name: 'Beds',     price: 'From ₹6,999' },
+          { emoji: '💡', name: 'Lighting', price: 'From ₹299' },
+          { emoji: '🪴', name: 'Decor',    price: 'From ₹199' }
+        ]
+      },
+      appliances_homepage: {
+        campaignName: '[Bazario] ND — Appliances Homepage',
+        category:     'Appliances',
+        gradient:     'linear-gradient(135deg, #263238, #37474f, #546e7a)',
+        tag:          '🔌 Picked for You',
+        badge:        'Up to 35% OFF',
+        ctaUrl:       'listing.html?category=Appliances&source=native_display',
+        products: [
+          { emoji: '🫙', name: 'Mixer',       price: 'From ₹1,299' },
+          { emoji: '❄️', name: 'Refrigerator', price: 'From ₹12,999' },
+          { emoji: '🌀', name: 'Washing',      price: 'From ₹8,999' },
+          { emoji: '🍳', name: 'Cookware',     price: 'From ₹499' }
+        ]
+      },
+      beauty_homepage: {
+        campaignName: '[Bazario] ND — Beauty Homepage',
+        category:     'Beauty',
+        gradient:     'linear-gradient(135deg, #4a148c, #7b1fa2, #9c27b0)',
+        tag:          '💄 Picked for You',
+        badge:        'Up to 40% OFF',
+        ctaUrl:       'listing.html?category=Beauty&source=native_display',
+        products: [
+          { emoji: '💄', name: 'Lipstick', price: 'From ₹149' },
+          { emoji: '🧴', name: 'Skincare', price: 'From ₹199' },
+          { emoji: '💅', name: 'Nail Care',price: 'From ₹99' },
+          { emoji: '🌸', name: 'Perfumes', price: 'From ₹499' }
+        ]
+      },
+      sports_homepage: {
+        campaignName: '[Bazario] ND — Sports Homepage',
+        category:     'Sports',
+        gradient:     'linear-gradient(135deg, #004d40, #00695c, #00897b)',
+        tag:          '⚽ Picked for You',
+        badge:        'Up to 40% OFF',
+        ctaUrl:       'listing.html?category=Sports&source=native_display',
+        products: [
+          { emoji: '⚽', name: 'Football',   price: 'From ₹299' },
+          { emoji: '🏏', name: 'Cricket',    price: 'From ₹499' },
+          { emoji: '🎽', name: 'Sportswear', price: 'From ₹399' },
+          { emoji: '🏋️', name: 'Fitness',    price: 'From ₹999' }
+        ]
+      },
+      books_homepage: {
+        campaignName: '[Bazario] ND — Books Homepage',
+        category:     'Books',
+        gradient:     'linear-gradient(135deg, #bf360c, #d84315, #e64a19)',
+        tag:          '📚 Picked for You',
+        badge:        'Up to 30% OFF',
+        ctaUrl:       'listing.html?category=Books&source=native_display',
+        products: [
+          { emoji: '📖', name: 'Fiction',     price: 'From ₹99' },
+          { emoji: '📗', name: 'Non-Fiction', price: 'From ₹149' },
+          { emoji: '📘', name: 'Academic',    price: 'From ₹199' },
+          { emoji: '📙', name: 'Children',    price: 'From ₹79' }
+        ]
+      }
+    };
+
+    // ── CT_web_native_display event listener (router) ──
+    document.addEventListener("CT_web_native_display", function(event) {
+      var data   = event.detail;
+      if (!data || !data.kv) return;
+      var topic  = data.kv.topic;
+      var config = ND_CONFIGS[topic];
+      if (config) {
+        renderNDBanner(data, config);
+      } else {
+        console.warn('CT Native Display: unknown topic —', topic);
+      }
+    });
   </script>
 </body>
 </html>
