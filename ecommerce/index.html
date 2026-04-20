@@ -1437,6 +1437,32 @@
     startTimer();
     startCarousel();
 
+    // ── Fire Category Viewed for last viewed category ──
+    // This triggers CT Native Display KV pair campaign on homepage
+    // CT_web_native_display event fires immediately on same page
+    (function() {
+      var lastCategory = localStorage.getItem('bz_last_category_viewed');
+      if (!lastCategory) return;
+
+      var topicMap = {
+        'Electronics':      'electronics_homepage',
+        'Fashion':          'fashion_homepage',
+        'Grocery':          'grocery_homepage',
+        'Home & Furniture': 'home_furniture_homepage',
+        'Appliances':       'appliances_homepage',
+        'Beauty':           'beauty_homepage',
+        'Sports':           'sports_homepage',
+        'Books':            'books_homepage'
+      };
+
+      // Fire CT event — triggers Native Display campaign
+      ctEvent("Category Viewed", {
+        category_name:  lastCategory,
+        source:         "homepage_return",
+        total_products: 0
+      });
+    })();
+
     // ── CT Native Display click handler ──
     function handleNativeDisplayClick(campaignName, categoryShown, ctaUrl) {
       ctEvent("Native Display Clicked", {

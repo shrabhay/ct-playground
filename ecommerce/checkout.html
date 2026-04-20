@@ -1038,6 +1038,7 @@
         return;
       }
 
+      const loggedUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
       const orderId    = 'BZ-' + Date.now().toString().slice(-8);
       const grandTotal = getCartTotal() + 49;
 
@@ -1082,7 +1083,6 @@
       });
 
       // Save order to user-specific orders list
-      const loggedUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
       if (loggedUser) {
         const ordersKey = `bazario_orders_${loggedUser.email}`;
         const existingOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');

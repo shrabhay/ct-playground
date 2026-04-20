@@ -466,6 +466,12 @@
         payment_method: orderData.paymentMethod,
         top_category:   getMostFrequentCategory()
       });
+
+      // ── Store last order category for Native Display ──
+      var topCat = getMostFrequentCategory();
+      if (topCat) {
+        localStorage.setItem('bz_last_order_category', topCat);
+      }
     }
 
     // ─── LOAD ORDER DATA FROM LOCALSTORAGE ───
@@ -631,6 +637,148 @@
       }, 300);
     }
 
+    // ── CT Native Display — confirmation page listener ──
+    var ND_CONFIRMATION_CONFIGS = {
+      electronics_confirmation: {
+        campaignName: '[Bazario] ND — Electronics Confirmation',
+        category:     'Electronics',
+        gradient:     'linear-gradient(135deg, #0d47a1, #1565c0)',
+        headline:     'You Might Also Love These!',
+        subtext:      'Top Electronics picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Electronics →',
+        ctaUrl:       'listing.html?category=Electronics&source=native_display_confirmation'
+      },
+      fashion_confirmation: {
+        campaignName: '[Bazario] ND — Fashion Confirmation',
+        category:     'Fashion',
+        gradient:     'linear-gradient(135deg, #880e4f, #c2185b)',
+        headline:     'Complete Your Look!',
+        subtext:      'Top Fashion picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Fashion →',
+        ctaUrl:       'listing.html?category=Fashion&source=native_display_confirmation'
+      },
+      grocery_confirmation: {
+        campaignName: '[Bazario] ND — Grocery Confirmation',
+        category:     'Grocery',
+        gradient:     'linear-gradient(135deg, #1b5e20, #2e7d32)',
+        headline:     'Stock Up on More!',
+        subtext:      'Top Grocery picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Grocery →',
+        ctaUrl:       'listing.html?category=Grocery&source=native_display_confirmation'
+      },
+      home_furniture_confirmation: {
+        campaignName: '[Bazario] ND — Home & Furniture Confirmation',
+        category:     'Home & Furniture',
+        gradient:     'linear-gradient(135deg, #e65100, #f57c00)',
+        headline:     'Make Your Home Complete!',
+        subtext:      'Top Home picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Home & Furniture →',
+        ctaUrl:       'listing.html?category=Home%20%26%20Furniture&source=native_display_confirmation'
+      },
+      appliances_confirmation: {
+        campaignName: '[Bazario] ND — Appliances Confirmation',
+        category:     'Appliances',
+        gradient:     'linear-gradient(135deg, #263238, #37474f)',
+        headline:     'Upgrade Your Home More!',
+        subtext:      'Top Appliance picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Appliances →',
+        ctaUrl:       'listing.html?category=Appliances&source=native_display_confirmation'
+      },
+      beauty_confirmation: {
+        campaignName: '[Bazario] ND — Beauty Confirmation',
+        category:     'Beauty',
+        gradient:     'linear-gradient(135deg, #4a148c, #7b1fa2)',
+        headline:     'Treat Yourself More!',
+        subtext:      'Top Beauty picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Beauty →',
+        ctaUrl:       'listing.html?category=Beauty&source=native_display_confirmation'
+      },
+      sports_confirmation: {
+        campaignName: '[Bazario] ND — Sports Confirmation',
+        category:     'Sports',
+        gradient:     'linear-gradient(135deg, #004d40, #00695c)',
+        headline:     'Keep Playing!',
+        subtext:      'Top Sports picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Sports →',
+        ctaUrl:       'listing.html?category=Sports&source=native_display_confirmation'
+      },
+      books_confirmation: {
+        campaignName: '[Bazario] ND — Books Confirmation',
+        category:     'Books',
+        gradient:     'linear-gradient(135deg, #bf360c, #d84315)',
+        headline:     'Keep Reading!',
+        subtext:      'Top Books picks based on your recent purchase',
+        badge:        '🎉 Post-Purchase Picks',
+        ctaText:      'Shop Books →',
+        ctaUrl:       'listing.html?category=Books&source=native_display_confirmation'
+      }
+    };
+
+    function renderNDConfirmationBanner(data, config) {
+      var ndDiv = document.getElementById('ct-native-display-confirmation');
+      if (!ndDiv) return;
+
+      ndDiv.innerHTML = `
+        <div id="bz-nd-confirmation-banner" style="
+          background:${config.gradient};
+          border-radius:8px;padding:20px 28px;
+          display:flex;align-items:center;justify-content:space-between;
+          cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.12);
+          font-family:'Inter',sans-serif;position:relative;overflow:hidden;">
+          <div style="z-index:1;">
+            <div style="display:inline-block;background:rgba(255,255,255,0.2);
+              color:#fff;font-size:11px;font-weight:700;letter-spacing:0.08em;
+              text-transform:uppercase;padding:3px 10px;border-radius:20px;
+              margin-bottom:10px;">
+              ${config.badge}
+            </div>
+            <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;">
+              ${config.headline}
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.85);">
+              ${config.subtext}
+            </div>
+          </div>
+          <div style="z-index:1;flex-shrink:0;margin-left:24px;">
+            <div style="background:#ff6f00;color:#fff;font-size:13px;font-weight:700;
+              padding:10px 24px;border-radius:6px;white-space:nowrap;">
+              ${config.ctaText}
+            </div>
+          </div>
+        </div>`;
+
+      if (typeof clevertap.renderNotificationViewed === 'function') {
+        clevertap.renderNotificationViewed(data);
+      }
+
+      var banner = document.getElementById('bz-nd-confirmation-banner');
+      if (banner) {
+        banner.addEventListener('click', function() {
+          if (typeof clevertap.renderNotificationClicked === 'function') {
+            clevertap.renderNotificationClicked(data);
+          }
+          handleNativeDisplayClick(config.campaignName, config.category, config.ctaUrl);
+        });
+      }
+    }
+
+    document.addEventListener("CT_web_native_display", function(event) {
+      var data   = event.detail;
+      if (!data || !data.kv) return;
+      var topic  = data.kv.topic;
+      var config = ND_CONFIRMATION_CONFIGS[topic];
+      if (config) {
+        renderNDConfirmationBanner(data, config);
+      }
+    });
+    
     init();
   </script>
 </body>

@@ -872,6 +872,14 @@
         rating:         product.rating,
         source:         pdpSource
       });
+
+      // ── Store last viewed product for Native Display ──
+      localStorage.setItem('bz_last_product', JSON.stringify({
+        id:       product.id,
+        name:     product.name,
+        category: product.category,
+        price:    product.price
+      }));
     }
 
     // ─── RENDER PRODUCT ───
@@ -1146,6 +1154,148 @@
       }, 300);
     }
 
+    // ── CT Native Display — product page listener ──
+    var ND_PRODUCT_CONFIGS = {
+      electronics_product: {
+        campaignName: '[Bazario] ND — Electronics Product',
+        category:     'Electronics',
+        gradient:     'linear-gradient(135deg, #0d47a1, #1565c0)',
+        headline:     'Complete Your Setup',
+        subtext:      'Customers who viewed this also loved these Electronics picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Electronics →',
+        ctaUrl:       'listing.html?category=Electronics&source=native_display_product'
+      },
+      fashion_product: {
+        campaignName: '[Bazario] ND — Fashion Product',
+        category:     'Fashion',
+        gradient:     'linear-gradient(135deg, #880e4f, #c2185b)',
+        headline:     'Style It Up',
+        subtext:      'Customers who viewed this also loved these Fashion picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Fashion →',
+        ctaUrl:       'listing.html?category=Fashion&source=native_display_product'
+      },
+      grocery_product: {
+        campaignName: '[Bazario] ND — Grocery Product',
+        category:     'Grocery',
+        gradient:     'linear-gradient(135deg, #1b5e20, #2e7d32)',
+        headline:     'Stock Up Your Kitchen',
+        subtext:      'Customers who bought this also loved these Grocery picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Grocery →',
+        ctaUrl:       'listing.html?category=Grocery&source=native_display_product'
+      },
+      home_furniture_product: {
+        campaignName: '[Bazario] ND — Home & Furniture Product',
+        category:     'Home & Furniture',
+        gradient:     'linear-gradient(135deg, #e65100, #f57c00)',
+        headline:     'Complete Your Home',
+        subtext:      'Customers who viewed this also loved these Home picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Home & Furniture →',
+        ctaUrl:       'listing.html?category=Home%20%26%20Furniture&source=native_display_product'
+      },
+      appliances_product: {
+        campaignName: '[Bazario] ND — Appliances Product',
+        category:     'Appliances',
+        gradient:     'linear-gradient(135deg, #263238, #37474f)',
+        headline:     'Upgrade Your Home',
+        subtext:      'Customers who viewed this also loved these Appliance picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Appliances →',
+        ctaUrl:       'listing.html?category=Appliances&source=native_display_product'
+      },
+      beauty_product: {
+        campaignName: '[Bazario] ND — Beauty Product',
+        category:     'Beauty',
+        gradient:     'linear-gradient(135deg, #4a148c, #7b1fa2)',
+        headline:     'Complete Your Routine',
+        subtext:      'Customers who viewed this also loved these Beauty picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Beauty →',
+        ctaUrl:       'listing.html?category=Beauty&source=native_display_product'
+      },
+      sports_product: {
+        campaignName: '[Bazario] ND — Sports Product',
+        category:     'Sports',
+        gradient:     'linear-gradient(135deg, #004d40, #00695c)',
+        headline:     'Level Up Your Game',
+        subtext:      'Customers who viewed this also loved these Sports picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Sports →',
+        ctaUrl:       'listing.html?category=Sports&source=native_display_product'
+      },
+      books_product: {
+        campaignName: '[Bazario] ND — Books Product',
+        category:     'Books',
+        gradient:     'linear-gradient(135deg, #bf360c, #d84315)',
+        headline:     'Keep Reading',
+        subtext:      'Customers who viewed this also loved these Book picks',
+        badge:        'Recommended for You',
+        ctaText:      'Explore Books →',
+        ctaUrl:       'listing.html?category=Books&source=native_display_product'
+      }
+    };
+
+    function renderNDProductBanner(data, config) {
+      var ndDiv = document.getElementById('ct-native-display-product');
+      if (!ndDiv) return;
+
+      ndDiv.innerHTML = `
+        <div id="bz-nd-product-banner" style="
+          background:${config.gradient};
+          border-radius:8px;padding:20px 28px;
+          display:flex;align-items:center;justify-content:space-between;
+          cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,0.12);
+          font-family:'Inter',sans-serif;position:relative;overflow:hidden;">
+          <div style="z-index:1;">
+            <div style="display:inline-block;background:rgba(255,255,255,0.2);
+              color:#fff;font-size:11px;font-weight:700;letter-spacing:0.08em;
+              text-transform:uppercase;padding:3px 10px;border-radius:20px;
+              margin-bottom:10px;">
+              ${config.badge}
+            </div>
+            <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px;">
+              ${config.headline}
+            </div>
+            <div style="font-size:13px;color:rgba(255,255,255,0.85);">
+              ${config.subtext}
+            </div>
+          </div>
+          <div style="z-index:1;flex-shrink:0;margin-left:24px;">
+            <div style="background:#ff6f00;color:#fff;font-size:13px;font-weight:700;
+              padding:10px 24px;border-radius:6px;white-space:nowrap;">
+              ${config.ctaText}
+            </div>
+          </div>
+        </div>`;
+
+      if (typeof clevertap.renderNotificationViewed === 'function') {
+        clevertap.renderNotificationViewed(data);
+      }
+
+      var banner = document.getElementById('bz-nd-product-banner');
+      if (banner) {
+        banner.addEventListener('click', function() {
+          if (typeof clevertap.renderNotificationClicked === 'function') {
+            clevertap.renderNotificationClicked(data);
+          }
+          handleNativeDisplayClick(config.campaignName, config.category, config.ctaUrl);
+        });
+      }
+    }
+
+    document.addEventListener("CT_web_native_display", function(event) {
+      var data   = event.detail;
+      if (!data || !data.kv) return;
+      var topic  = data.kv.topic;
+      var config = ND_PRODUCT_CONFIGS[topic];
+      if (config) {
+        renderNDProductBanner(data, config);
+      }
+    });
+    
     init();
     document.getElementById('searchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') handleSearch();

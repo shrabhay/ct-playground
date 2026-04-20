@@ -31,6 +31,7 @@ clevertap.token  = "c56-032";
 
 clevertap.privacy.push({ optOut: false });
 clevertap.privacy.push({ useIP:  false });
+clevertap.enablePersonalization = true;
 
 // ─── STEP 4: Load the SDK Script ────────────────────────────────────────────
 // Loads CleverTap's SDK asynchronously from their CDN.
@@ -40,12 +41,7 @@ clevertap.privacy.push({ useIP:  false });
   var wzrk = document.createElement('script');
   wzrk.type = 'text/javascript';
   wzrk.async = true;
-  wzrk.src = (
-    document.location.protocol === 'https:'
-      ? 'https://d2r1yp2w7bby2u.cloudfront.net'
-      : 'http://static.clevertap.com'
-  ) + '/js/a.js';
-
+  wzrk.src = 'https://cdn.jsdelivr.net/npm/clevertap-web-sdk/clevertap.min.js';
   var s = document.getElementsByTagName('script')[0];
   s.parentNode.insertBefore(wzrk, s);
 })();
