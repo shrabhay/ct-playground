@@ -1433,9 +1433,36 @@
     }
 
     // ── Init ──
+    // ── Init ──
     goToSlide(0);
     startTimer();
     startCarousel();
+
+    // ── RC: Fetch variables + apply to UI ──────────────────────────────────────
+    clevertap.fetchVariables(function() {
+
+      // 1. show_deals_section
+      var showDeals = window.rcHomepageShowDeals
+        ? window.rcHomepageShowDeals.getValue()
+        : true;
+      var dealsSection = document.querySelector('.section-card:has(#timerH)');
+      if (dealsSection) dealsSection.style.display = showDeals ? '' : 'none';
+
+      // 2. show_trending_section
+      var showTrending = window.rcHomepageShowTrending
+        ? window.rcHomepageShowTrending.getValue()
+        : true;
+      var trendingSection = document.querySelector('.section-card:has(.products-grid)');
+      if (trendingSection) trendingSection.style.display = showTrending ? '' : 'none';
+
+      // 3. homepage_sale_label
+      var saleLabel = window.rcHomepageSaleLabel
+        ? window.rcHomepageSaleLabel.getValue()
+        : 'MEGA SALE';
+      var heroTag = document.querySelector('.hero-slide .hero-tag');
+      if (heroTag) heroTag.textContent = '🔥 ' + saleLabel + ' Live Now';
+
+    });
 
     // ── Fire Category Viewed for last viewed category ──
     // This triggers CT Native Display KV pair campaign on homepage

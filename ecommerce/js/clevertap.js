@@ -25,6 +25,86 @@ var clevertap = {
 clevertap.account.push({ "id": "RKW-659-477Z" });
 clevertap.token  = "c56-032";
 
+// =============================================================================
+// PRODUCT EXPERIENCES — REMOTE CONFIG VARIABLES
+// Defines all RC variables with default values.
+// Dot notation creates folder hierarchy in CT dashboard:
+// Bazario > Homepage > show_prime_banner etc.
+// syncVariables() must be called once (as test profile) to push to CT dashboard.
+// fetchVariables() is called on each page load to get latest values.
+// =============================================================================
+// ── Wait for CT SDK to load before defining variables ──
+(function waitForCT(attempts) {
+  attempts = attempts || 0;
+  if (attempts > 20) {
+    console.warn('[RC] CT SDK did not load in time');
+    return;
+  }
+
+  if (typeof clevertap.defineVariable === 'function') {
+
+    // ── Homepage ──
+    window.rcHomepageShowPrimeBanner    = clevertap.defineVariable("Bazario.Homepage.show_prime_banner",     true);
+    window.rcHomepagePrimeBannerText    = clevertap.defineVariable("Bazario.Homepage.prime_banner_text",     "⚡ Unlock free delivery on every order — Join Prime at ₹999/year");
+    window.rcHomepageShowDeals          = clevertap.defineVariable("Bazario.Homepage.show_deals_section",    true);
+    window.rcHomepageShowTrending       = clevertap.defineVariable("Bazario.Homepage.show_trending_section", true);
+    window.rcHomepageSaleLabel          = clevertap.defineVariable("Bazario.Homepage.homepage_sale_label",   "MEGA SALE");
+
+    // ── Listing ──
+    window.rcListingPromoBannerEnabled  = clevertap.defineVariable("Bazario.Listing.listing_promo_banner_enabled",    true);
+    window.rcListingPromoText           = clevertap.defineVariable("Bazario.Listing.listing_promo_text",              "🎉 Extra 10% off on orders above ₹999 — Use code BAZARIO10");
+    window.rcListingPromoBgColor        = clevertap.defineVariable("Bazario.Listing.listing_promo_bg_color",          "#1565c0");
+    window.rcListingFreeDeliveryThresh  = clevertap.defineVariable("Bazario.Listing.listing_free_delivery_threshold", 499);
+    window.rcListingShowPrimeBadge      = clevertap.defineVariable("Bazario.Listing.listing_show_prime_badge",        true);
+    window.rcListingSortDefault         = clevertap.defineVariable("Bazario.Listing.listing_sort_default",            "relevance");
+    window.rcListingProductsPerPage     = clevertap.defineVariable("Bazario.Listing.listing_products_per_page",       12);
+
+    // ── Product ──
+    window.rcPdpShowDeliveryCheck       = clevertap.defineVariable("Bazario.Product.pdp_show_delivery_check",     true);
+    window.rcPdpShowOffersSection       = clevertap.defineVariable("Bazario.Product.pdp_show_offers_section",     true);
+    window.rcPdpShowSimilarProducts     = clevertap.defineVariable("Bazario.Product.pdp_show_similar_products",   true);
+    window.rcPdpFreeDeliveryThreshold   = clevertap.defineVariable("Bazario.Product.pdp_free_delivery_threshold", 499);
+    window.rcPdpEmiEnabled              = clevertap.defineVariable("Bazario.Product.pdp_emi_enabled",             true);
+    window.rcPdpCtaPrimaryText          = clevertap.defineVariable("Bazario.Product.pdp_cta_primary_text",        "Add to Cart");
+    window.rcPdpCtaSecondaryText        = clevertap.defineVariable("Bazario.Product.pdp_cta_secondary_text",      "Buy Now");
+    window.rcPdpUrgencyText             = clevertap.defineVariable("Bazario.Product.pdp_urgency_text",            "Only a few left in stock!");
+    window.rcPdpShowUrgency             = clevertap.defineVariable("Bazario.Product.pdp_show_urgency",            false);
+    window.rcPdpRatingEnabled           = clevertap.defineVariable("Bazario.Product.pdp_rating_enabled",          true);
+
+    // ── Cart ──
+    window.rcCartCouponEnabled          = clevertap.defineVariable("Bazario.Cart.cart_coupon_enabled",            true);
+    window.rcCartFreeDeliveryThreshold  = clevertap.defineVariable("Bazario.Cart.cart_free_delivery_threshold",   499);
+    window.rcCartShowSavingsSummary     = clevertap.defineVariable("Bazario.Cart.cart_show_savings_summary",      true);
+    window.rcCartShowRecommended        = clevertap.defineVariable("Bazario.Cart.cart_show_recommended",          true);
+    window.rcCartPromoText              = clevertap.defineVariable("Bazario.Cart.cart_promo_text",                "🚚 Free delivery on orders above ₹499");
+    window.rcCartPrimeUpsellEnabled     = clevertap.defineVariable("Bazario.Cart.cart_prime_upsell_enabled",      true);
+
+    // ── Checkout ──
+    window.rcCheckoutCodEnabled         = clevertap.defineVariable("Bazario.Checkout.checkout_cod_enabled",           true);
+    window.rcCheckoutCodFee             = clevertap.defineVariable("Bazario.Checkout.checkout_cod_fee",               40);
+    window.rcCheckoutShowTrustBadges    = clevertap.defineVariable("Bazario.Checkout.checkout_show_trust_badges",     true);
+    window.rcCheckoutPromoText          = clevertap.defineVariable("Bazario.Checkout.checkout_promo_text",            "🔒 100% Secure Payments — Your data is protected");
+    window.rcCheckoutFreeDeliveryThresh = clevertap.defineVariable("Bazario.Checkout.checkout_free_delivery_threshold", 499);
+    window.rcCheckoutExpressEnabled     = clevertap.defineVariable("Bazario.Checkout.checkout_express_enabled",       false);
+
+    // ── Account ──
+    window.rcAccountPrimePrice          = clevertap.defineVariable("Bazario.Account.account_prime_annual_price",    999);
+    window.rcAccountPrimeDiscountText   = clevertap.defineVariable("Bazario.Account.account_prime_discount_text",   "That's just ₹83/month — less than a cup of coffee ☕");
+    window.rcAccountShowReferral        = clevertap.defineVariable("Bazario.Account.account_show_referral_section", false);
+
+    // ── Global ──
+    window.rcGlobalFreeDeliveryThresh   = clevertap.defineVariable("Bazario.Global.global_free_delivery_threshold",   499);
+    window.rcGlobalSupportPhone         = clevertap.defineVariable("Bazario.Global.global_support_phone",             "1800-123-4567");
+    window.rcGlobalShowAppBanner        = clevertap.defineVariable("Bazario.Global.global_show_app_download_banner",  false);
+    window.rcGlobalMaintenanceMode      = clevertap.defineVariable("Bazario.Global.global_maintenance_mode",          false);
+    window.rcGlobalSaleEventName        = clevertap.defineVariable("Bazario.Global.global_sale_event_name",           "Mega Sale");
+
+  } else {
+    console.log('[RC] Waiting for CT SDK... attempt', attempts + 1);
+    setTimeout(function() { waitForCT(attempts + 1); }, 2000);
+  }
+})(0);
+
 // ─── STEP 3: Privacy Settings ───────────────────────────────────────────────
 // optOut: false  — user has not opted out of tracking
 // useIP:  false  — do not use IP address for geolocation (GDPR best practice)
