@@ -1445,14 +1445,16 @@
       var showDeals = window.rcHomepageShowDeals
         ? window.rcHomepageShowDeals.getValue()
         : true;
-      var dealsSection = document.querySelector('.section-card:has(#timerH)');
+      var timerEl = document.getElementById('timerH');
+      var dealsSection = timerEl ? timerEl.closest('.section-card') : null;
       if (dealsSection) dealsSection.style.display = showDeals ? '' : 'none';
 
       // 2. show_trending_section
       var showTrending = window.rcHomepageShowTrending
         ? window.rcHomepageShowTrending.getValue()
         : true;
-      var trendingSection = document.querySelector('.section-card:has(.products-grid)');
+      var trendingGrid = document.querySelector('.section-card .products-grid');
+      var trendingSection = trendingGrid ? trendingGrid.closest('.section-card') : null;
       if (trendingSection) trendingSection.style.display = showTrending ? '' : 'none';
 
       // 3. homepage_sale_label
