@@ -99,6 +99,8 @@ clevertap.token  = "c56-032";
     window.rcGlobalMaintenanceMode      = clevertap.defineVariable("Bazario.Global.global_maintenance_mode",          false);
     window.rcGlobalSaleEventName        = clevertap.defineVariable("Bazario.Global.global_sale_event_name",           "Mega Sale");
 
+    window._rcVariablesDefined = true;
+
   } else {
     console.log('[RC] Waiting for CT SDK... attempt', attempts + 1);
     setTimeout(function() { waitForCT(attempts + 1); }, 2000);

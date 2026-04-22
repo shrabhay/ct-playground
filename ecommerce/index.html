@@ -764,6 +764,8 @@
 
     .footer-links a:hover { color: #fff; }
 
+    .rc-hidden { display: none !important; }
+
     /* ─── TOAST ─── */
     .toast {
       position: fixed;
@@ -801,6 +803,58 @@
       .nav-logo .tagline { display: none; }
     }
   </style>
+
+  <style>
+    .rc-hidden { display: none !important; }
+  </style>
+  <script>
+    (function() {
+      try {
+        // Get current logged-in user
+        var currentUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        if (!currentUser || !currentUser.email) return;
+
+        // Read user-specific RC values
+        var wzrkPE = localStorage.getItem('WZRK_PE_' + currentUser.email);
+        if (!wzrkPE) return;
+        var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+        // 1. show_deals_section
+        if (vars['Bazario.Homepage.show_deals_section'] === false) {
+          document.addEventListener('DOMContentLoaded', function() {
+            var timerEl = document.getElementById('timerH');
+            var dealsSection = timerEl ? timerEl.closest('.section-card') : null;
+            if (dealsSection) dealsSection.classList.add('rc-hidden');
+          });
+        }
+
+        // 2. show_trending_section
+        if (vars['Bazario.Homepage.show_trending_section'] === false) {
+          document.addEventListener('DOMContentLoaded', function() {
+            // Target New Arrivals section specifically
+            var allSections = document.querySelectorAll('.section.section-card');
+            allSections.forEach(function(section) {
+              if (section.querySelector('h2') && 
+                  section.querySelector('h2').textContent.includes('New Arrivals')) {
+                section.classList.add('rc-hidden');
+              }
+            });
+          });
+        }
+
+        // 3. homepage_sale_label
+        if (vars['Bazario.Homepage.homepage_sale_label']) {
+          document.addEventListener('DOMContentLoaded', function() {
+            var heroTag = document.querySelector('.hero-slide .hero-tag');
+            if (heroTag) heroTag.textContent = '🔥 ' + vars['Bazario.Homepage.homepage_sale_label'] + ' Live Now';
+          });
+        }
+
+      } catch(e) {
+        console.warn('RC pre-render check failed:', e);
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -1437,44 +1491,6 @@
     goToSlide(0);
     startTimer();
     startCarousel();
-
-    // ── RC: Fetch variables + apply to UI ──────────────────────────────────────
-    document.addEventListener('DOMContentLoaded', function() {
-      (function waitForFetch(attempts) {
-        attempts = attempts || 0;
-        if (attempts > 20) return;
-        if (typeof clevertap.fetchVariables === 'function') {
-          clevertap.fetchVariables(function() {
-
-            // 1. show_deals_section
-            var showDeals = window.rcHomepageShowDeals
-              ? window.rcHomepageShowDeals.getValue()
-              : true;
-            var timerEl = document.getElementById('timerH');
-            var dealsSection = timerEl ? timerEl.closest('.section-card') : null;
-            if (dealsSection) dealsSection.style.display = showDeals ? '' : 'none';
-
-            // 2. show_trending_section
-            var showTrending = window.rcHomepageShowTrending
-              ? window.rcHomepageShowTrending.getValue()
-              : true;
-            var trendingGrid = document.querySelector('.section-card .products-grid');
-            var trendingSection = trendingGrid ? trendingGrid.closest('.section-card') : null;
-            if (trendingSection) trendingSection.style.display = showTrending ? '' : 'none';
-
-            // 3. homepage_sale_label
-            var saleLabel = window.rcHomepageSaleLabel
-              ? window.rcHomepageSaleLabel.getValue()
-              : 'MEGA SALE';
-            var heroTag = document.querySelector('.hero-slide .hero-tag');
-            if (heroTag) heroTag.textContent = '🔥 ' + saleLabel + ' Live Now';
-
-          }); // end fetchVariables
-        } else {
-          setTimeout(function() { waitForFetch(attempts + 1); }, 500);
-        }
-      })(0);
-    });
 
     // ── Fire Category Viewed for last viewed category ──
     // This triggers CT Native Display KV pair campaign on homepage

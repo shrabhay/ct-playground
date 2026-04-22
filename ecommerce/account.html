@@ -950,6 +950,22 @@
         });
     }
 
+    // ─── SYNC RC VALUES FOR USER ─────────────────────────────────────────────────
+    // Fetches RC values for identified user and stores under user-specific key.
+    // Called after login/signup so CT can evaluate correct segments.
+    function syncRCForUser(email) {
+      setTimeout(function() {
+        if (typeof clevertap.fetchVariables !== 'function') return;
+        clevertap.fetchVariables(function() {
+          var wzrkPE = localStorage.getItem('WZRK_PE');
+          if (wzrkPE) {
+            localStorage.setItem('WZRK_PE_' + email, wzrkPE);
+            console.log('[RC] Stored user-specific RC values for:', email);
+          }
+        });
+      }, 2000); // Wait 2s for CT to identify user after onUserLogin
+    }
+
     // ──────────────────────────────────────────────────────────────
     // COMPLETE LOGIN / SIGNUP — CleverTap onUserLogin goes here
     // ──────────────────────────────────────────────────────────────
@@ -968,6 +984,8 @@
         method:   method,
         is_prime: user.isPrime || false
       });
+      syncRCForUser(user.email);
+
       console.log('About to call syncPrimeFromCT for:', user.email);
 
       syncPrimeFromCT(user.email);
@@ -1013,6 +1031,7 @@
         referral_used: false
       });
 
+      syncRCForUser(user.email);
       showToast(`Welcome to Bazario, ${user.name.split(' ')[0]}! 🎉`);
       mergeGuestCart(user.email);
       mergeGuestWishlist(user.email);
@@ -1383,6 +1402,11 @@
 
     // ─── LOGOUT ───
     function handleLogout() {
+      var user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      if (user && user.email) {
+        localStorage.removeItem('WZRK_PE_' + user.email);
+      }
+      
       ctEvent("User Logged Out", {});
       localStorage.removeItem('bazario_user');
       currentUser = null;

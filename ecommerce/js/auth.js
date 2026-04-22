@@ -56,11 +56,27 @@ function initCartCount() {
   el.textContent = total;
 }
 
-// ─── Run everything on DOM ready ───
+// ── RC: Refresh values for current user on every page load ──
+function refreshRCForUser() {
+  var user = getUser();
+  if (!user || !user.email) return;
+  if (typeof clevertap.fetchVariables !== 'function') {
+    setTimeout(refreshRCForUser, 500);
+    return;
+  }
+  clevertap.fetchVariables(function() {
+    var wzrkPE = localStorage.getItem('WZRK_PE');
+    if (wzrkPE) {
+      localStorage.setItem('WZRK_PE_' + user.email, wzrkPE);
+    }
+  });
+}
+
 function initSharedNav() {
   initAuthNav();
   initWishlistCount();
   initCartCount();
+  refreshRCForUser();
 }
 
 if (document.readyState === 'loading') {
