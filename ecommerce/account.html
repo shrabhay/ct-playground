@@ -1108,6 +1108,37 @@
         document.getElementById('primeUpgradeState').style.display = 'block';
         document.getElementById('primeMemberState').style.display  = 'none';
       }
+
+      // ── Apply RC values for Prime section ──
+      (function applyAccountRC() {
+        try {
+          var currentUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+          if (!currentUser || !currentUser.email) return;
+          var wzrkPE = localStorage.getItem('WZRK_PE_' + currentUser.email);
+          if (!wzrkPE) return;
+          var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+          // 1. Prime annual price
+          if (vars['Bazario.Account.account_prime_annual_price'] !== undefined) {
+            var priceVal = vars['Bazario.Account.account_prime_annual_price'];
+            // Update price in upgrade button
+            var upgradeBtn = document.querySelector('#primeUpgradeState button[onclick="upgradeToPrime()"]');
+            if (upgradeBtn) upgradeBtn.textContent = 'Upgrade to Prime — ₹' + priceVal + '/year →';
+            // Update price in pricing box
+            var priceEl = document.querySelector('#primeUpgradeState [style*="font-size:32px"]');
+            if (priceEl) priceEl.innerHTML = '₹' + priceVal + ' <span style="font-size:16px;font-weight:400">/year</span>';
+          }
+
+          // 2. Prime discount text
+          if (vars['Bazario.Account.account_prime_discount_text']) {
+            var discountEl = document.querySelector('#primeUpgradeState [style*="font-size:12px"][style*="rgba(255,255,255,0.7)"]');
+            if (discountEl) discountEl.textContent = vars['Bazario.Account.account_prime_discount_text'];
+          }
+
+        } catch(e) {
+          console.warn('RC account apply failed:', e);
+        }
+      })();
     }
 
     // ─── RENDER ORDER HISTORY ───
@@ -1406,7 +1437,7 @@
       if (user && user.email) {
         localStorage.removeItem('WZRK_PE_' + user.email);
       }
-      
+
       ctEvent("User Logged Out", {});
       localStorage.removeItem('bazario_user');
       currentUser = null;

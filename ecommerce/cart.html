@@ -154,7 +154,30 @@
       .cart-item { grid-template-columns: 20px 80px 1fr; }
       .item-price-col { display: none; }
     }
+
+    .rc-hidden { display: none !important; }
   </style>
+
+  <script>
+    (function() {
+      try {
+        var currentUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        if (!currentUser || !currentUser.email) return;
+        var wzrkPE = localStorage.getItem('WZRK_PE_' + currentUser.email);
+        if (!wzrkPE) return;
+        var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+        window._rcCart = {
+          couponEnabled:         vars['Bazario.Cart.cart_coupon_enabled'],
+          freeDeliveryThreshold: vars['Bazario.Cart.cart_free_delivery_threshold'],
+          showSavingsSummary:    vars['Bazario.Cart.cart_show_savings_summary']
+        };
+
+      } catch(e) {
+        console.warn('RC pre-render check failed:', e);
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -330,6 +353,23 @@
         top_category:      getMostFrequentCategory(),
         unique_categories: getUniqueCategoryCount()
       });
+
+      // ── Apply RC values ──
+      if (window._rcCart) {
+        var rc = window._rcCart;
+
+        // 1. show/hide coupon section
+        if (rc.couponEnabled === false) {
+          var couponSection = document.querySelector('.coupon-section');
+          if (couponSection) couponSection.classList.add('rc-hidden');
+        }
+
+        // 2. show/hide savings summary
+        if (rc.showSavingsSummary === false) {
+          var savingsSummary = document.getElementById('summarySavings');
+          if (savingsSummary) savingsSummary.classList.add('rc-hidden');
+        }
+      }
     }
 
     // ─── RENDER CART ───
@@ -407,7 +447,9 @@
       document.getElementById('summaryTotal').textContent    = `₹${grandTotal.toLocaleString('en-IN')}`;
       document.getElementById('summarySavings').textContent  = `You will save ₹${discount.toLocaleString('en-IN')} on this order`;
 
-      if (total >= 499) {
+      var freeDeliveryThreshold = (window._rcCart && window._rcCart.freeDeliveryThreshold) 
+        ? window._rcCart.freeDeliveryThreshold : 499;
+      if (total >= freeDeliveryThreshold) {
         document.getElementById('summaryDelivery').textContent = 'FREE';
         document.getElementById('summaryDelivery').style.color = 'var(--success)';
       } else {

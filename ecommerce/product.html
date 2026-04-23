@@ -571,7 +571,35 @@
       .img-panel { position: static; border-right: none; border-bottom: 1px solid var(--border); }
       .related-grid { grid-template-columns: repeat(2, 1fr); }
     }
+
+    .rc-hidden { display: none !important; }
   </style>
+
+  <script>
+    (function() {
+      try {
+        var currentUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        if (!currentUser || !currentUser.email) return;
+        var wzrkPE = localStorage.getItem('WZRK_PE_' + currentUser.email);
+        if (!wzrkPE) return;
+        var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+        // Store all RC values as globals for use after DOM loads
+        window._rcPdp = {
+          showDeliveryCheck:   vars['Bazario.Product.pdp_show_delivery_check'],
+          showOffersSection:   vars['Bazario.Product.pdp_show_offers_section'],
+          showSimilarProducts: vars['Bazario.Product.pdp_show_similar_products'],
+          emiEnabled:          vars['Bazario.Product.pdp_emi_enabled'],
+          ctaPrimaryText:      vars['Bazario.Product.pdp_cta_primary_text'],
+          ctaSecondaryText:    vars['Bazario.Product.pdp_cta_secondary_text'],
+          ratingEnabled:       vars['Bazario.Product.pdp_rating_enabled']
+        };
+
+      } catch(e) {
+        console.warn('RC pre-render check failed:', e);
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -880,6 +908,53 @@
         category: product.category,
         price:    product.price
       }));
+
+      // ── Apply RC values ──
+      if (window._rcPdp) {
+        var rc = window._rcPdp;
+
+        // 1. show/hide delivery check
+        if (rc.showDeliveryCheck === false) {
+          var deliverySection = document.querySelector('.delivery-section');
+          if (deliverySection) deliverySection.classList.add('rc-hidden');
+        }
+
+        // 2. show/hide offers section
+        if (rc.showOffersSection === false) {
+          var offersSection = document.querySelector('.offers-section');
+          if (offersSection) offersSection.classList.add('rc-hidden');
+        }
+
+        // 3. show/hide similar products
+        if (rc.showSimilarProducts === false) {
+          var relatedSection = document.querySelector('.related-section');
+          if (relatedSection) relatedSection.classList.add('rc-hidden');
+        }
+
+        // 4. show/hide EMI note
+        if (rc.emiEnabled === false) {
+          var emiNote = document.querySelector('.emi-note');
+          if (emiNote) emiNote.classList.add('rc-hidden');
+        }
+
+        // 5. CTA primary text
+        if (rc.ctaPrimaryText) {
+          var addCartBtn = document.querySelector('.btn-add-cart');
+          if (addCartBtn) addCartBtn.innerHTML = '🛒 &nbsp;' + rc.ctaPrimaryText;
+        }
+
+        // 6. CTA secondary text
+        if (rc.ctaSecondaryText) {
+          var buyNowBtn = document.querySelector('.btn-buy-now');
+          if (buyNowBtn) buyNowBtn.innerHTML = '⚡ ' + rc.ctaSecondaryText;
+        }
+
+        // 7. show/hide ratings section
+        if (rc.ratingEnabled === false) {
+          var ratingsSection = document.querySelector('.ratings-section');
+          if (ratingsSection) ratingsSection.classList.add('rc-hidden');
+        }
+      }
     }
 
     // ─── RENDER PRODUCT ───

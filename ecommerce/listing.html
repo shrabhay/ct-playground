@@ -395,7 +395,39 @@
       .prod-actions { display: none; }
       .prod-image { width: 120px; height: 120px; font-size: 44px; }
     }
+
+    .rc-hidden { display: none !important; }
   </style>
+
+  <script>
+    (function() {
+      try {
+        var currentUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        if (!currentUser || !currentUser.email) return;
+        var wzrkPE = localStorage.getItem('WZRK_PE_' + currentUser.email);
+        if (!wzrkPE) return;
+        var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+        // listing_sort_default — applied via global variable before init()
+        if (vars['Bazario.Listing.listing_sort_default']) {
+          window._rcListingSortDefault = vars['Bazario.Listing.listing_sort_default'];
+        }
+
+        // listing_products_per_page
+        if (vars['Bazario.Listing.listing_products_per_page']) {
+          window._rcListingProductsPerPage = vars['Bazario.Listing.listing_products_per_page'];
+        }
+
+        // listing_free_delivery_threshold
+        if (vars['Bazario.Listing.listing_free_delivery_threshold']) {
+          window._rcListingFreeDeliveryThreshold = vars['Bazario.Listing.listing_free_delivery_threshold'];
+        }
+
+      } catch(e) {
+        console.warn('RC pre-render check failed:', e);
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -597,6 +629,7 @@
 
     // ─── STATE ───
     let currentCategory = 'Electronics';
+
     function getCartKey() {
       const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
       return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
@@ -606,9 +639,10 @@
     let currentSearch = ''; // empty means no search active
 
     // ─── FILTER & PAGINATION STATE ───
-    const PAGE_SIZE = 8;
-    let currentPage   = 1;
-    let currentSort   = 'relevance';
+    const PAGE_SIZE = window._rcListingProductsPerPage || 8;
+    let currentPage  = 1;
+    let currentSort  = window._rcListingSortDefault || 'relevance';
+    const FREE_DELIVERY_THRESHOLD = window._rcListingFreeDeliveryThreshold || 499;
     let activeFilters = {
       price:    [],   // e.g. ['Under ₹500', '₹500 – ₹1,000']
       brands:   [],   // e.g. ['Samsung', 'Apple']
@@ -714,6 +748,17 @@
           results_count: totalProducts,
           source:        "homepage"
         });
+      }
+
+      // ── Apply RC sort button active state ──
+      if (window._rcListingSortDefault) {
+        document.querySelectorAll('.sort-btn').forEach(function(btn) {
+          btn.classList.remove('active');
+        });
+        var activeBtn = document.querySelector(
+          `.sort-btn[onclick*="'${window._rcListingSortDefault}'"]`
+        );
+        if (activeBtn) activeBtn.classList.add('active');
       }
     }
 
@@ -835,7 +880,7 @@
             </div>
             <ul class="prod-highlights">${highlightHTML}</ul>
             <div class="prod-tags">${tagHTML}</div>
-            <div class="prod-delivery">Delivery by <strong>Tomorrow, Free</strong> with Bazario Prime</div>
+            <div class="prod-delivery">Delivery by <strong>${p.price >= FREE_DELIVERY_THRESHOLD ? 'Tomorrow, Free' : 'Tomorrow, ₹40'}</strong> with Bazario Prime</div>
           </div>
           <div class="prod-actions">
             <div class="prod-price-block">

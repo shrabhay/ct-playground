@@ -251,6 +251,8 @@
       .form-row { grid-template-columns: 1fr; }
       .form-row.three { grid-template-columns: 1fr 1fr; }
     }
+
+    .rc-hidden { display: none !important; }
   </style>
 </head>
 <body>
@@ -739,6 +741,45 @@
         localStorage.removeItem('bazario_exit_coupon');
         applyExitCoupon(exitCoupon);
       }
+
+      // ── Apply RC values ──
+      (function applyCheckoutRC() {
+        try {
+          var currentUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+          if (!currentUser || !currentUser.email) return;
+          var wzrkPE = localStorage.getItem('WZRK_PE_' + currentUser.email);
+          if (!wzrkPE) return;
+          var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+          // 1. COD enabled
+          if (vars['Bazario.Checkout.checkout_cod_enabled'] === false) {
+            var codOption = document.getElementById('pm-cod');
+            if (codOption) codOption.classList.add('rc-hidden');
+          }
+
+          // 2. COD fee
+          if (vars['Bazario.Checkout.checkout_cod_fee'] !== undefined) {
+            var codFeeEl = document.querySelector('.cod-fee');
+            if (codFeeEl) codFeeEl.textContent = '⚠️ ₹' + vars['Bazario.Checkout.checkout_cod_fee'] + ' COD handling charge applies to this order';
+          }
+
+          // 3. Trust badges
+          if (vars['Bazario.Checkout.checkout_show_trust_badges'] === false) {
+            var navSecure = document.querySelector('.nav-secure');
+            if (navSecure) navSecure.classList.add('rc-hidden');
+          }
+
+          // 4. Free delivery threshold
+          if (vars['Bazario.Checkout.checkout_free_delivery_threshold'] !== undefined) {
+            window._checkoutFreeDeliveryThreshold = vars['Bazario.Checkout.checkout_free_delivery_threshold'];
+          }
+
+          renderSummary();
+
+        } catch(e) {
+          console.warn('RC checkout apply failed:', e);
+        }
+      })();
     }
 
     // ─── AUTO-APPLY EXIT INTENT COUPON ───────────────────────────────────────────
@@ -831,7 +872,9 @@
       const mrp        = cartItems.reduce((s, i) => s + ((i.originalPrice || i.price) * i.qty), 0);
       const total      = getCartTotal();
       const discount   = mrp - total;
-      const grand      = total + 49;
+      var deliveryThreshold = window._checkoutFreeDeliveryThreshold || 499;
+      var deliveryCharge    = total >= deliveryThreshold ? 0 : 40;
+      const grand           = total + 49; // 49 is packaging fee, delivery handled separately
 
       document.getElementById('summaryItemCount').textContent = totalItems;
       document.getElementById('summaryMRP').textContent       = `₹${mrp.toLocaleString('en-IN')}`;
@@ -840,8 +883,10 @@
       document.getElementById('summarySavings').textContent   = `You will save ₹${discount.toLocaleString('en-IN')} on this order`;
       document.getElementById('reviewTotal').textContent      = `₹${grand.toLocaleString('en-IN')}`;
 
-      if (total >= 499) {
+      var deliveryThreshold = window._checkoutFreeDeliveryThreshold || 499;
+      if (total >= deliveryThreshold) {
         document.getElementById('summaryDelivery').textContent = 'FREE';
+        document.getElementById('summaryDelivery').style.color = 'var(--success)';
       } else {
         document.getElementById('summaryDelivery').textContent = '₹40';
         document.getElementById('summaryDelivery').style.color = 'var(--text)';
