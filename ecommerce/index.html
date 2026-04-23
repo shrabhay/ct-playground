@@ -850,6 +850,16 @@
           });
         }
 
+        // show_prime_banner
+        if (vars['Bazario.Homepage.show_prime_banner'] !== undefined) {
+          window._rcShowPrimeBanner = vars['Bazario.Homepage.show_prime_banner'];
+        }
+
+        // prime_banner_text
+        if (vars['Bazario.Homepage.prime_banner_text']) {
+          window._rcPrimeBannerText = vars['Bazario.Homepage.prime_banner_text'];
+        }
+
       } catch(e) {
         console.warn('RC pre-render check failed:', e);
       }
@@ -1022,7 +1032,39 @@
           </div>
         </div><!-- /default-hero-carousel -->
 
-      <!-- CATEGORIES -->
+      <!-- Prime Upsell Strip — controlled by RC -->
+      <div id="prime-upsell-strip" style="
+        background: linear-gradient(135deg, #1a237e, #1565c0);
+        border-radius: 8px;
+        padding: 14px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 0 12px 0;
+        cursor: pointer;
+        "
+        onclick="window.location.href='account.html?section=prime'">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:22px;">⚡</span>
+          <span id="prime-strip-text" style="color:#fff;font-size:14px;font-weight:600;">
+            Unlock free delivery on every order — Join Prime at ₹999/year
+          </span>
+        </div>
+        <div style="
+          background:#ff6f00;
+          color:#fff;
+          font-size:12px;
+          font-weight:700;
+          padding:8px 16px;
+          border-radius:6px;
+          white-space:nowrap;
+          flex-shrink:0;
+          margin-left:16px;">
+          Join Prime →
+        </div>
+      </div>
+      
+        <!-- CATEGORIES -->
       <div class="section section-card">
         <h2 class="section-title">Shop by <span>Category</span></h2>
         <div class="categories-grid">
@@ -1486,11 +1528,36 @@
       startCarousel();
     }
 
-    // ── Init ──
+    // ── Prime strip visibility ──
+    function applyPrimeStrip() {
+      var strip = document.getElementById('prime-upsell-strip');
+      if (!strip) return;
+
+      // Hide for Prime members
+      var user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      if (user && user.isPrime) {
+        strip.style.display = 'none';
+        return;
+      }
+
+      // Apply RC show_prime_banner
+      if (window._rcShowPrimeBanner === false) {
+        strip.style.display = 'none';
+        return;
+      }
+
+      // Apply RC prime_banner_text
+      if (window._rcPrimeBannerText) {
+        var textEl = document.getElementById('prime-strip-text');
+        if (textEl) textEl.textContent = window._rcPrimeBannerText;
+      }
+    }
+
     // ── Init ──
     goToSlide(0);
     startTimer();
     startCarousel();
+    applyPrimeStrip();
 
     // ── Fire Category Viewed for last viewed category ──
     // This triggers CT Native Display KV pair campaign on homepage
