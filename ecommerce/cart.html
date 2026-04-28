@@ -170,7 +170,10 @@
         window._rcCart = {
           couponEnabled:         vars['Bazario.Cart.cart_coupon_enabled'],
           freeDeliveryThreshold: vars['Bazario.Cart.cart_free_delivery_threshold'],
-          showSavingsSummary:    vars['Bazario.Cart.cart_show_savings_summary']
+          showSavingsSummary:    vars['Bazario.Cart.cart_show_savings_summary'],
+          showRecommended:       vars['Bazario.Cart.cart_show_recommended'],
+          promoText:             vars['Bazario.Cart.cart_promo_text'],
+          primeUpsellEnabled:    vars['Bazario.Cart.cart_prime_upsell_enabled']
         };
 
       } catch(e) {
@@ -238,61 +241,135 @@
     <div class="container">
       <div class="cart-layout">
 
-        <!-- CART ITEMS -->
-        <div class="cart-main" id="cartMain"></div>
+        <!-- LEFT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <!-- CART ITEMS -->
+          <div class="cart-main" id="cartMain"></div>
 
-        <!-- ORDER SUMMARY -->
-        <div class="order-summary">
-          <div class="summary-header">Price Details</div>
-          <div class="summary-body">
-            <div class="summary-row">
-              <span class="label">Price (<span id="itemCount">0</span> items)</span>
-              <span class="value" id="summaryMRP">₹0</span>
+          <!-- Recommended Section — controlled by RC -->
+          <div id="cart-recommended" style="display:none;">
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:12px;">
+              🛍️ You Might Also Like
             </div>
-            <div class="summary-row">
-              <span class="label">Discount</span>
-              <span class="value discount" id="summaryDiscount">−₹0</span>
-            </div>
-            <div class="summary-row">
-              <span class="label">Delivery Charges</span>
-              <span class="value free" id="summaryDelivery">FREE</span>
-            </div>
-            <div class="summary-row">
-              <span class="label">Secured Packaging Fee</span>
-              <span class="value">₹49</span>
-            </div>
-            <hr class="summary-divider" />
-            <div class="summary-total">
-              <span>Total Amount</span>
-              <span id="summaryTotal">₹0</span>
-            </div>
-          </div>
-          <div class="summary-body" style="padding-top:0">
-            <div class="summary-savings" id="summarySavings">You will save ₹0 on this order</div>
-            <button class="btn-checkout" id="checkoutBtn" onclick="handleCheckout()">Place Order</button>
-            <div class="secure-note">🔒 Safe and Secure Payments. Easy Returns.</div>
-          </div>
-
-          <div class="coupon-section">
-            <div class="coupon-title">🏷️ Apply Coupon</div>
-            <div class="coupon-row">
-              <input type="text" placeholder="Enter coupon code" id="couponInput" />
-              <button class="btn-apply" onclick="applyCoupon()">Apply</button>
-            </div>
-          </div>
-
-          <div class="payment-icons">
-            <div class="payment-title">100% SECURE PAYMENTS</div>
-            <div class="payment-methods">
-              <span class="payment-chip">💳 Visa</span>
-              <span class="payment-chip">💳 Mastercard</span>
-              <span class="payment-chip">🏦 Net Banking</span>
-              <span class="payment-chip">📱 UPI</span>
-              <span class="payment-chip">💰 COD</span>
-              <span class="payment-chip">🏛️ EMI</span>
+            <div id="cart-recommended-grid" style="
+              display:grid;
+              grid-template-columns:repeat(4,1fr);
+              gap:1px;
+              background:var(--border);
+              border-radius:4px;
+              overflow:hidden;">
             </div>
           </div>
         </div>
+
+        <!-- RIGHT COLUMN -->
+        <div style="display:flex;flex-direction:column;gap:8px;position:sticky;top:72px;align-self:start;">
+
+          <!-- Promo Strip — controlled by RC -->
+          <div id="cart-promo-strip" style="
+            display:none;
+            background:#e8f5e9;
+            border:1px solid #a5d6a7;
+            border-radius:4px;
+            padding:10px 16px;
+            font-size:13px;
+            font-weight:600;
+            color:#2e7d32;
+            text-align:center;">
+            🚚 Free delivery on orders above ₹499
+          </div>
+
+          <!-- Prime Upsell Card — controlled by RC, hidden for Prime members -->
+          <div id="cart-prime-upsell" style="display:none;
+            background:linear-gradient(135deg, #1a237e, #1565c0);
+            border-radius:4px;
+            padding:16px 20px;
+            color:#fff;">
+            <div style="font-size:14px;font-weight:700;margin-bottom:10px;">
+              ⚡ Upgrade to Bazario Prime
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">
+              <div style="font-size:12px;display:flex;align-items:center;gap:8px;">
+                <span>🚚</span><span>Free delivery on every order</span>
+              </div>
+              <div style="font-size:12px;display:flex;align-items:center;gap:8px;">
+                <span>🏷️</span><span>Exclusive member prices on 10,000+ products</span>
+              </div>
+              <div style="font-size:12px;display:flex;align-items:center;gap:8px;">
+                <span>⚡</span><span>Early access to all sales</span>
+              </div>
+              <div style="font-size:12px;display:flex;align-items:center;gap:8px;">
+                <span>↩️</span><span>Priority 24-hour returns</span>
+              </div>
+            </div>
+            <button onclick="window.location.href='account.html?section=prime'" style="
+              width:100%;
+              background:#ff6f00;
+              color:#fff;
+              border:none;
+              border-radius:4px;
+              padding:10px;
+              font-size:13px;
+              font-weight:700;
+              cursor:pointer;">
+              Join Prime at ₹999/year →
+            </button>
+          </div>
+
+          <!-- ORDER SUMMARY -->
+          <div class="order-summary" style="position:static;">
+            <div class="summary-header">Price Details</div>
+            <div class="summary-body">
+              <div class="summary-row">
+                <span class="label">Price (<span id="itemCount">0</span> items)</span>
+                <span class="value" id="summaryMRP">₹0</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Discount</span>
+                <span class="value discount" id="summaryDiscount">−₹0</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Delivery Charges</span>
+                <span class="value free" id="summaryDelivery">FREE</span>
+              </div>
+              <div class="summary-row">
+                <span class="label">Secured Packaging Fee</span>
+                <span class="value">₹49</span>
+              </div>
+              <hr class="summary-divider" />
+              <div class="summary-total">
+                <span>Total Amount</span>
+                <span id="summaryTotal">₹0</span>
+              </div>
+            </div>
+            <div class="summary-body" style="padding-top:0">
+              <div class="summary-savings" id="summarySavings">You will save ₹0 on this order</div>
+              <button class="btn-checkout" id="checkoutBtn" onclick="handleCheckout()">Place Order</button>
+              <div class="secure-note">🔒 Safe and Secure Payments. Easy Returns.</div>
+            </div>
+
+            <div class="coupon-section">
+              <div class="coupon-title">🏷️ Apply Coupon</div>
+              <div class="coupon-row">
+                <input type="text" placeholder="Enter coupon code" id="couponInput" />
+                <button class="btn-apply" onclick="applyCoupon()">Apply</button>
+              </div>
+            </div>
+
+            <div class="payment-icons">
+              <div class="payment-title">100% SECURE PAYMENTS</div>
+              <div class="payment-methods">
+                <span class="payment-chip">💳 Visa</span>
+                <span class="payment-chip">💳 Mastercard</span>
+                <span class="payment-chip">🏦 Net Banking</span>
+                <span class="payment-chip">📱 UPI</span>
+                <span class="payment-chip">💰 COD</span>
+                <span class="payment-chip">🏛️ EMI</span>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /right column -->
 
       </div>
     </div>
@@ -300,6 +377,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -370,6 +448,48 @@
           if (savingsSummary) savingsSummary.classList.add('rc-hidden');
         }
       }
+
+      // ── Apply RC values ──
+      (function applyCartRC() {
+        try {
+          var user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+          if (!user || !user.email) return;
+          var wzrkPE = localStorage.getItem('WZRK_PE_' + user.email);
+          if (!wzrkPE) return;
+          var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+          // 1. Promo strip
+          var promoStrip = document.getElementById('cart-promo-strip');
+          if (promoStrip) {
+            var promoText = vars['Bazario.Cart.cart_promo_text'] || 
+                            '🚚 Free delivery on orders above ₹499';
+            promoStrip.textContent = promoText;
+            promoStrip.style.display = 'block';
+          }
+
+          // 2. Prime upsell — only for non-Prime users
+          var primeUpsell = document.getElementById('cart-prime-upsell');
+          if (primeUpsell) {
+            var primeEnabled = vars['Bazario.Cart.cart_prime_upsell_enabled'] !== false;
+            if (primeEnabled && !user.isPrime) {
+              primeUpsell.style.display = 'block';
+            }
+          }
+
+          // 3. Recommended section
+          var recommended = document.getElementById('cart-recommended');
+          if (recommended) {
+            var showRecommended = vars['Bazario.Cart.cart_show_recommended'] !== false;
+            if (showRecommended && cartItems.length > 0) {
+              recommended.style.display = 'block';
+              renderRecommended();
+            }
+          }
+
+        } catch(e) {
+          console.warn('RC cart apply failed:', e);
+        }
+      })();
     }
 
     // ─── RENDER CART ───
@@ -608,6 +728,52 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ─── RENDER RECOMMENDED PRODUCTS ───
+    function renderRecommended() {
+      var grid = document.getElementById('cart-recommended-grid');
+      if (!grid) return;
+
+      // Get category from first cart item
+      var topCategory = cartItems.length > 0 ? cartItems[0].category : 'Electronics';
+
+      // Get products from same category, exclude items already in cart
+      var cartIds = cartItems.map(function(i) { return i.id; });
+      var categoryProducts = (catalogue[topCategory] || [])
+        .filter(function(p) { return !cartIds.includes(p.id); })
+        .slice(0, 4);
+
+      if (categoryProducts.length === 0) {
+        document.getElementById('cart-recommended').style.display = 'none';
+        return;
+      }
+
+      grid.innerHTML = categoryProducts.map(function(p) {
+        return `
+          <div style="background:var(--surface);padding:14px;cursor:pointer;
+            display:flex;flex-direction:column;gap:6px;"
+            onclick="handleProductClick(p)">
+            <div style="font-size:36px;text-align:center;padding:8px 0;">${p.emoji}</div>
+            <div style="font-size:12px;font-weight:500;color:var(--text);
+              display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+              overflow:hidden;line-height:1.4;">${p.name}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);">
+              ₹${p.price.toLocaleString('en-IN')}
+            </div>
+            <div style="font-size:11px;color:var(--success);font-weight:600;">
+              ${p.discount}% off
+            </div>
+          </div>`;
+      }).join('');
+
+      // Fix onclick — need to pass product object
+      var cards = grid.querySelectorAll('[onclick]');
+      categoryProducts.forEach(function(p, i) {
+        if (cards[i]) {
+          cards[i].onclick = function() { handleProductClick(p); };
+        }
+      });
     }
 
     init();

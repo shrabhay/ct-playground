@@ -397,6 +397,19 @@
     }
 
     .rc-hidden { display: none !important; }
+
+    .prime-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      background: linear-gradient(135deg, #1a237e, #1565c0);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+    }
   </style>
 
   <script>
@@ -421,6 +434,26 @@
         // listing_free_delivery_threshold
         if (vars['Bazario.Listing.listing_free_delivery_threshold']) {
           window._rcListingFreeDeliveryThreshold = vars['Bazario.Listing.listing_free_delivery_threshold'];
+        }
+
+        // listing_promo_banner_enabled
+        if (vars['Bazario.Listing.listing_promo_banner_enabled'] !== undefined) {
+          window._rcListingPromoBannerEnabled = vars['Bazario.Listing.listing_promo_banner_enabled'];
+        }
+
+        // listing_promo_text
+        if (vars['Bazario.Listing.listing_promo_text']) {
+          window._rcListingPromoText = vars['Bazario.Listing.listing_promo_text'];
+        }
+
+        // listing_promo_bg_color
+        if (vars['Bazario.Listing.listing_promo_bg_color']) {
+          window._rcListingPromoBgColor = vars['Bazario.Listing.listing_promo_bg_color'];
+        }
+
+        // listing_show_prime_badge
+        if (vars['Bazario.Listing.listing_show_prime_badge'] !== undefined) {
+          window._rcListingShowPrimeBadge = vars['Bazario.Listing.listing_show_prime_badge'];
         }
 
       } catch(e) {
@@ -594,6 +627,19 @@
             </div>
           </div>
 
+          <!-- Promo banner strip — controlled by RC -->
+          <div id="listing-promo-strip" style="display:none;
+            border-radius:6px;
+            padding:12px 20px;
+            margin-bottom:12px;
+            align-items:center;
+            justify-content:center;
+            font-size:13px;
+            font-weight:600;
+            color:#fff;">
+            <span id="listing-promo-text">🎉 Extra 10% off on orders above ₹999 — Use code BAZARIO10</span>
+          </div>
+          
           <!-- CT Native Display — category-specific offer banner -->
           <div id="ct-native-display-listing" style="margin-bottom:12px;"></div>
 
@@ -760,6 +806,25 @@
         );
         if (activeBtn) activeBtn.classList.add('active');
       }
+
+      // ── Apply RC promo strip ──
+      var promoStrip = document.getElementById('listing-promo-strip');
+      if (promoStrip) {
+        // Use RC value if available, otherwise use hardcoded default
+        var promoBannerEnabled = window._rcListingPromoBannerEnabled !== undefined 
+          ? window._rcListingPromoBannerEnabled : true;
+        var promoBgColor = window._rcListingPromoBgColor || '#1565c0';
+        var promoText = window._rcListingPromoText || 
+          '🎉 Extra 10% off on orders above ₹999 — Use code BAZARIO10';
+
+        if (promoBannerEnabled) {
+          promoStrip.style.display = 'flex';
+          promoStrip.style.background = promoBgColor;
+          document.getElementById('listing-promo-text').textContent = promoText;
+        } else {
+          promoStrip.style.display = 'none';
+        }
+      }
     }
 
     // ─── APPLY FILTERS, SORT, AND PAGINATE ───
@@ -865,7 +930,10 @@
       }
 
       products.forEach(p => {
-        const tagHTML       = p.tags.map(t => `<span class="prod-tag tag-${t}">${t === 'assured' ? '✓ Bazario Assured' : t === 'bestseller' ? '🏆 Bestseller' : '🆕 New'}</span>`).join('');
+        const tagHTML = p.tags.map(t => `<span class="prod-tag tag-${t}">${t === 'assured' ? '✓ Bazario Assured' : t === 'bestseller' ? '🏆 Bestseller' : '🆕 New'}</span>`).join('');
+        const primeBadgeHTML = window._rcListingShowPrimeBadge !== false 
+          ? '<span class="prime-badge">⚡ Prime</span>' 
+          : '';
         const highlightHTML = p.highlights.map(h => `<li>${h}</li>`).join('');
 
         const row = document.createElement('div');
@@ -879,7 +947,7 @@
               <span class="rating-count">(${p.reviews.toLocaleString('en-IN')})</span>
             </div>
             <ul class="prod-highlights">${highlightHTML}</ul>
-            <div class="prod-tags">${tagHTML}</div>
+            <div class="prod-tags">${tagHTML}${primeBadgeHTML}</div>
             <div class="prod-delivery">Delivery by <strong>${p.price >= FREE_DELIVERY_THRESHOLD ? 'Tomorrow, Free' : 'Tomorrow, ₹40'}</strong> with Bazario Prime</div>
           </div>
           <div class="prod-actions">

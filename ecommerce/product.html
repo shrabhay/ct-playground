@@ -592,7 +592,9 @@
           emiEnabled:          vars['Bazario.Product.pdp_emi_enabled'],
           ctaPrimaryText:      vars['Bazario.Product.pdp_cta_primary_text'],
           ctaSecondaryText:    vars['Bazario.Product.pdp_cta_secondary_text'],
-          ratingEnabled:       vars['Bazario.Product.pdp_rating_enabled']
+          ratingEnabled:       vars['Bazario.Product.pdp_rating_enabled'],
+          showUrgency:         vars['Bazario.Product.pdp_show_urgency'],
+          urgencyText:         vars['Bazario.Product.pdp_urgency_text']
         };
 
       } catch(e) {
@@ -807,6 +809,19 @@
           <button class="btn-buy-now" onclick="handleBuyNow()">
             ⚡ Buy Now
           </button>
+          <!-- Urgency message — controlled by RC -->
+          <div id="pdp-urgency-msg" style="
+            display:none;
+            background:#fff3e0;
+            border:1px solid #ff9800;
+            border-radius:4px;
+            padding:8px 12px;
+            font-size:12px;
+            font-weight:600;
+            color:#e65100;
+            text-align:center;">
+            ⚡ Only a few left in stock!
+          </div>
           <div class="protection-note">🔒 Safe and Secure Payments</div>
         </div>
 
@@ -953,6 +968,17 @@
         if (rc.ratingEnabled === false) {
           var ratingsSection = document.querySelector('.ratings-section');
           if (ratingsSection) ratingsSection.classList.add('rc-hidden');
+        }
+
+        // 8. urgency message
+        var urgencyMsg = document.getElementById('pdp-urgency-msg');
+        if (urgencyMsg) {
+          if (rc.showUrgency === true) {
+            urgencyMsg.style.display = 'block';
+            if (rc.urgencyText) urgencyMsg.textContent = '⚡ ' + rc.urgencyText;
+          } else {
+            urgencyMsg.style.display = 'none';
+          }
         }
       }
     }
