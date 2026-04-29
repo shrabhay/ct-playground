@@ -810,17 +810,25 @@
       // ── Apply RC promo strip ──
       var promoStrip = document.getElementById('listing-promo-strip');
       if (promoStrip) {
-        // Use RC value if available, otherwise use hardcoded default
-        var promoBannerEnabled = window._rcListingPromoBannerEnabled !== undefined 
+        var promoBannerEnabled = window._rcListingPromoBannerEnabled !== undefined
           ? window._rcListingPromoBannerEnabled : true;
         var promoBgColor = window._rcListingPromoBgColor || '#1565c0';
-        var promoText = window._rcListingPromoText || 
+        var promoText = window._rcListingPromoText ||
           '🎉 Extra 10% off on orders above ₹999 — Use code BAZARIO10';
 
         if (promoBannerEnabled) {
           promoStrip.style.display = 'flex';
           promoStrip.style.background = promoBgColor;
           document.getElementById('listing-promo-text').textContent = promoText;
+
+          // CT Event — Promo Banner Viewed
+          ctEvent("Promo Banner Viewed", {
+            page:       "listing",
+            category:   currentCategory,
+            promo_text: promoText,
+            vertical:   "bazario"
+          });
+
         } else {
           promoStrip.style.display = 'none';
         }
@@ -995,19 +1003,20 @@
     // ─── PRODUCT CLICK → goes to product.html ───
     function handleProductClick(product) {
       const params = new URLSearchParams({
-        id:         product.id,
-        name:       product.name,
-        category:   product.category,
-        price:      product.price,
-        original:   product.originalPrice,
-        discount:   product.discount,
-        brand:      product.brand,
-        rating:     product.rating,
-        reviews:    product.reviews,
-        emoji:      product.emoji,
-        highlights: product.highlights.join('|'),
-        tags:       product.tags.join(','),
-        source:     'listing_page'
+        id:              product.id,
+        name:            product.name,
+        category:        product.category,
+        price:           product.price,
+        original:        product.originalPrice,
+        discount:        product.discount,
+        brand:           product.brand,
+        rating:          product.rating,
+        reviews:         product.reviews,
+        emoji:           product.emoji,
+        highlights:      product.highlights.join('|'),
+        tags:            product.tags.join(','),
+        source:          'listing_page',
+        has_prime_badge: window._rcListingShowPrimeBadge !== false ? 'true' : 'false'
       });
       window.location.href = `product.html?${params.toString()}`;
     }

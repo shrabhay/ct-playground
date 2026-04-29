@@ -905,15 +905,17 @@
       // "listing_page" — clicked from listing.html
       // "pdp" — arrived directly or from related products
       ctEvent("Product Viewed", {
-        product_id:     product.id,
-        product_name:   product.name,
-        category:       product.category,
-        brand:          product.brand,
-        price:          product.price,
-        original_price: product.originalPrice,
-        discount_pct:   product.discount,
-        rating:         product.rating,
-        source:         pdpSource
+        product_id:      product.id,
+        product_name:    product.name,
+        category:        product.category,
+        brand:           product.brand,
+        price:           product.price,
+        original_price:  product.originalPrice,
+        discount_pct:    product.discount,
+        rating:          product.rating,
+        source:          pdpSource,
+        has_prime_badge: params.get('has_prime_badge') === 'true',
+        vertical:        "bazario"
       });
 
       // ── Store last viewed product for Native Display ──
@@ -976,6 +978,16 @@
           if (rc.showUrgency === true) {
             urgencyMsg.style.display = 'block';
             if (rc.urgencyText) urgencyMsg.textContent = '⚡ ' + rc.urgencyText;
+
+            // CT Event — Urgency Message Viewed
+            ctEvent("Urgency Message Viewed", {
+              product_id:   product.id,
+              product_name: product.name,
+              category:     product.category,
+              urgency_text: rc.urgencyText || 'Only a few left in stock!',
+              vertical:     "bazario"
+            });
+
           } else {
             urgencyMsg.style.display = 'none';
           }

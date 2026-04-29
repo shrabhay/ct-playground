@@ -417,6 +417,7 @@
             <div class="profile-nav-item"        data-section="addresses"    onclick="showSection('addresses',this)"><span class="nav-icon">📍</span> Manage Addresses</div>
             <div class="profile-nav-item"        data-section="preferences"  onclick="showSection('preferences',this)"><span class="nav-icon">⚙️</span> Preferences</div>
             <div class="profile-nav-item"        data-section="prime"        onclick="showSection('prime',this)"><span class="nav-icon">⚡</span> Prime Membership</div>
+            <div class="profile-nav-item" data-section="referral" onclick="showSection('referral',this)" id="referralNavItem" style="display:none"><span class="nav-icon">🎁</span> Refer & Earn</div>
           </nav>
           <div class="profile-logout">
             <button class="btn-logout" onclick="handleLogout()">Sign Out</button>
@@ -555,6 +556,84 @@
             </div>
           </div>
 
+          <!-- REFERRAL SECTION -->
+          <div class="profile-section" id="sectionReferral" style="display:none">
+            <div class="section-header">
+              <div class="section-title">Refer & Earn</div>
+            </div>
+
+            <div style="text-align:center;padding:16px 0 24px">
+              <div style="font-size:48px;margin-bottom:12px">🎁</div>
+              <div style="font-size:20px;font-weight:700;color:#1a1a2e;margin-bottom:8px">
+                Invite Friends & Earn Rewards
+              </div>
+              <div style="font-size:14px;color:#666;line-height:1.7;margin-bottom:24px">
+                Share your referral code with friends.<br/>
+                You earn ₹200 and they get ₹100 off their first order!
+              </div>
+
+              <!-- Referral Code Box -->
+              <div style="background:#f0fdf4;border:2px dashed #22c55e;border-radius:10px;padding:20px;margin-bottom:24px;">
+                <div style="font-size:11px;color:#666;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;">
+                  Your Referral Code
+                </div>
+                <div id="referralCode" style="font-size:28px;font-weight:700;color:#16a34a;letter-spacing:3px;">
+                  BAZARIO200
+                </div>
+                <button onclick="copyReferralCode()" style="
+                  margin-top:12px;
+                  background:none;
+                  border:1px solid #22c55e;
+                  color:#16a34a;
+                  font-size:13px;
+                  font-weight:600;
+                  padding:8px 20px;
+                  border-radius:6px;
+                  cursor:pointer;">
+                  📋 Copy Code
+                </button>
+              </div>
+
+              <!-- How it works -->
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px;text-align:left;">
+                <div style="background:#f8f9ff;border-radius:8px;padding:16px;">
+                  <div style="font-size:24px;margin-bottom:8px;">📤</div>
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Share Code</div>
+                  <div style="font-size:12px;color:#666;">Send your code to friends via WhatsApp, SMS or Email</div>
+                </div>
+                <div style="background:#f8f9ff;border-radius:8px;padding:16px;">
+                  <div style="font-size:24px;margin-bottom:8px;">🛒</div>
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Friend Orders</div>
+                  <div style="font-size:12px;color:#666;">They place their first order using your referral code</div>
+                </div>
+                <div style="background:#f8f9ff;border-radius:8px;padding:16px;">
+                  <div style="font-size:24px;margin-bottom:8px;">💰</div>
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;margin-bottom:4px;">Earn Rewards</div>
+                  <div style="font-size:12px;color:#666;">You get ₹200 credited to your Bazario wallet</div>
+                </div>
+              </div>
+
+              <!-- Share buttons -->
+              <div style="display:flex;gap:10px;justify-content:center;">
+                <button onclick="shareReferral('whatsapp')" style="
+                  background:#25d366;color:#fff;border:none;border-radius:8px;
+                  padding:12px 20px;font-size:13px;font-weight:700;cursor:pointer;">
+                  📱 WhatsApp
+                </button>
+                <button onclick="shareReferral('email')" style="
+                  background:#ea4335;color:#fff;border:none;border-radius:8px;
+                  padding:12px 20px;font-size:13px;font-weight:700;cursor:pointer;">
+                  📧 Email
+                </button>
+                <button onclick="shareReferral('copy')" style="
+                  background:#1565c0;color:#fff;border:none;border-radius:8px;
+                  padding:12px 20px;font-size:13px;font-weight:700;cursor:pointer;">
+                  🔗 Copy Link
+                </button>
+              </div>
+            </div>
+          </div>
+          
           <!-- PRIME MEMBERSHIP -->
           <div class="profile-section" id="sectionPrime" style="display:none">
             <div class="section-header">
@@ -1099,6 +1178,9 @@
         ? `₹${totalSavings.toLocaleString('en-IN')}`
         : '₹0';
       
+      // Apply RC referral section
+      applyReferralRC();
+
       // Show correct Prime state based on isPrime
       if (currentUser.isPrime) {
         document.getElementById('primeUpgradeState').style.display = 'none';
@@ -1319,7 +1401,7 @@
     function showSection(section, navEl) {
       document.querySelectorAll('.profile-nav-item').forEach(i => i.classList.remove('active'));
       if (navEl) navEl.classList.add('active');
-      const sections = ['overview','orders','personal','addresses','preferences', 'prime'];
+      const sections = ['overview','orders','personal','addresses','preferences','prime','referral'];
       sections.forEach(s => {
         document.getElementById(`section${s.charAt(0).toUpperCase()+s.slice(1)}`).style.display =
           s === section ? 'block' : 'none';
@@ -1574,6 +1656,81 @@
       t.textContent = msg;
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // ─── REFERRAL FUNCTIONS ───────────────────────────────────────────────────────
+    function generateReferralCode(user) {
+      // Generate code from user's name + random 3 digits
+      var name = (user.name || 'BAZARIO').split(' ')[0].toUpperCase().substring(0, 6);
+      var num  = Math.floor(Math.random() * 900) + 100;
+      return name + num;
+    }
+
+    function copyReferralCode() {
+      var code = document.getElementById('referralCode').textContent;
+      navigator.clipboard.writeText(code).then(function() {
+        showToast('✅ Referral code copied!');
+        ctEvent("Referral Code Copied", {
+          referral_code: code,
+          vertical:      "bazario"
+        });
+      });
+    }
+
+    function shareReferral(method) {
+      var code = document.getElementById('referralCode').textContent;
+      var msg  = 'Use my Bazario referral code ' + code + ' and get ₹100 off your first order!';
+
+      ctEvent("Referral Shared", {
+        referral_code: code,
+        method:        method,
+        vertical:      "bazario"
+      });
+
+      if (method === 'whatsapp') {
+        window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank');
+      } else if (method === 'email') {
+        window.open('mailto:?subject=Join Bazario!&body=' + encodeURIComponent(msg), '_blank');
+      } else {
+        navigator.clipboard.writeText(msg).then(function() {
+          showToast('✅ Referral link copied!');
+        });
+      }
+    }
+
+    // ── Apply RC referral section ──
+    function applyReferralRC() {
+      try {
+        var user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+        if (!user || !user.email) return;
+        var wzrkPE = localStorage.getItem('WZRK_PE_' + user.email);
+        if (!wzrkPE) return;
+        var vars = JSON.parse(decodeURIComponent(wzrkPE));
+
+        var showReferral = vars['Bazario.Account.account_show_referral_section'] === true;
+        var navItem = document.getElementById('referralNavItem');
+
+        if (showReferral && navItem) {
+          navItem.style.display = 'flex';
+
+          // Set personalised referral code
+          var code = generateReferralCode(user);
+          var codeEl = document.getElementById('referralCode');
+          if (codeEl) codeEl.textContent = code;
+
+          // CT Event — Referral Section Viewed (only when user navigates to it)
+          navItem.onclick = function() {
+            showSection('referral', navItem);
+            ctEvent("Referral Section Viewed", {
+              referral_code: code,
+              vertical:      "bazario"
+            });
+          };
+        }
+
+      } catch(e) {
+        console.warn('RC referral apply failed:', e);
+      }
     }
 
     init();

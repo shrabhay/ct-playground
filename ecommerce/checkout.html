@@ -558,6 +558,25 @@
                   </div>
                 </div>
 
+                <!-- Express Delivery — controlled by RC -->
+                <div id="express-delivery-option" style="display:none;
+                  background:#fff8e1;
+                  border:1px solid #ffe082;
+                  border-radius:4px;
+                  padding:14px 16px;
+                  margin-bottom:8px;">
+                  <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <div style="display:flex;align-items:center;gap:10px;">
+                      <span style="font-size:22px;">⚡</span>
+                      <div>
+                        <div style="font-size:13px;font-weight:700;color:#1a1a2e;">Express Delivery</div>
+                        <div style="font-size:12px;color:#666;margin-top:2px;">Get it within 2 hours</div>
+                      </div>
+                    </div>
+                    <div style="font-size:13px;font-weight:700;color:#e65100;">₹99</div>
+                  </div>
+                </div>
+                
                 <!-- Cash on Delivery -->
                 <div class="payment-method" id="pm-cod" onclick="selectPayment('cod')">
                   <div class="payment-method-header">
@@ -624,10 +643,25 @@
           </div>
 
         </div><!-- /checkout-left -->
-
+        
         <!-- RIGHT: ORDER SUMMARY -->
-        <div>
-          <div class="order-summary">
+        <div style="display:flex;flex-direction:column;gap:8px;position:sticky;top:72px;align-self:start;">
+
+          <!-- Promo Strip — controlled by RC -->
+          <div id="checkout-promo-strip" style="
+            display:none;
+            background:#e3f2fd;
+            border:1px solid #90caf9;
+            border-radius:4px;
+            padding:10px 16px;
+            font-size:13px;
+            font-weight:600;
+            color:#1565c0;
+            text-align:center;">
+            🔒 100% Secure Payments — Your data is protected
+          </div>
+
+          <div class="order-summary" style="position:static;">
             <div class="summary-header">
               Order Summary
               <button class="summary-edit" onclick="window.location.href='cart.html'">← Edit Cart</button>
@@ -772,6 +806,38 @@
           // 4. Free delivery threshold
           if (vars['Bazario.Checkout.checkout_free_delivery_threshold'] !== undefined) {
             window._checkoutFreeDeliveryThreshold = vars['Bazario.Checkout.checkout_free_delivery_threshold'];
+          }
+
+          // 5. Promo strip
+          var checkoutPromoStrip = document.getElementById('checkout-promo-strip');
+          if (checkoutPromoStrip) {
+            var checkoutPromoText = vars['Bazario.Checkout.checkout_promo_text'] ||
+                                    '🔒 100% Secure Payments — Your data is protected';
+            checkoutPromoStrip.textContent = checkoutPromoText;
+            checkoutPromoStrip.style.display = 'block';
+
+            // CT Event — Promo Banner Viewed
+            ctEvent("Promo Banner Viewed", {
+              page:       "checkout",
+              promo_text: checkoutPromoText,
+              vertical:   "bazario"
+            });
+          }
+
+          // 6. Express delivery
+          var expressOption = document.getElementById('express-delivery-option');
+          if (expressOption) {
+            var expressEnabled = vars['Bazario.Checkout.checkout_express_enabled'] === true;
+            if (expressEnabled) {
+              expressOption.style.display = 'block';
+
+              // CT Event — Express Delivery Viewed
+              ctEvent("Express Delivery Viewed", {
+                page:     "checkout",
+                fee:      99,
+                vertical: "bazario"
+              });
+            }
           }
 
           renderSummary();

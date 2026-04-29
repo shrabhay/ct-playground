@@ -1551,6 +1551,25 @@
         var textEl = document.getElementById('prime-strip-text');
         if (textEl) textEl.textContent = window._rcPrimeBannerText;
       }
+
+      // CT Event — Prime Banner Viewed
+      ctEvent("Prime Banner Viewed", {
+        page:        "homepage",
+        banner_text: window._rcPrimeBannerText || 
+                    "Unlock free delivery on every order — Join Prime at ₹999/year",
+        vertical:    "bazario"
+      });
+
+      // CT Event — Prime Banner Clicked
+      strip.onclick = function() {
+        ctEvent("Prime Banner Clicked", {
+          page:        "homepage",
+          banner_text: window._rcPrimeBannerText || 
+                      "Unlock free delivery on every order — Join Prime at ₹999/year",
+          vertical:    "bazario"
+        });
+        window.location.href = 'account.html?section=prime';
+      };
     }
 
     // ── Init ──

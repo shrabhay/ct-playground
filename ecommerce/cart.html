@@ -461,10 +461,17 @@
           // 1. Promo strip
           var promoStrip = document.getElementById('cart-promo-strip');
           if (promoStrip) {
-            var promoText = vars['Bazario.Cart.cart_promo_text'] || 
+            var promoText = vars['Bazario.Cart.cart_promo_text'] ||
                             '🚚 Free delivery on orders above ₹499';
             promoStrip.textContent = promoText;
             promoStrip.style.display = 'block';
+
+            // CT Event — Promo Banner Viewed
+            ctEvent("Promo Banner Viewed", {
+              page:       "cart",
+              promo_text: promoText,
+              vertical:   "bazario"
+            });
           }
 
           // 2. Prime upsell — only for non-Prime users
@@ -473,6 +480,36 @@
             var primeEnabled = vars['Bazario.Cart.cart_prime_upsell_enabled'] !== false;
             if (primeEnabled && !user.isPrime) {
               primeUpsell.style.display = 'block';
+
+              // CT Event — Prime Upsell Viewed
+              ctEvent("Prime Upsell Viewed", {
+                page:     "cart",
+                vertical: "bazario"
+              });
+
+              // CT Profile — Last Prime Upsell Seen
+              clevertap.profile.push({
+                "Site": {
+                  "Last Prime Upsell Seen": "cart"
+                }
+              });
+
+              // CT Event — Prime Upsell Clicked
+              var joinBtn = primeUpsell.querySelector('button');
+              if (joinBtn) {
+                joinBtn.onclick = function() {
+                  ctEvent("Prime Upsell Clicked", {
+                    page:     "cart",
+                    vertical: "bazario"
+                  });
+                  clevertap.profile.push({
+                    "Site": {
+                      "Last Prime Upsell Clicked": "cart"
+                    }
+                  });
+                  window.location.href = 'account.html?section=prime';
+                };
+              }
             }
           }
 
@@ -483,6 +520,14 @@
             if (showRecommended && cartItems.length > 0) {
               recommended.style.display = 'block';
               renderRecommended();
+
+              // CT Event — Recommendations Viewed
+              ctEvent("Recommendations Viewed", {
+                page:       "cart",
+                category:   cartItems[0].category,
+                item_count: 4,
+                vertical:   "bazario"
+              });
             }
           }
 
@@ -767,11 +812,23 @@
           </div>`;
       }).join('');
 
-      // Fix onclick — need to pass product object
+      // Fix onclick — fire CT event + navigate to product
       var cards = grid.querySelectorAll('[onclick]');
       categoryProducts.forEach(function(p, i) {
         if (cards[i]) {
-          cards[i].onclick = function() { handleProductClick(p); };
+          cards[i].onclick = function(p) {
+            return function() {
+              ctEvent("Recommendation Clicked", {
+                product_id:   p.id,
+                product_name: p.name,
+                category:     p.category,
+                price:        p.price,
+                page:         "cart",
+                vertical:     "bazario"
+              });
+              handleProductClick(p);
+            };
+          }(categoryProducts[i]);
         }
       });
     }
