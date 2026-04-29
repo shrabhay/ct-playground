@@ -151,7 +151,6 @@ function ctIdentifyUser(user) {
       "Gender":       user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
       "DOB":          user.dob ? new Date(user.dob) : undefined,
       "City":         user.city   || '',
-      "Is Prime":     user.isPrime || false,
       "Joined At":    user.joinedAt || new Date().toISOString(),
       "Vertical":     "Bazario",
       "Vertical Type":"Ecommerce"
