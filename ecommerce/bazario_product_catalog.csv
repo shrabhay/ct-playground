@@ -1,0 +1,86 @@
+Identity,Name,ImageURL,Category,Brand,Price,Original_Price,Discount_Pct,Rating,Tags
+E001,Samsung Galaxy M14 5G — 4GB/64GB Blue,https://placehold.co/150x150/0d47a1/ffffff?text=Samsung%0AGalaxy+M14&font=poppins,Electronics,Samsung,10999,14999,27,4.2,assured
+E002,Apple iPhone 13 — 128GB Midnight,https://placehold.co/150x150/0d47a1/ffffff?text=Apple%0AiPhone+13&font=poppins,Electronics,Apple,49999,79900,37,4.7,assured
+E003,OnePlus Nord CE3 Lite 5G — 8GB/128GB Pastel Lime,https://placehold.co/150x150/0d47a1/ffffff?text=OnePlus%0ANord+CE3&font=poppins,Electronics,OnePlus,17999,19999,10,4.3,new
+E004,boAt Rockerz 450 Bluetooth Wireless Headphone,https://placehold.co/150x150/0d47a1/ffffff?text=boAt%0ARockerz+450&font=poppins,Electronics,boAt,999,3990,75,4.1,bestseller
+E005,MI 10000mAh Lithium Polymer Power Bank,https://placehold.co/150x150/0d47a1/ffffff?text=MI%0APower+Bank&font=poppins,Electronics,Xiaomi,849,1499,43,4.3,bestseller
+E006,"Samsung 55"" Crystal 4K UHD Smart TV",https://placehold.co/150x150/0d47a1/ffffff?text=Samsung%0A55%22+4K+TV&font=poppins,Electronics,Samsung,42990,74900,43,4.4,assured
+E007,Canon EOS 1500D 24.1MP DSLR Camera,https://placehold.co/150x150/0d47a1/ffffff?text=Canon%0AEOS+1500D&font=poppins,Electronics,Canon,34990,44995,22,4.6,assured
+E008,HP 15s Core i5 12th Gen Laptop — 8GB/512GB SSD,https://placehold.co/150x150/0d47a1/ffffff?text=HP%0A15s+Laptop&font=poppins,Electronics,HP,49990,67000,25,4.4,assured
+E009,Logitech MK215 Wireless Keyboard and Mouse Combo,https://placehold.co/150x150/0d47a1/ffffff?text=Logitech%0AMK215&font=poppins,Electronics,Logitech,999,1795,44,4.3,bestseller
+E010,Sony WH-1000XM5 Wireless Noise Cancelling Headphones,https://placehold.co/150x150/0d47a1/ffffff?text=Sony%0AWH-1000XM5&font=poppins,Electronics,Sony,24990,34990,29,4.7,assured
+E011,Apple AirPods Pro (2nd Gen) with MagSafe Case,https://placehold.co/150x150/0d47a1/ffffff?text=Apple%0AAirPods+Pro&font=poppins,Electronics,Apple,19900,26900,26,4.7,assured
+E012,Samsung 970 EVO Plus 500GB NVMe M.2 SSD,https://placehold.co/150x150/0d47a1/ffffff?text=Samsung%0A970+EVO+SSD&font=poppins,Electronics,Samsung,4999,8999,44,4.6,assured
+E013,GoPro HERO11 Black Action Camera,https://placehold.co/150x150/0d47a1/ffffff?text=GoPro%0AHERO11&font=poppins,Electronics,GoPro,34990,44990,22,4.5,new
+E014,Anker 65W GaN Fast Charger USB-C,https://placehold.co/150x150/0d47a1/ffffff?text=Anker%0A65W+Charger&font=poppins,Electronics,Anker,1999,3499,43,4.5,bestseller
+E015,JBL Flip 6 Portable Bluetooth Speaker — Blue,https://placehold.co/150x150/0d47a1/ffffff?text=JBL%0AFlip+6&font=poppins,Electronics,JBL,9999,13999,29,4.5,assured
+F001,Levi's 511 Slim Fit Men Jeans — Light Blue,https://placehold.co/150x150/880e4f/ffffff?text=Levi%27s%0A511+Jeans&font=poppins,Fashion,Levi's,2399,3999,40,4.4,assured
+F002,Allen Solly Men Slim Fit Formal Shirt — White,https://placehold.co/150x150/880e4f/ffffff?text=Allen+Solly%0AFormal+Shirt&font=poppins,Fashion,Allen Solly,899,1799,50,4.2,bestseller
+F003,Nike Air Max 270 Running Shoes for Men,https://placehold.co/150x150/880e4f/ffffff?text=Nike%0AAir+Max+270&font=poppins,Fashion,Nike,6995,11995,42,4.5,new
+F004,W Women Floral Printed Kurta — Teal,https://placehold.co/150x150/880e4f/ffffff?text=W+Women%0AFloral+Kurta&font=poppins,Fashion,W,899,1599,44,4.3,bestseller
+F005,Peter England Men Regular Fit Chinos,https://placehold.co/150x150/880e4f/ffffff?text=Peter+England%0AChinos&font=poppins,Fashion,Peter England,1199,2499,52,4.1,assured
+F006,Wildcraft 33L Rucksack Backpack — Teal,https://placehold.co/150x150/880e4f/ffffff?text=Wildcraft%0A33L+Backpack&font=poppins,Fashion,Wildcraft,1299,2299,43,4.2,bestseller
+F007,Fossil Gen 6 Smartwatch — Brown Leather,https://placehold.co/150x150/880e4f/ffffff?text=Fossil%0AGen+6+Watch&font=poppins,Fashion,Fossil,14995,22995,35,4.5,new
+F008,Fastrack Analog Watch — Black Dial,https://placehold.co/150x150/880e4f/ffffff?text=Fastrack%0AAnalog+Watch&font=poppins,Fashion,Fastrack,1295,2295,44,4.2,bestseller
+F009,Baggit Women PU Tote Bag — Tan Brown,https://placehold.co/150x150/880e4f/ffffff?text=Baggit%0ATote+Bag&font=poppins,Fashion,Baggit,1499,2999,50,4.3,assured
+F010,Woodland Men Leather Casual Shoes — Camel,https://placehold.co/150x150/880e4f/ffffff?text=Woodland%0ALeather+Shoes&font=poppins,Fashion,Woodland,3299,5499,40,4.4,assured
+G001,Tata Salt Iodised — 1kg Pack of 6,https://placehold.co/150x150/1b5e20/ffffff?text=Tata+Salt%0A1kg+x6&font=poppins,Grocery,Tata,162,180,10,4.6,bestseller
+G002,Aashirvaad Atta Whole Wheat — 10kg,https://placehold.co/150x150/1b5e20/ffffff?text=Aashirvaad%0AAtta+10kg&font=poppins,Grocery,Aashirvaad,379,430,12,4.5,assured
+G003,Amul Butter Pasteurised — 500g,https://placehold.co/150x150/1b5e20/ffffff?text=Amul%0AButter+500g&font=poppins,Grocery,Amul,265,285,7,4.7,bestseller
+G004,Nescafe Classic Instant Coffee — 200g,https://placehold.co/150x150/1b5e20/ffffff?text=Nescafe%0AClassic+200g&font=poppins,Grocery,Nescafe,499,620,20,4.5,bestseller
+G005,Fortune Sunflower Oil — 5L,https://placehold.co/150x150/1b5e20/ffffff?text=Fortune%0ASunflower+5L&font=poppins,Grocery,Fortune,689,799,14,4.4,assured
+G006,Tata Tea Premium — 500g,https://placehold.co/150x150/1b5e20/ffffff?text=Tata+Tea%0APremium+500g&font=poppins,Grocery,Tata Tea,249,285,13,4.5,bestseller
+G007,Maggi 2-Minute Masala Noodles — Pack of 12,https://placehold.co/150x150/1b5e20/ffffff?text=Maggi%0ANoodles+x12&font=poppins,Grocery,Maggi,156,180,13,4.5,bestseller
+G008,Dabur Honey — 500g,https://placehold.co/150x150/1b5e20/ffffff?text=Dabur%0AHoney+500g&font=poppins,Grocery,Dabur,199,250,20,4.4,assured
+G009,Himalaya Chyavanprash — 1kg,https://placehold.co/150x150/1b5e20/ffffff?text=Himalaya%0AChyavanprash&font=poppins,Grocery,Himalaya,299,395,24,4.4,new
+G010,Haldirams Bhujia Sev — 1kg,https://placehold.co/150x150/1b5e20/ffffff?text=Haldirams%0ABhujia+1kg&font=poppins,Grocery,Haldirams,299,350,15,4.5,bestseller
+H001,Wakefit Orthopedic Memory Foam Mattress — Queen 6 inch,https://placehold.co/150x150/e65100/ffffff?text=Wakefit%0AMattress&font=poppins,Home & Furniture,Wakefit,12999,22999,43,4.5,assured
+H002,Amazon Basics Microfiber Pillow — Pack of 2,https://placehold.co/150x150/e65100/ffffff?text=Amazon+Basics%0APillow+x2&font=poppins,Home & Furniture,Amazon Basics,599,999,40,4.3,bestseller
+H003,Cello Checkers Plastic Dining Chair — Set of 4,https://placehold.co/150x150/e65100/ffffff?text=Cello%0ADining+Chair&font=poppins,Home & Furniture,Cello,3999,6999,43,4.2,bestseller
+H004,Philips 9W LED Bulb — Pack of 10,https://placehold.co/150x150/e65100/ffffff?text=Philips%0ALED+Bulb+x10&font=poppins,Home & Furniture,Philips,399,650,39,4.6,bestseller
+H005,Solimo 700 Thread Count Cotton Bedsheet — Double,https://placehold.co/150x150/e65100/ffffff?text=Solimo%0ABedsheet&font=poppins,Home & Furniture,Solimo,899,1799,50,4.3,new
+H006,Pigeon Plastic Foldable Dining Table,https://placehold.co/150x150/e65100/ffffff?text=Pigeon%0ADining+Table&font=poppins,Home & Furniture,Pigeon,2999,5999,50,4.1,bestseller
+H007,Godrej Interio Slimline 2-Door Steel Almirah,https://placehold.co/150x150/e65100/ffffff?text=Godrej%0ASteel+Almirah&font=poppins,Home & Furniture,Godrej,8999,12999,31,4.4,assured
+H008,Story@Home Blackout Curtain — 5ft Pack of 2,https://placehold.co/150x150/e65100/ffffff?text=Story@Home%0ACurtain+x2&font=poppins,Home & Furniture,Story@Home,799,1499,47,4.2,bestseller
+H009,Borosil Vision Glass Set — 350ml Pack of 6,https://placehold.co/150x150/e65100/ffffff?text=Borosil%0AGlass+Set&font=poppins,Home & Furniture,Borosil,399,599,33,4.6,assured
+H010,Milton Thermosteel Flip Lid Flask — 1 Litre,https://placehold.co/150x150/e65100/ffffff?text=Milton%0AThermosteel&font=poppins,Home & Furniture,Milton,699,1199,42,4.5,bestseller
+A001,LG 8kg 5 Star Inverter Fully-Automatic Washing Machine,https://placehold.co/150x150/263238/ffffff?text=LG%0AWashing+Machine&font=poppins,Appliances,LG,34990,49990,30,4.5,assured
+A002,Prestige Iris 750W Mixer Grinder with 3 Jars,https://placehold.co/150x150/263238/ffffff?text=Prestige%0AMixer+Grinder&font=poppins,Appliances,Prestige,1795,3495,49,4.4,bestseller
+A003,Voltas 1.5 Ton 5 Star Inverter Split AC,https://placehold.co/150x150/263238/ffffff?text=Voltas%0A1.5+Ton+AC&font=poppins,Appliances,Voltas,38990,55000,29,4.3,assured
+A004,Philips HL7777 600W Mixer Grinder,https://placehold.co/150x150/263238/ffffff?text=Philips%0AHL7777+Mixer&font=poppins,Appliances,Philips,2499,4995,50,4.4,bestseller
+A005,Bajaj Majesty 1000W Dry Iron,https://placehold.co/150x150/263238/ffffff?text=Bajaj%0ADry+Iron&font=poppins,Appliances,Bajaj,499,850,41,4.3,bestseller
+A006,Havells 1200mm Ceiling Fan — Bianco,https://placehold.co/150x150/263238/ffffff?text=Havells%0ACeiling+Fan&font=poppins,Appliances,Havells,2799,4199,33,4.4,assured
+A007,Orient Areva 1200W Hair Dryer,https://placehold.co/150x150/263238/ffffff?text=Orient%0AHair+Dryer&font=poppins,Appliances,Orient,799,1299,38,4.2,new
+A008,Crompton Arno Neo 15L Water Heater,https://placehold.co/150x150/263238/ffffff?text=Crompton%0AWater+Heater&font=poppins,Appliances,Crompton,6499,9999,35,4.4,assured
+A009,Eureka Forbes Aquaguard Marvel RO+UV Water Purifier,https://placehold.co/150x150/263238/ffffff?text=Eureka+Forbes%0AAquaguard&font=poppins,Appliances,Eureka Forbes,14999,22000,32,4.3,assured
+A010,Godrej 184L 3 Star Direct-Cool Refrigerator,https://placehold.co/150x150/263238/ffffff?text=Godrej%0ARefrigerator&font=poppins,Appliances,Godrej,13990,19990,30,4.3,assured
+B001,Lakmé Eyeconic Kajal — Black,https://placehold.co/150x150/4a148c/ffffff?text=Lakme%0AEyeconic+Kajal&font=poppins,Beauty,Lakmé,149,199,25,4.5,bestseller
+B002,L'Oreal Paris Elvive Shampoo — 650ml,https://placehold.co/150x150/4a148c/ffffff?text=L%27Oreal%0AElvive+Shampoo&font=poppins,Beauty,L'Oreal,399,599,33,4.3,assured
+B003,Mamaearth Onion Hair Mask — 200ml,https://placehold.co/150x150/4a148c/ffffff?text=Mamaearth%0AHair+Mask&font=poppins,Beauty,Mamaearth,349,499,30,4.3,new
+B004,Nykaa SkinShield Anti-Pollution Matte Foundation,https://placehold.co/150x150/4a148c/ffffff?text=Nykaa%0AFoundation&font=poppins,Beauty,Nykaa,549,799,31,4.2,bestseller
+B005,Forest Essentials Facial Tonic Mist Rose Water — 100ml,https://placehold.co/150x150/4a148c/ffffff?text=Forest+Essentials%0ARose+Water&font=poppins,Beauty,Forest Essentials,695,950,27,4.6,assured
+B006,Dove Body Lotion Deeply Nourishing — 400ml,https://placehold.co/150x150/4a148c/ffffff?text=Dove%0ABody+Lotion&font=poppins,Beauty,Dove,249,349,29,4.4,bestseller
+B007,MCaffeine Coffee Face Scrub — 100g,https://placehold.co/150x150/4a148c/ffffff?text=MCaffeine%0AFace+Scrub&font=poppins,Beauty,MCaffeine,349,499,30,4.3,new
+B008,Biotique Bio Kelp Protein Shampoo — 340ml,https://placehold.co/150x150/4a148c/ffffff?text=Biotique%0AKelp+Shampoo&font=poppins,Beauty,Biotique,175,250,30,4.3,bestseller
+B009,Plum Grape Seed & Sea Buckthorn Sunscreen SPF 50,https://placehold.co/150x150/4a148c/ffffff?text=Plum%0ASunscreen+SPF50&font=poppins,Beauty,Plum,395,595,34,4.4,new
+B010,Lakme Absolute Matte Revolution Lip Color — Ruby Red,https://placehold.co/150x150/4a148c/ffffff?text=Lakme%0ALip+Color&font=poppins,Beauty,Lakmé,599,799,25,4.3,bestseller
+S001,Nivia Football Storm — Size 5,https://placehold.co/150x150/004d40/ffffff?text=Nivia%0AFootball&font=poppins,Sports,Nivia,599,999,40,4.3,bestseller
+S002,Yonex Voltric 1DG Badminton Racket,https://placehold.co/150x150/004d40/ffffff?text=Yonex%0AVoltric+1DG&font=poppins,Sports,Yonex,2499,3999,38,4.5,assured
+S003,Cosco Cricket Bat — Kashmir Willow Full Size,https://placehold.co/150x150/004d40/ffffff?text=Cosco%0ACricket+Bat&font=poppins,Sports,Cosco,899,1499,40,4.1,bestseller
+S004,Domyos Fitness Mat — 8mm Thickness,https://placehold.co/150x150/004d40/ffffff?text=Domyos%0AFitness+Mat&font=poppins,Sports,Domyos,799,1299,38,4.4,bestseller
+S005,Skullcandy Jib True Wireless Earbuds — Sports,https://placehold.co/150x150/004d40/ffffff?text=Skullcandy%0AJib+Earbuds&font=poppins,Sports,Skullcandy,1999,3999,50,4.1,new
+S006,Boldfit Gym Gloves with Wrist Support,https://placehold.co/150x150/004d40/ffffff?text=Boldfit%0AGym+Gloves&font=poppins,Sports,Boldfit,349,699,50,4.2,bestseller
+S007,Nivia Marathon Running Shoes — Men,https://placehold.co/150x150/004d40/ffffff?text=Nivia%0ARunning+Shoes&font=poppins,Sports,Nivia,1499,2999,50,4.1,new
+S008,SG Cricket Helmet — Colorful,https://placehold.co/150x150/004d40/ffffff?text=SG%0ACricket+Helmet&font=poppins,Sports,SG,1299,1999,35,4.3,assured
+S009,Strauss Adjustable Dumbbell Set — 20kg,https://placehold.co/150x150/004d40/ffffff?text=Strauss%0ADumbbell+20kg&font=poppins,Sports,Strauss,2999,4999,40,4.3,bestseller
+S010,Reebok Men Cardio Motion Training Shoes,https://placehold.co/150x150/004d40/ffffff?text=Reebok%0ATraining+Shoes&font=poppins,Sports,Reebok,2499,4999,50,4.2,assured
+BK001,Atomic Habits — James Clear,https://placehold.co/150x150/bf360c/ffffff?text=Atomic%0AHabits&font=poppins,Books,James Clear,399,699,43,4.8,bestseller
+BK002,The Psychology of Money — Morgan Housel,https://placehold.co/150x150/bf360c/ffffff?text=Psychology%0Aof+Money&font=poppins,Books,Morgan Housel,349,499,30,4.7,bestseller
+BK003,Rich Dad Poor Dad — Robert Kiyosaki,https://placehold.co/150x150/bf360c/ffffff?text=Rich+Dad%0APoor+Dad&font=poppins,Books,Robert Kiyosaki,299,395,24,4.6,bestseller
+BK004,The Alchemist — Paulo Coelho,https://placehold.co/150x150/bf360c/ffffff?text=The%0AAlchemist&font=poppins,Books,Paulo Coelho,199,299,33,4.7,bestseller
+BK005,Ikigai — Hector Garcia & Francesc Miralles,https://placehold.co/150x150/bf360c/ffffff?text=Ikigai&font=poppins,Books,Hector Garcia,199,350,43,4.5,bestseller
+BK006,Wings of Fire — APJ Abdul Kalam,https://placehold.co/150x150/bf360c/ffffff?text=Wings%0Aof+Fire&font=poppins,Books,APJ Abdul Kalam,149,295,49,4.8,bestseller
+BK007,The 5 AM Club — Robin Sharma,https://placehold.co/150x150/bf360c/ffffff?text=The+5+AM%0AClub&font=poppins,Books,Robin Sharma,349,499,30,4.5,bestseller
+BK008,Zero to One — Peter Thiel,https://placehold.co/150x150/bf360c/ffffff?text=Zero%0Ato+One&font=poppins,Books,Peter Thiel,349,499,30,4.6,bestseller
+BK009,Deep Work — Cal Newport,https://placehold.co/150x150/bf360c/ffffff?text=Deep%0AWork&font=poppins,Books,Cal Newport,399,599,33,4.6,new
+BK010,Class 10 Mathematics NCERT Textbook,https://placehold.co/150x150/bf360c/ffffff?text=NCERT%0AMaths+10&font=poppins,Books,NCERT,75,85,12,4.7,bestseller

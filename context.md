@@ -528,6 +528,45 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 
 ---
 
+## PHASE 6 STATUS — CT Channel Integration
+
+### ✅ Completed Channels
+1. Web Pop-ups (4 campaigns: Welcome Offer, Cart Abandonment, Re-engagement, High Value Upsell)
+2. Exit Intent (3 campaigns: Cart, Checkout with auto-discount, Product with auto add-to-cart)
+3. Native Display (31 campaigns across Homepage/Listing/Product/Confirmation pages, KV pair approach)
+4. Product Experiences — RC (43 variables, Phase A + Phase B fully complete across all pages)
+
+### 🔄 In Progress — Channel 5: Recommendations
+- Bazario product catalog uploaded to CT (85 products, 8 categories)
+- Catalog mapped to Product Viewed + Added to Cart events
+- Two recommendations created and published:
+  - Bazario - Similar Products (based on Product Viewed, 30 days)
+  - Bazario - Frequently Added Together (based on Added to Cart, 30 days)
+- Added recommendation divs to product.html and cart.html:
+  - product.html: #ct-native-display-recommendations-product
+  - cart.html: #ct-native-display-recommendations-cart
+- NEXT STEP: Create CT Native Display campaigns using recommendation content
+  - Campaign 1: [Bazario] ND Rec — Similar Products → product.html
+  - Campaign 2: [Bazario] ND Rec — Frequently Added Together → cart.html
+  - Need to create 3 recommendation blocks per campaign in CT
+  - Share liquid tags screenshot → get HTML from Claude → publish
+
+### 🔲 Remaining Channels
+6. Catalogs
+7. Web Push
+8. Web Inbox
+9. Bulletins
+10. demo.html Channel Demos section (Phase B)
+
+### Key Technical Decisions Made
+- Native Display uses KV pair approach (not Custom HTML) for category banners
+- RC uses WZRK_PE_${email} per-user localStorage pattern
+- isPrime sync fix: syncPrimeFromCT awaited BEFORE ctIdentifyUser in completeLogin
+- postMessage handler in auth.js is fully payload-driven
+- clevertap.js uses new SDK from jsdelivr CDN with enablePersonalization: true
+
+---
+
 ## IMPORTANT NOTES FOR CLAUDE
 
 1. Always refer back to architectural decisions above — don't suggest approaches that conflict with them
