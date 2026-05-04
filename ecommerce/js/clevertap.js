@@ -179,6 +179,31 @@ function ctEvent(eventName, properties) {
   }
 }
 
+// =============================================================================
+// WEB PUSH — Permission Prompt
+// Triggered on page load. CT auto-throttles — won't re-ask if rejected
+// within the last 7 days. Soft Prompt (Card Popup) must be enabled in
+// CT Dashboard → Settings → Channels → Web Push → Soft Prompt.
+// Only runs on HTTPS (Netlify) — silently skips on localhost.
+// =============================================================================
+
+(function() {
+  if (location.protocol !== 'https:') return;
+
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      clevertap.notifications.push({
+        "titleText":            "Stay in the loop! 🛍️",
+        "bodyText":             "Get notified about deals, order updates and offers personalised for you",
+        "okButtonText":         "Yes, notify me!",
+        "rejectButtonText":     "Maybe later",
+        "okButtonColor":        "#2874f0",
+        "askAgainTimeInSeconds": 5
+      });
+    }, 3000);
+  });
+})();
+
 // ─── Auto-identify on page load ─────────────────────────────────────────────
 // If a user is already logged in (persisted in localStorage), push their
 // identity to CT on every page load. This ensures CT always knows who the
