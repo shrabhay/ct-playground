@@ -72,10 +72,52 @@ function refreshRCForUser() {
   });
 }
 
+// ─── CT Web Inbox — Bell Icon Trigger ───
+function initInboxTrigger() {
+  var navActions = document.querySelector('.nav-actions');
+  if (!navActions) return;
+  if (document.getElementById('bz-inbox-trigger')) return; // already added
+
+  var bell = document.createElement('button');
+  bell.id        = 'bz-inbox-trigger';
+  bell.className = 'nav-btn';
+  bell.setAttribute('style',
+    'position:relative;background:none;' +
+    'border:none;border-radius:4px;' +
+    'cursor:pointer;padding:6px 14px;'  
+  );
+  bell.innerHTML =
+    '<span style="font-size:11px;color:rgba(255,255,255,0.8);">Inbox</span>' +
+    '<span style="font-size:13px;font-weight:600;color:#fff;">🔔' +
+      '<span id="bz-inbox-unread" style="' +
+        'display:none;position:absolute;top:4px;right:8px;' +
+        'background:#ff6161;color:#fff;font-size:9px;font-weight:700;' +
+        'border-radius:50%;width:14px;height:14px;' +
+        'align-items:center;justify-content:center;' +
+      '">0</span>' +
+    '</span>';
+
+  // Insert before the Demo button (last child)
+  navActions.insertBefore(bell, navActions.lastElementChild);
+
+  // Update unread badge after a short delay for SDK to load
+  setTimeout(function() {
+    try {
+      var unread = clevertap.getInboxMessageUnreadCount() || 0;
+      var badge  = document.getElementById('bz-inbox-unread');
+      if (badge && unread > 0) {
+        badge.textContent        = unread > 9 ? '9+' : unread;
+        badge.style.display      = 'inline-flex';
+      }
+    } catch(e) {}
+  }, 3000);
+}
+
 function initSharedNav() {
   initAuthNav();
   initWishlistCount();
   initCartCount();
+  initInboxTrigger();
   refreshRCForUser();
   applyGlobalRC();
 }
