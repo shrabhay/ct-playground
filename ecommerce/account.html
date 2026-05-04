@@ -1066,7 +1066,13 @@
       // Step 4 — Sync RC values
       syncRCForUser(currentUser.email);
 
-      // Step 5 — Existing post-login logic
+      // Step 5 — Persist user to localStorage
+      localStorage.setItem('bazario_user', JSON.stringify(currentUser));
+      if (currentUser.email) {
+        localStorage.setItem(`bazario_profile_${currentUser.email}`, JSON.stringify(currentUser));
+      }
+
+      // Step 6 — Existing post-login logic
       showToast(`Welcome back, ${currentUser.name.split(' ')[0]}! 👋`);
       mergeGuestCart(currentUser.email);
       mergeGuestWishlist(currentUser.email);
