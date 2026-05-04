@@ -184,6 +184,7 @@ ct-playground/
 ### 🔲 Phase 12 — Foodtech Vertical
 ### 🔲 Phase 13 — Vertical Selector Homepage Upgrade
 ### 🔲 Phase 14 — Custom Domain
+- Set up custom domain → also enables Email channel integration (ESP + verified sending domain + DNS records)
 
 ---
 
@@ -580,3 +581,4 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 9. All date properties in CT must use $D_EPOCH format
 10. Always check if a change affects multiple pages/files and flag them all upfront
 11. Conversation management — Use the SAME conversation throughout a phase. Start a NEW conversation only when moving to a new phase.
+12. Email channel — Skip for now. Revisit email as a CT channel in Phase 14 when custom domain is set up. Requires verified sending domain (e.g. noreply@bazario.com), DNS records (SPF, DKIM, DMARC), and ESP integration (recommend SendGrid free tier or Amazon SES). CT itself doesn't charge per email — ESP cost is negligible.
