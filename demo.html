@@ -397,6 +397,26 @@
     .stub-banner .stub-desc  { font-size: 12px; color: var(--text-muted); max-width: 400px; line-height: 1.6; }
     .stub-banner .stub-tag   { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--warning); background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); padding: 3px 10px; border-radius: 4px; }
 
+    /* ─── SECTION 3: CHANNEL DEMOS ─── */
+    .sdk-tab-btn {
+      padding: 6px 13px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-sec);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .sdk-tab-btn:hover { background: var(--border); color: var(--text); }
+    .sdk-tab-active {
+      background: color-mix(in srgb, var(--v-primary) 12%, transparent) !important;
+      border-color: color-mix(in srgb, var(--v-primary) 30%, transparent) !important;
+      color: var(--v-primary) !important;
+    }
+
     /* ─── SECTION 1: EVENT FIRING ─── */
     .event-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
@@ -989,23 +1009,22 @@
       <!-- Navigation -->
       <div class="sidebar-section">
         <div class="sidebar-label">Demo Sections</div>
-        <div class="nav-item active" onclick="scrollTo('s1')">
+        <div class="nav-item active" onclick="scrollToSection('s1')">
           <span class="nav-icon">⚡</span> Live Event Firing
         </div>
-        <div class="nav-item" onclick="scrollTo('s2')">
+        <div class="nav-item" onclick="scrollToSection('s2')">
           <span class="nav-icon">👤</span> Profile Manager
         </div>
-        <div class="nav-item" onclick="scrollTo('s3')">
+        <div class="nav-item" onclick="scrollToSection('s3')">
           <span class="nav-icon">📡</span> Channel Demos
-          <span class="nav-stub">Phase 6</span>
         </div>
-        <div class="nav-item" onclick="scrollTo('s4')">
+        <div class="nav-item" onclick="scrollToSection('s4')">
           <span class="nav-icon">🔄</span> Data Flow
         </div>
-        <div class="nav-item" onclick="scrollTo('s5')">
+        <div class="nav-item" onclick="scrollToSection('s5')">
           <span class="nav-icon">🏗️</span> External Integrations
         </div>
-        <div class="nav-item" onclick="scrollTo('s6')">
+        <div class="nav-item" onclick="scrollToSection('s6')">
           <span class="nav-icon">🎯</span> Segment Preview
           <span class="nav-stub">Phase 5</span>
         </div>
@@ -1244,27 +1263,175 @@
         </div>
       </div>
 
-      <!-- ── SECTION 3: CHANNEL DEMOS (STUB) ── -->
+      <!-- ── SECTION 3: CHANNEL DEMOS ── -->
       <div class="section-card" id="s3">
         <div class="section-header">
           <div class="section-title">
             <div class="icon">📡</div>
             Channel Demos
           </div>
-          <span style="font-size:11px;background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.2);padding:3px 10px;border-radius:4px;font-weight:700">Phase 6</span>
+          <div style="font-size:12px;color:var(--text-muted)">Bazario · 9 channels · Web vertical</div>
         </div>
-        <div class="section-body">
-          <div class="stub-banner">
-            <div class="stub-icon">📡</div>
-            <div class="stub-title">Channel demos coming in Phase 6</div>
-            <div class="stub-desc">
-              Web Push, Pop-ups, Exit Intent, Native Display, Web Inbox, Bulletins,
-              Product Experiences, Recommendations and Catalogs will all be
-              triggerable from here once channel integration is complete.
+        <div class="section-body" style="display:flex;flex-direction:column;gap:24px">
+
+          <!-- ── GROUP 1: SDK CHANNELS ── -->
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-sec)">SDK Channels</div>
+              <div style="flex:1;height:1px;background:var(--border)"></div>
             </div>
-            <span class="stub-tag">Coming Soon</span>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+              Fire automatically when users act on the Bazario site — open the page and perform the trigger action
+            </div>
+
+            <!-- Tab pills -->
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+              <button class="sdk-tab-btn sdk-tab-active" onclick="showSDKChannel('webpopups',this)">🪟 Web Pop-ups</button>
+              <button class="sdk-tab-btn" onclick="showSDKChannel('exitintent',this)">🚪 Exit Intent</button>
+              <button class="sdk-tab-btn" onclick="showSDKChannel('nativedisplay',this)">📌 Native Display</button>
+              <button class="sdk-tab-btn" onclick="showSDKChannel('productexp',this)">🔬 Product Exp.</button>
+              <!-- <button class="sdk-tab-btn" onclick="showSDKChannel('recommendations',this)">⭐ Recommendations</button> -->
+              <button class="sdk-tab-btn" onclick="showSDKChannel('webinbox',this)">📥 Web Inbox</button>
+            </div>
+
+            <!-- SDK channel panels — rendered by JS -->
+            <div id="sdk-panel-webpopups"     class="sdk-panel"></div>
+            <div id="sdk-panel-exitintent"     class="sdk-panel" style="display:none"></div>
+            <div id="sdk-panel-nativedisplay"  class="sdk-panel" style="display:none"></div>
+            <div id="sdk-panel-productexp"     class="sdk-panel" style="display:none"></div>
+            <div id="sdk-panel-recommendations" class="sdk-panel" style="display:none"></div>
+            <div id="sdk-panel-webinbox"       class="sdk-panel" style="display:none"></div>
           </div>
-        </div>
+
+          <!-- ── GROUP 2: API CHANNELS ── -->
+          <div>
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+              <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-sec)">API Channels</div>
+              <div style="flex:1;height:1px;background:var(--border)"></div>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px">
+              Triggered from your backend via CT API — fire live from this console
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
+
+              <!-- Web Push -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+                  <span style="font-size:22px">🔔</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text)">Web Push</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Fire a real notification to a specific subscribed user</div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">To (Email)</label>
+                  <input type="email" class="form-input" id="wpEmail" placeholder="user@bazario-user.com">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Title</label>
+                  <input type="text" class="form-input" id="wpTitle" value="Bazario: Flash Sale Live! 🔥">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Message</label>
+                  <input type="text" class="form-input" id="wpBody" value="Up to 50% off — limited time only!">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Redirect URL</label>
+                  <input type="text" class="form-input" id="wpLink" value="https://ctplayground.netlify.app/ecommerce/index.html">
+                </div>
+                <button id="wpBtn" onclick="fireChannelWebPush()" class="btn-fire-api" style="width:100%;margin-top:4px">⚡ Fire Web Push</button>
+                <div id="wpStatus" style="font-size:11px;text-align:center;min-height:14px;color:var(--text-muted)"></div>
+              </div>
+
+              <!-- Bulletins -->
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px">
+                <div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+                  <span style="font-size:22px">📢</span>
+                  <div>
+                    <div style="font-size:13px;font-weight:700;color:var(--text)">Bulletins</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Fire a business event → CT auto-delivers to interested users</div>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Business Event</label>
+                  <select class="form-input" id="blEvent" onchange="updateBulletinForm()" style="cursor:pointer">
+                    <option value="flash_sale">Flash Sale Started</option>
+                    <option value="back_in_stock">Product Back in Stock</option>
+                    <option value="new_collection">New Collection Added</option>
+                  </select>
+                </div>
+
+                <!-- Flash Sale inputs -->
+                <div id="bl-flash-sale" style="display:flex;flex-direction:column;gap:8px">
+                  <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-input" id="blFsCategory" style="cursor:pointer">
+                      <option>Electronics</option><option>Fashion</option><option>Grocery</option>
+                      <option>Home &amp; Furniture</option><option>Appliances</option>
+                      <option>Beauty</option><option>Sports</option><option>Books</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Discount %</label>
+                    <input type="number" class="form-input" id="blFsDiscount" value="30" min="5" max="90">
+                  </div>
+                </div>
+
+                <!-- Back in Stock inputs -->
+                <div id="bl-back-in-stock" style="display:none;flex-direction:column;gap:8px">
+                  <div class="form-group">
+                    <label class="form-label">Product</label>
+                    <select class="form-input" id="blBisProduct" style="cursor:pointer">
+                      <option value="E002||Apple iPhone 13 128GB||Electronics">Apple iPhone 13 (Electronics)</option>
+                      <option value="E004||boAt Rockerz 450||Electronics">boAt Rockerz 450 (Electronics)</option>
+                      <option value="F003||Nike Air Max 270||Fashion">Nike Air Max 270 (Fashion)</option>
+                      <option value="G002||Aashirvaad Atta 10kg||Grocery">Aashirvaad Atta (Grocery)</option>
+                      <option value="H001||Wakefit Memory Foam Mattress||Home & Furniture">Wakefit Mattress (Home &amp; Furniture)</option>
+                      <option value="A003||Voltas 1.5 Ton Split AC||Appliances">Voltas AC (Appliances)</option>
+                      <option value="B002||L'Oreal Paris Elvive Shampoo||Beauty">L'Oreal Shampoo (Beauty)</option>
+                      <option value="S002||Yonex Voltric 1DG Racket||Sports">Yonex Badminton Racket (Sports)</option>
+                      <option value="BK001||Atomic Habits||Books">Atomic Habits (Books)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- New Collection inputs -->
+                <div id="bl-new-collection" style="display:none;flex-direction:column;gap:8px">
+                  <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select class="form-input" id="blNcCategory" style="cursor:pointer">
+                      <option>Electronics</option><option>Fashion</option><option>Grocery</option>
+                      <option>Home &amp; Furniture</option><option>Appliances</option>
+                      <option>Beauty</option><option>Sports</option><option>Books</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Collection Name</label>
+                    <input type="text" class="form-input" id="blNcName" placeholder="e.g. Summer Sale 2025">
+                  </div>
+                </div>
+
+                <button id="blBtn" onclick="fireChannelBulletin()" class="btn-fire-api" style="width:100%;margin-top:4px">⚡ Fire Bulletin</button>
+                <div id="blStatus" style="font-size:11px;text-align:center;min-height:14px;color:var(--text-muted)"></div>
+              </div>
+
+            </div><!-- end api grid -->
+
+            <!-- External Trigger — Phase 14 -->
+            <div style="margin-top:12px;background:var(--surface2);border:1px dashed var(--border2);border-radius:10px;padding:14px 18px;display:flex;align-items:center;gap:12px;opacity:0.65">
+              <span style="font-size:22px">🔗</span>
+              <div>
+                <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text)">
+                  External Trigger
+                  <span style="font-size:10px;font-weight:700;background:rgba(245,158,11,0.15);color:var(--warning);border:1px solid rgba(245,158,11,0.3);padding:2px 7px;border-radius:4px">Phase 14</span>
+                </div>
+                <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Trigger a campaign for a specific user via CT API — available once Email channel is configured with a custom sending domain</div>
+              </div>
+            </div>
+
+          </div><!-- end group 2 -->
+        </div><!-- end section-body -->
       </div>
 
       <!-- ── SECTION 4: DATA FLOW VISUALISER ── -->
@@ -2423,6 +2590,367 @@
     }
 
     // ═══════════════════════════════════════════════════════════
+    // SECTION 3 — CHANNEL DEMOS
+    // ═══════════════════════════════════════════════════════════
+
+    const SITE = 'https://ctplayground.netlify.app/ecommerce';
+
+    const SDK_CHANNELS = {
+      webpopups: {
+        icon: '🪟', name: 'Web Pop-ups',
+        desc: 'Appears as an overlay triggered by user actions on the page',
+        campaigns: [
+          {
+            name: 'Welcome Offer',
+            trigger: 'User Signed Up',
+            page: 'account.html',
+            desc: '10% off welcome coupon displayed immediately after account creation — captures the highest-intent moment in the user journey.'
+          },
+          {
+            name: 'Cart Abandonment',
+            trigger: 'Added to Cart → 60 min inaction (no purchase)',
+            page: 'cart.html',
+            desc: 'Shown after 60 minutes of cart inactivity — nudges the user to complete their purchase with urgency messaging.'
+          },
+          {
+            name: 'Re-engagement',
+            trigger: 'Home Page Viewed · Dormant Users (30+ days inactive)',
+            page: 'index.html',
+            desc: 'Welcome-back popup for dormant users returning to the site — personalised offer to re-activate lapsed customers.'
+          },
+          {
+            name: 'High Value Upsell',
+            trigger: 'Product Viewed (price > ₹10,000) · High Value Segment',
+            page: 'product.html',
+            desc: 'Shown when a high-value user views a premium product — promotes EMI options or exclusive member pricing to drive conversion.'
+          }
+        ]
+      },
+      exitintent: {
+        icon: '🚪', name: 'Exit Intent',
+        desc: 'Fires when the user\'s cursor moves toward closing the tab',
+        trigger_note: '💡 How to trigger: open the page, then move your cursor quickly to the very top of the browser window',
+        campaigns: [
+          {
+            name: 'Cart Exit Recovery',
+            trigger: 'Exit intent · Cart page · Items in cart',
+            page: 'cart.html',
+            desc: 'Last-chance offer before the user abandons a filled cart — creates urgency with a time-sensitive deal.'
+          },
+          {
+            name: 'Checkout Exit with Auto-Discount',
+            trigger: 'Exit intent · Checkout page',
+            page: 'checkout.html',
+            desc: 'Intercepts near-complete purchases — auto-applies a discount code and shows the savings to recover the sale at the final step.'
+          },
+          {
+            name: 'Product Exit with Auto Add-to-Cart',
+            trigger: 'Exit intent · Product page',
+            page: 'product.html',
+            desc: 'Catches hesitant users on a product page — auto-adds the product to cart and redirects to checkout in one action.'
+          }
+        ]
+      },
+      nativedisplay: {
+        icon: '📌', name: 'Native Display',
+        desc: 'Renders personalised content within the page itself — fully integrated, no overlay',
+        campaigns: [
+          {
+            name: 'Homepage Banners (5 category variants)',
+            trigger: 'Home Page Viewed',
+            page: 'index.html',
+            desc: 'Hero section banners personalised by browsing history — different creative for Electronics, Fashion, Beauty, Sports and Grocery users.'
+          },
+          {
+            name: 'Listing Page Banners (7 category variants)',
+            trigger: 'Category Viewed',
+            page: 'listing.html',
+            desc: 'Promotional strip at the top of listing pages — dynamically matches the category currently being browsed.'
+          },
+          {
+            name: 'Product Page Banners (7 category variants)',
+            trigger: 'Product Viewed',
+            page: 'product.html',
+            desc: 'Contextual banner below product detail — category-specific offers, loyalty messaging or deal alerts.'
+          },
+          {
+            name: 'Confirmation Page Banners (7 category variants)',
+            trigger: 'Order Confirmed',
+            page: 'confirmation.html',
+            desc: 'Post-purchase cross-sell banner — surfaces complementary category deals immediately after an order is placed.'
+          },
+          {
+            name: 'Similar Products (Recommendations)',
+            trigger: 'Product Viewed',
+            page: 'product.html',
+            desc: '"Bazario - Similar Products" recommendation model — 3 co-viewed products rendered via Native Display KV pair campaign.'
+          },
+          {
+            name: 'Frequently Added Together (Recommendations)',
+            trigger: 'Cart Viewed',
+            page: 'cart.html',
+            desc: '"Bazario - Frequently Added Together" model — 3 products commonly carted together, personalised per the user\'s cart contents.'
+          }
+        ]
+      },
+      productexp: {
+        icon: '🔬', name: 'Product Experiences',
+        desc: 'Remote Config variables that personalise UI, copy and business logic per user segment — no app release needed',
+        campaigns: [
+          {
+            name: 'Phase A — UI & Content (25 RC variables)',
+            trigger: 'Page load · All pages',
+            page: 'index.html',
+            desc: 'Controls hero text, banner gradients, CTA button labels, Prime badge visibility and promotional messaging — different per archetype (High Value, Regular, Dormant).'
+          },
+          {
+            name: 'Phase B — Business Logic (18 RC variables)',
+            trigger: 'Page load · All pages',
+            page: 'cart.html',
+            desc: 'Controls free shipping threshold, active coupon codes, default sort order on listing pages and cart-level conversion nudges — drives revenue through dynamic logic.'
+          }
+        ]
+      },
+      recommendations: {
+        icon: '⭐', name: 'Recommendations',
+        desc: 'CT Recommendation engine — surfaces the right products to the right user, powered by co-occurrence behaviour',
+        campaigns: [
+          {
+            name: 'Similar Products',
+            trigger: 'Product Viewed',
+            page: 'product.html',
+            desc: 'Recommendation strip below product detail — 3 products viewed by similar users, delivered via "Bazario - Similar Products" Native Display campaign.'
+          },
+          {
+            name: 'Frequently Added Together',
+            trigger: 'Cart Viewed',
+            page: 'cart.html',
+            desc: 'Recommendation strip in the cart — 3 products commonly carted together, delivered via "Bazario - Frequently Added Together" Native Display campaign.'
+          }
+        ]
+      },
+      webinbox: {
+        icon: '📥', name: 'Web Inbox',
+        desc: 'Persistent notification inbox — accessible via the 🔔 bell icon in the Bazario navbar on all pages',
+        trigger_note: '💡 How to view: click the 🔔 bell icon in the top navbar on any Bazario page',
+        campaigns: [
+          {
+            name: 'Featured Deal of the Day',
+            trigger: 'Home Page Viewed',
+            page: 'index.html',
+            desc: 'Delivered to the user\'s inbox on homepage visit — personalised deal offer based on their preferred category profile property.'
+          },
+          {
+            name: 'Category Deal Alert',
+            trigger: 'Category Viewed',
+            page: 'listing.html',
+            desc: 'Contextual offer delivered when a user browses any listing page — uses liquid tag personalisation to match the browsed category.'
+          }
+        ]
+      }
+    };
+
+    function initChannelDemos() {
+      // Render all SDK channel panels from data
+      Object.keys(SDK_CHANNELS).forEach(id => renderSDKPanel(id));
+      // Pre-fill Web Push email from current logged-in user
+      try {
+        const u = JSON.parse(localStorage.getItem('bazario_user') || '{}');
+        if (u.email) document.getElementById('wpEmail').value = u.email;
+      } catch(e) {}
+    }
+
+    function renderSDKPanel(channelId) {
+      const ch    = SDK_CHANNELS[channelId];
+      const panel = document.getElementById('sdk-panel-' + channelId);
+      if (!panel || !ch) return;
+
+      const note = ch.trigger_note
+        ? `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);
+                       border-radius:6px;padding:8px 12px;font-size:11px;color:var(--warning);
+                       margin-bottom:10px">${ch.trigger_note}</div>`
+        : '';
+
+      const cards = ch.campaigns.map(c => `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;
+                    padding:14px;display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:700;color:var(--text)">${c.name}</div>
+              <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">
+                ⚡ ${c.trigger}
+              </div>
+            </div>
+            <a href="${SITE}/${c.page}" target="_blank" rel="noopener"
+               style="flex-shrink:0;background:color-mix(in srgb,var(--v-primary) 10%,transparent);
+                      color:var(--v-primary);border:1px solid color-mix(in srgb,var(--v-primary) 25%,transparent);
+                      border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;
+                      text-decoration:none;white-space:nowrap;transition:opacity 0.15s"
+               onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+              Open Page ↗
+            </a>
+          </div>
+          <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${c.desc}</div>
+        </div>
+      `).join('');
+
+      panel.innerHTML = `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+                    padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <span style="font-size:18px">${ch.icon}</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">${ch.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${ch.desc}</div>
+          </div>
+        </div>
+        ${note}
+        <div style="display:flex;flex-direction:column;gap:8px">${cards}</div>
+      `;
+    }
+
+    function showSDKChannel(channelId, btn) {
+      document.querySelectorAll('.sdk-panel').forEach(p => p.style.display = 'none');
+      document.querySelectorAll('.sdk-tab-btn').forEach(b => b.classList.remove('sdk-tab-active'));
+      document.getElementById('sdk-panel-' + channelId).style.display = 'block';
+      btn.classList.add('sdk-tab-active');
+    }
+
+    function updateBulletinForm() {
+      const val = document.getElementById('blEvent').value;
+      document.getElementById('bl-flash-sale').style.display     = val === 'flash_sale'    ? 'flex' : 'none';
+      document.getElementById('bl-back-in-stock').style.display  = val === 'back_in_stock' ? 'flex' : 'none';
+      document.getElementById('bl-new-collection').style.display = val === 'new_collection' ? 'flex' : 'none';
+    }
+
+    async function runApiCountdown(btnId, statusId, seconds, apiCall) {
+      const btn    = document.getElementById(btnId);
+      const status = document.getElementById(statusId);
+      const orig   = btn.textContent;
+      btn.disabled = true;
+      status.style.color = 'var(--text-muted)';
+
+      for (let i = seconds; i > 0; i--) {
+        btn.textContent    = `Firing in ${i}...`;
+        status.textContent = 'Preparing payload...';
+        await new Promise(r => setTimeout(r, 1000));
+      }
+
+      btn.textContent    = 'Firing...';
+      status.textContent = 'Sending to CT API...';
+
+      try {
+        const result = await apiCall();
+        status.style.color = result.success ? 'var(--success)' : 'var(--error)';
+        status.textContent = (result.success ? '✓ ' : '✗ ') + result.message;
+      } catch(e) {
+        status.style.color = 'var(--error)';
+        status.textContent  = '✗ Request failed — check console';
+        console.error('[Channel Demos]', e);
+      }
+
+      setTimeout(() => {
+        btn.disabled       = false;
+        btn.textContent    = orig;
+        status.textContent = '';
+        status.style.color = 'var(--text-muted)';
+      }, 4000);
+    }
+
+    async function fireChannelWebPush() {
+      const email = document.getElementById('wpEmail').value.trim();
+      const title = document.getElementById('wpTitle').value.trim();
+      const body  = document.getElementById('wpBody').value.trim();
+      const link  = document.getElementById('wpLink').value.trim();
+
+      if (!email || !title || !body) {
+        showToast('Fill in email, title and message before firing', 'error');
+        return;
+      }
+
+      await runApiCountdown('wpBtn', 'wpStatus', 5, async () => {
+        const resp = await fetch(`${PROXY_URL}/webpush`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: { Email: [email] },
+            content: {
+              title,
+              body,
+              platform_specific: {
+                chrome:  { deep_link: link, icon: 'https://placehold.co/192x192/2874f0/ffffff?text=B&font=poppins' },
+                firefox: { deep_link: link },
+                safari:  { deep_link: link }
+              }
+            }
+          })
+        });
+        const data = await resp.json();
+        const ok   = data.status === 'success' || data.ct_response?.status === 'success';
+        addLogEntry('Web Push (API)', { to: email, title }, ok ? 'ok' : 'error');
+        return {
+          success: ok,
+          message: ok
+            ? `Notification sent to ${email}`
+            : `CT error: ${data.ct_response?.error || data.error || JSON.stringify(data)}`
+        };
+      });
+    }
+
+    async function fireChannelBulletin() {
+      const eventType = document.getElementById('blEvent').value;
+      let businessEvent, bulletinName, properties;
+
+      if (eventType === 'flash_sale') {
+        const category = document.getElementById('blFsCategory').value;
+        const discount  = document.getElementById('blFsDiscount').value;
+        businessEvent   = 'Flash Sale Started';
+        bulletinName    = `Flash Sale — ${category}`;
+        properties      = { category, discount_pct: String(discount) };
+
+      } else if (eventType === 'back_in_stock') {
+        const raw       = document.getElementById('blBisProduct').value;
+        const [pid, pname, pcat] = raw.split('||');
+        businessEvent   = 'Product Back in Stock';
+        bulletinName    = `Back in Stock — ${pname}`;
+        properties      = { product_id: pid, product_name: pname, category: pcat };
+
+      } else {
+        const category  = document.getElementById('blNcCategory').value;
+        const colName   = document.getElementById('blNcName').value.trim() || 'New Arrivals';
+        businessEvent   = 'New Collection Added';
+        bulletinName    = `New Collection — ${category}`;
+        properties      = { category, collection_name: colName };
+      }
+
+      await runApiCountdown('blBtn', 'blStatus', 5, async () => {
+        const resp = await fetch(`${PROXY_URL}/bulletin`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            business_event: businessEvent,
+            name:           bulletinName,
+            properties,
+            'c-by':         'demo@ctplayground.com',
+            when:           'now'
+          })
+        });
+        const data    = await resp.json();
+        const ok      = data.status === 'success' || data.ct_response?.status === 'success';
+        const targets = data.targets || data.ct_response?.targets || 0;
+        addLogEntry('Bulletin (API)', { business_event: businessEvent, ...properties }, ok ? 'ok' : 'error');
+        return {
+          success: ok,
+          message: ok
+            ? `"${businessEvent}" fired → ${targets} user${targets !== 1 ? 's' : ''} targeted`
+            : `CT error: ${data.ct_response?.error || data.error || JSON.stringify(data)}`
+        };
+      });
+    }
+
+    // Initialise Channel Demos section on load
+    initChannelDemos();
+
+    // ═══════════════════════════════════════════════════════════
     // SECTION 4 — DATA FLOW
     // ═══════════════════════════════════════════════════════════
 
@@ -2484,7 +3012,7 @@
     // NAVIGATION
     // ═══════════════════════════════════════════════════════════
 
-    function scrollTo(id) {
+    function scrollToSection(id) {
       document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       event.currentTarget.classList.add('active');

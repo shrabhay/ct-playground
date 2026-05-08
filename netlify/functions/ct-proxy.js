@@ -159,13 +159,119 @@ exports.handler = async (event) => {
      };
     }
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BULLETIN: POST /ct-proxy/bulletin
+    // Triggers a CT Business Event via the Bulletins API
+    // Body: { business_event, name, properties, "c-by", when }
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (event.httpMethod === 'POST' && path.endsWith('/bulletin')) {
+
+      let body;
+      try {
+        body = JSON.parse(event.body || '{}');
+      } catch {
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({ status: 'error', message: 'Invalid JSON in request body' })
+        };
+      }
+
+      if (!body.business_event || !body.name || !body.properties) {
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            status:  'error',
+            message: 'Request body must contain business_event, name and properties'
+          })
+        };
+      }
+
+      // Bulletins API
+      const bulletinResponse = await fetch(`${CT_BASE_URL}/1/targets/trigger.json`, {
+        method:  'POST',
+        headers: CT_HEADERS,
+        body:    JSON.stringify({
+          business_event: body.business_event,
+          name:           body.name,
+          properties:     body.properties,
+          'c-by':         body['c-by'] || 'demo@ctplayground.com',
+          when:           body.when    || 'now'
+        })
+      });
+
+      const bulletinData = await bulletinResponse.json();
+
+      return {
+        statusCode: bulletinResponse.status,
+        headers:    CORS_HEADERS,
+        body:       JSON.stringify({
+          status:      bulletinData.status || 'success',
+          ct_response: bulletinData,
+          targets:     bulletinData.targets || 0
+        })
+      };
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    // WEB PUSH: POST /ct-proxy/webpush
+    // Sends a Web Push notification to specific user(s) by email
+    // Body: { to: { Email: [...] }, content: { title, body, platform_specific } }
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (event.httpMethod === 'POST' && path.endsWith('/webpush')) {
+
+      let body;
+      try {
+        body = JSON.parse(event.body || '{}');
+      } catch {
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({ status: 'error', message: 'Invalid JSON in request body' })
+        };
+      }
+
+      if (!body.to || !body.content || !body.content.title || !body.content.body) {
+        return {
+          statusCode: 400,
+          headers: CORS_HEADERS,
+          body: JSON.stringify({
+            status:  'error',
+            message: 'Request body must contain to, content.title and content.body'
+          })
+        };
+      }
+
+      const wpResponse = await fetch(`${CT_BASE_URL}/1/send/webpush.json`, {
+        method:  'POST',
+        headers: CT_HEADERS,
+        body:    JSON.stringify({
+          to:                     body.to,
+          respect_frequency_caps: false,
+          content:                body.content
+        })
+      });
+
+      const wpData = await wpResponse.json();
+
+      return {
+        statusCode: wpResponse.status,
+        headers:    CORS_HEADERS,
+        body:       JSON.stringify({
+          status:      wpData.status || 'success',
+          ct_response: wpData
+        })
+      };
+    }
+
     // ─── Unknown path ───────────────────────────────────────────────────────
     return {
       statusCode: 404,
       headers: CORS_HEADERS,
       body: JSON.stringify({
         status:  'error',
-        message: `Unknown endpoint: ${path}. Available: POST /upload, GET /profile`
+        message: `Unknown endpoint: ${path}. Available: POST /upload, GET /profile, POST /bulletin, POST /webpush`
       })
     };
 
