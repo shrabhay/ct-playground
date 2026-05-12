@@ -958,6 +958,17 @@
         </div>
         <div class="topbar-divider"></div>
         <button class="btn-visit-site" id="btnVisitSite" onclick="visitSite()">Visit Site ↗</button>
+        <button id="bz-inbox-trigger" style="
+          position:relative;background:var(--surface2);border:1px solid var(--border2);
+          border-radius:6px;padding:7px 12px;cursor:pointer;font-size:16px;
+          transition:all 0.15s;" title="Web Inbox">
+          🔔
+          <span id="bz-inbox-unread" style="
+            display:none;position:absolute;top:-4px;right:-4px;
+            background:#ff6161;color:#fff;font-size:9px;font-weight:700;
+            border-radius:50%;width:16px;height:16px;
+            align-items:center;justify-content:center;">0</span>
+        </button>
         <button class="btn-lock" onclick="lockDemo()">🔒 Lock</button>
       </div>
     </header>
@@ -1067,7 +1078,7 @@
           <div class="event-grid">
             <div class="form-group">
               <label class="form-label">Event Name</label>
-              <input type="text" class="form-input" id="eventName" placeholder="e.g. Product Viewed" />
+              <input type="text" class="form-input" id="eventName" placeholder="e.g. Product Viewed" oninput="updatePayloadPreview()" />
             </div>
             <div class="form-group">
               <label class="form-label">Target User (Email)</label>
@@ -1287,16 +1298,14 @@
             <!-- Tab pills -->
             <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
               <button class="sdk-tab-btn sdk-tab-active" onclick="showSDKChannel('webpopups',this)">🪟 Web Pop-ups</button>
-              <button class="sdk-tab-btn" onclick="showSDKChannel('exitintent',this)">🚪 Exit Intent</button>
               <button class="sdk-tab-btn" onclick="showSDKChannel('nativedisplay',this)">📌 Native Display</button>
               <button class="sdk-tab-btn" onclick="showSDKChannel('productexp',this)">🔬 Product Exp.</button>
-              <!-- <button class="sdk-tab-btn" onclick="showSDKChannel('recommendations',this)">⭐ Recommendations</button> -->
+              <button class="sdk-tab-btn" onclick="showSDKChannel('recommendations',this)">⭐ Recommendations</button>
               <button class="sdk-tab-btn" onclick="showSDKChannel('webinbox',this)">📥 Web Inbox</button>
             </div>
 
             <!-- SDK channel panels — rendered by JS -->
-            <div id="sdk-panel-webpopups"     class="sdk-panel"></div>
-            <div id="sdk-panel-exitintent"     class="sdk-panel" style="display:none"></div>
+            <div id="sdk-panel-webpopups"      class="sdk-panel"></div>
             <div id="sdk-panel-nativedisplay"  class="sdk-panel" style="display:none"></div>
             <div id="sdk-panel-productexp"     class="sdk-panel" style="display:none"></div>
             <div id="sdk-panel-recommendations" class="sdk-panel" style="display:none"></div>
@@ -1316,14 +1325,56 @@
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start">
 
               <!-- Web Push -->
-              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:10px">
+              <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px">
                 <div style="display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
                   <span style="font-size:22px">🔔</span>
                   <div>
                     <div style="font-size:13px;font-weight:700;color:var(--text)">Web Push</div>
-                    <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Fire a real notification to a specific subscribed user</div>
+                    <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Event-triggered campaigns + API-driven fire live</div>
                   </div>
                 </div>
+ 
+                <!-- Auto-triggered campaigns -->
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted)">Event-Triggered Campaigns</div>
+ 
+                <!-- Abandoned Cart Recovery -->
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:12px;font-weight:700;color:var(--text)">Abandoned Cart Recovery</div>
+                  <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Added to Cart → no Charged within 1 min</div>
+                  <div class="form-group">
+                    <label class="form-label">Product</label>
+                    <select class="form-input" id="awp-product" style="cursor:pointer">
+                      <option value="E002">Apple iPhone 13 (₹49,999)</option>
+                      <option value="E010">Sony WH-1000XM5 (₹24,990)</option>
+                      <option value="F003">Nike Air Max 270 (₹6,995)</option>
+                      <option value="H001">Wakefit Mattress (₹12,999)</option>
+                      <option value="A003">Voltas 1.5T AC (₹38,990)</option>
+                    </select>
+                  </div>
+                  <button onclick="fireWebPushAbandonedCart()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Added to Cart</button>
+                  <div id="status-awp-cart" style="font-size:11px;min-height:14px;color:var(--warning)"></div>
+                </div>
+ 
+                <!-- Order Confirmation -->
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:8px">
+                  <div style="font-size:12px;font-weight:700;color:var(--text)">Order Confirmation</div>
+                  <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Charged · personalised with Items array for-loop</div>
+                  <div class="form-group">
+                    <label class="form-label">Product Ordered</label>
+                    <select class="form-input" id="awp-conf-product" style="cursor:pointer">
+                      <option value="E002">Apple iPhone 13 (₹49,999)</option>
+                      <option value="E010">Sony WH-1000XM5 (₹24,990)</option>
+                      <option value="F003">Nike Air Max 270 (₹6,995)</option>
+                      <option value="H001">Wakefit Mattress (₹12,999)</option>
+                      <option value="A003">Voltas 1.5T AC (₹38,990)</option>
+                    </select>
+                  </div>
+                  <button onclick="fireWebPushOrderConfirmation()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Charged</button>
+                  <div id="status-awp-conf" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+                </div>
+ 
+                <!-- API-driven section -->
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--text-muted);margin-top:4px;padding-top:12px;border-top:1px solid var(--border)">API-Driven · Fire to Specific User</div>
                 <div class="form-group">
                   <label class="form-label">To (Email)</label>
                   <input type="email" class="form-input" id="wpEmail" placeholder="user@bazario-user.com">
@@ -1869,6 +1920,7 @@
 
   <div class="toast" id="toast"></div>
 
+  <script>window._demoMode = true;</script>
   <script src="ecommerce/js/clevertap.js"></script>
   <script>
 
@@ -2595,226 +2647,621 @@
 
     const SITE = 'https://ctplayground.netlify.app/ecommerce';
 
-    const SDK_CHANNELS = {
-      webpopups: {
-        icon: '🪟', name: 'Web Pop-ups',
-        desc: 'Appears as an overlay triggered by user actions on the page',
-        campaigns: [
-          {
-            name: 'Welcome Offer',
-            trigger: 'User Signed Up',
-            page: 'account.html',
-            desc: '10% off welcome coupon displayed immediately after account creation — captures the highest-intent moment in the user journey.'
-          },
-          {
-            name: 'Cart Abandonment',
-            trigger: 'Added to Cart → 60 min inaction (no purchase)',
-            page: 'cart.html',
-            desc: 'Shown after 60 minutes of cart inactivity — nudges the user to complete their purchase with urgency messaging.'
-          },
-          {
-            name: 'Re-engagement',
-            trigger: 'Home Page Viewed · Dormant Users (30+ days inactive)',
-            page: 'index.html',
-            desc: 'Welcome-back popup for dormant users returning to the site — personalised offer to re-activate lapsed customers.'
-          },
-          {
-            name: 'High Value Upsell',
-            trigger: 'Product Viewed (price > ₹10,000) · High Value Segment',
-            page: 'product.html',
-            desc: 'Shown when a high-value user views a premium product — promotes EMI options or exclusive member pricing to drive conversion.'
-          }
-        ]
-      },
-      exitintent: {
-        icon: '🚪', name: 'Exit Intent',
-        desc: 'Fires when the user\'s cursor moves toward closing the tab',
-        trigger_note: '💡 How to trigger: open the page, then move your cursor quickly to the very top of the browser window',
-        campaigns: [
-          {
-            name: 'Cart Exit Recovery',
-            trigger: 'Exit intent · Cart page · Items in cart',
-            page: 'cart.html',
-            desc: 'Last-chance offer before the user abandons a filled cart — creates urgency with a time-sensitive deal.'
-          },
-          {
-            name: 'Checkout Exit with Auto-Discount',
-            trigger: 'Exit intent · Checkout page',
-            page: 'checkout.html',
-            desc: 'Intercepts near-complete purchases — auto-applies a discount code and shows the savings to recover the sale at the final step.'
-          },
-          {
-            name: 'Product Exit with Auto Add-to-Cart',
-            trigger: 'Exit intent · Product page',
-            page: 'product.html',
-            desc: 'Catches hesitant users on a product page — auto-adds the product to cart and redirects to checkout in one action.'
-          }
-        ]
-      },
-      nativedisplay: {
-        icon: '📌', name: 'Native Display',
-        desc: 'Renders personalised content within the page itself — fully integrated, no overlay',
-        campaigns: [
-          {
-            name: 'Homepage Banners (5 category variants)',
-            trigger: 'Home Page Viewed',
-            page: 'index.html',
-            desc: 'Hero section banners personalised by browsing history — different creative for Electronics, Fashion, Beauty, Sports and Grocery users.'
-          },
-          {
-            name: 'Listing Page Banners (7 category variants)',
-            trigger: 'Category Viewed',
-            page: 'listing.html',
-            desc: 'Promotional strip at the top of listing pages — dynamically matches the category currently being browsed.'
-          },
-          {
-            name: 'Product Page Banners (7 category variants)',
-            trigger: 'Product Viewed',
-            page: 'product.html',
-            desc: 'Contextual banner below product detail — category-specific offers, loyalty messaging or deal alerts.'
-          },
-          {
-            name: 'Confirmation Page Banners (7 category variants)',
-            trigger: 'Order Confirmed',
-            page: 'confirmation.html',
-            desc: 'Post-purchase cross-sell banner — surfaces complementary category deals immediately after an order is placed.'
-          },
-          {
-            name: 'Similar Products (Recommendations)',
-            trigger: 'Product Viewed',
-            page: 'product.html',
-            desc: '"Bazario - Similar Products" recommendation model — 3 co-viewed products rendered via Native Display KV pair campaign.'
-          },
-          {
-            name: 'Frequently Added Together (Recommendations)',
-            trigger: 'Cart Viewed',
-            page: 'cart.html',
-            desc: '"Bazario - Frequently Added Together" model — 3 products commonly carted together, personalised per the user\'s cart contents.'
-          }
-        ]
-      },
-      productexp: {
-        icon: '🔬', name: 'Product Experiences',
-        desc: 'Remote Config variables that personalise UI, copy and business logic per user segment — no app release needed',
-        campaigns: [
-          {
-            name: 'Phase A — UI & Content (25 RC variables)',
-            trigger: 'Page load · All pages',
-            page: 'index.html',
-            desc: 'Controls hero text, banner gradients, CTA button labels, Prime badge visibility and promotional messaging — different per archetype (High Value, Regular, Dormant).'
-          },
-          {
-            name: 'Phase B — Business Logic (18 RC variables)',
-            trigger: 'Page load · All pages',
-            page: 'cart.html',
-            desc: 'Controls free shipping threshold, active coupon codes, default sort order on listing pages and cart-level conversion nudges — drives revenue through dynamic logic.'
-          }
-        ]
-      },
-      recommendations: {
-        icon: '⭐', name: 'Recommendations',
-        desc: 'CT Recommendation engine — surfaces the right products to the right user, powered by co-occurrence behaviour',
-        campaigns: [
-          {
-            name: 'Similar Products',
-            trigger: 'Product Viewed',
-            page: 'product.html',
-            desc: 'Recommendation strip below product detail — 3 products viewed by similar users, delivered via "Bazario - Similar Products" Native Display campaign.'
-          },
-          {
-            name: 'Frequently Added Together',
-            trigger: 'Cart Viewed',
-            page: 'cart.html',
-            desc: 'Recommendation strip in the cart — 3 products commonly carted together, delivered via "Bazario - Frequently Added Together" Native Display campaign.'
-          }
-        ]
-      },
-      webinbox: {
-        icon: '📥', name: 'Web Inbox',
-        desc: 'Persistent notification inbox — accessible via the 🔔 bell icon in the Bazario navbar on all pages',
-        trigger_note: '💡 How to view: click the 🔔 bell icon in the top navbar on any Bazario page',
-        campaigns: [
-          {
-            name: 'Featured Deal of the Day',
-            trigger: 'Home Page Viewed',
-            page: 'index.html',
-            desc: 'Delivered to the user\'s inbox on homepage visit — personalised deal offer based on their preferred category profile property.'
-          },
-          {
-            name: 'Category Deal Alert',
-            trigger: 'Category Viewed',
-            page: 'listing.html',
-            desc: 'Contextual offer delivered when a user browses any listing page — uses liquid tag personalisation to match the browsed category.'
-          }
-        ]
-      }
+    const CATEGORIES = ['Electronics','Fashion','Grocery','Home & Furniture','Appliances','Beauty','Sports','Books'];
+
+    const DEMO_PRODUCTS = [
+      { id:'E002',  name:'Apple iPhone 13 128GB',        category:'Electronics',      price:49999 },
+      { id:'E010',  name:'Sony WH-1000XM5 Headphones',   category:'Electronics',      price:24990 },
+      { id:'E008',  name:'HP 15s Core i5 Laptop',        category:'Electronics',      price:49990 },
+      { id:'F007',  name:'Fossil Gen 6 Smartwatch',       category:'Fashion',          price:14995 },
+      { id:'F003',  name:'Nike Air Max 270 Running Shoes',category:'Fashion',          price:6995  },
+      { id:'G004',  name:'Nescafe Classic Coffee 200g',   category:'Grocery',          price:499   },
+      { id:'H001',  name:'Wakefit Memory Foam Mattress',  category:'Home & Furniture', price:12999 },
+      { id:'A003',  name:'Voltas 1.5 Ton Split AC',       category:'Appliances',       price:38990 },
+      { id:'B002',  name:"L'Oreal Paris Shampoo 650ml",   category:'Beauty',           price:399   },
+      { id:'S002',  name:'Yonex Voltric 1DG Racket',      category:'Sports',           price:2499  },
+      { id:'BK001', name:'Atomic Habits — James Clear',   category:'Books',            price:399   },
+    ];
+
+    // High-value products only (price > 10000) — for High Value Upsell demo
+    const HV_PRODUCTS = DEMO_PRODUCTS.filter(p => p.price > 10000);
+
+    const CATEGORY_THEMES = {
+      'Electronics':      { gradient:'linear-gradient(135deg,#0d47a1,#1565c0)', emoji:'📱', key:'electronics' },
+      'Fashion':          { gradient:'linear-gradient(135deg,#880e4f,#c2185b)', emoji:'👗', key:'fashion' },
+      'Grocery':          { gradient:'linear-gradient(135deg,#1b5e20,#2e7d32)', emoji:'🛒', key:'grocery' },
+      'Home & Furniture': { gradient:'linear-gradient(135deg,#e65100,#f57c00)', emoji:'🛋️', key:'home_furniture' },
+      'Appliances':       { gradient:'linear-gradient(135deg,#263238,#37474f)', emoji:'🔌', key:'appliances' },
+      'Beauty':           { gradient:'linear-gradient(135deg,#4a148c,#7b1fa2)', emoji:'💄', key:'beauty' },
+      'Sports':           { gradient:'linear-gradient(135deg,#004d40,#00695c)', emoji:'⚽', key:'sports' },
+      'Books':            { gradient:'linear-gradient(135deg,#bf360c,#d84315)', emoji:'📚', key:'books' },
     };
 
-    function initChannelDemos() {
-      // Render all SDK channel panels from data
-      Object.keys(SDK_CHANNELS).forEach(id => renderSDKPanel(id));
-      // Pre-fill Web Push email from current logged-in user
-      try {
-        const u = JSON.parse(localStorage.getItem('bazario_user') || '{}');
-        if (u.email) document.getElementById('wpEmail').value = u.email;
-      } catch(e) {}
+    // ── Helpers ──
+    function getCategoryFromTopic(topic) {
+      var key = topic
+        .replace(/_homepage|_listing|_product|_confirmation/, '')
+        .replace(/_/g, ' ');
+      return Object.keys(CATEGORY_THEMES).find(function(cat) {
+        return CATEGORY_THEMES[cat].key.replace(/_/g,' ') === key;
+      }) || (key.charAt(0).toUpperCase() + key.slice(1));
     }
 
-    function renderSDKPanel(channelId) {
-      const ch    = SDK_CHANNELS[channelId];
-      const panel = document.getElementById('sdk-panel-' + channelId);
-      if (!panel || !ch) return;
+    function buildCategorySelect(id, selectedVal) {
+      return '<select class="form-input" id="' + id + '" style="cursor:pointer">' +
+        CATEGORIES.map(function(c) {
+          return '<option value="' + c + '"' + (c === (selectedVal||'Electronics') ? ' selected' : '') + '>' + c + '</option>';
+        }).join('') +
+      '</select>';
+    }
 
-      const note = ch.trigger_note
-        ? `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);
-                       border-radius:6px;padding:8px 12px;font-size:11px;color:var(--warning);
-                       margin-bottom:10px">${ch.trigger_note}</div>`
-        : '';
+    function buildProductSelect(id, products, selectedVal) {
+      return '<select class="form-input" id="' + id + '" style="cursor:pointer">' +
+        products.map(function(p) {
+          return '<option value="' + p.id + '"' + (p.id === selectedVal ? ' selected' : '') + '>' +
+            p.name + ' (₹' + p.price.toLocaleString('en-IN') + ')' +
+          '</option>';
+        }).join('') +
+      '</select>';
+    }
 
-      const cards = ch.campaigns.map(c => `
-        <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;
-                    padding:14px;display:flex;flex-direction:column;gap:8px">
-          <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
-            <div style="flex:1;min-width:0">
-              <div style="font-size:13px;font-weight:700;color:var(--text)">${c.name}</div>
-              <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">
-                ⚡ ${c.trigger}
+    function showChannelStatus(id, msg, type) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      el.textContent = msg;
+      el.style.color = type === 'success' ? 'var(--success)' : type === 'error' ? 'var(--danger)' : 'var(--text-muted)';
+      if (type !== 'loading') {
+        setTimeout(function() { el.textContent = ''; el.style.color = 'var(--text-muted)'; }, 4000);
+      }
+    }
+
+    function fireSDKEvent(name, props, statusId) {
+      try {
+        if (props && Object.keys(props).length > 0) {
+          clevertap.event.push(name, props);
+        } else {
+          clevertap.event.push(name);
+        }
+        eventsFired++;
+        document.getElementById('statEventsFired').textContent = eventsFired;
+        addLogEntry(name, props || {}, 'ok');
+        showChannelStatus(statusId, '✓ ' + name + ' fired — waiting for CT response...', 'success');
+      } catch(e) {
+        showChannelStatus(statusId, '✗ Failed — is CT SDK loaded?', 'error');
+        console.error('[Channel Demos]', e);
+      }
+    }
+
+    // ── ND Banner renderer (generic — works for all 4 types) ──
+    function renderDemoNDBannerInDiv(data, divId, type) {
+      var container = document.getElementById(divId);
+      if (!container) return;
+      var topic    = data.kv.topic;
+      var category = getCategoryFromTopic(topic);
+      var theme    = CATEGORY_THEMES[category] || { gradient:'linear-gradient(135deg,#2874f0,#1a5dc8)', emoji:'🛍️' };
+
+      var headlines = {
+        homepage:     theme.emoji + ' Picked for You — ' + category,
+        listing:      'Top ' + category + ' Deals',
+        product:      'Complete Your ' + category + ' Experience',
+        confirmation: 'Keep Shopping ' + category + '!'
+      };
+
+      container.innerHTML =
+        '<div style="background:' + theme.gradient + ';border-radius:8px;padding:16px 24px;' +
+          'display:flex;align-items:center;justify-content:space-between;' +
+          'font-family:\'Inter\',sans-serif;box-shadow:0 4px 16px rgba(0,0,0,0.12)">' +
+          '<div>' +
+            '<div style="color:rgba(255,255,255,0.75);font-size:10px;font-weight:700;' +
+              'text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px">' +
+              'Native Display · ' + type + ' Banner' +
+            '</div>' +
+            '<div style="color:#fff;font-size:18px;font-weight:800;margin-bottom:4px">' + headlines[type] + '</div>' +
+            '<div style="color:rgba(255,255,255,0.85);font-size:12px">Delivered via CT Native Display KV campaign ✓</div>' +
+          '</div>' +
+          '<div style="background:#ff6f00;color:#fff;font-size:13px;font-weight:700;' +
+            'padding:10px 20px;border-radius:6px;white-space:nowrap;flex-shrink:0;margin-left:20px">' +
+            'Shop ' + category + ' →' +
+          '</div>' +
+        '</div>';
+
+      if (typeof clevertap !== 'undefined' && typeof clevertap.renderNotificationViewed === 'function') {
+        clevertap.renderNotificationViewed(data);
+      }
+    }
+
+    // ── Recommendation card renderer (shared) ──
+    function renderDemoRecCards(data, containerId, recType, title) {
+      var kv        = data.kv;
+      var container = document.getElementById(containerId);
+      if (!container) return;
+
+      var cards = [1, 2, 3].map(function(n) {
+        var id        = kv['rec_id_'             + n] || '';
+        var name      = kv['rec_name_'           + n] || '';
+        var image     = kv['rec_image_'          + n] || '';
+        var price     = parseInt(kv['rec_price_' + n]) || 0;
+        var origPrice = parseInt(kv['rec_original_price_' + n]) || 0;
+        var discount  = kv['rec_discount_'       + n] || '';
+        var rating    = kv['rec_rating_'         + n] || '';
+        var tag       = (kv['rec_tags_'          + n] || '').toLowerCase();
+
+        var tagBadge = '';
+        if (tag === 'assured')    tagBadge = '<span style="background:#1565c0;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">✓ ASSURED</span>';
+        if (tag === 'bestseller') tagBadge = '<span style="background:#ff6f00;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">BESTSELLER</span>';
+        if (tag === 'new')        tagBadge = '<span style="background:#2e7d32;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;">NEW</span>';
+
+        var discountBadge   = discount ? '<span style="color:#388e3c;font-size:12px;font-weight:600;">' + discount + '% off</span>' : '';
+        var origPriceHtml   = (origPrice && origPrice > price)
+          ? '<div style="display:flex;align-items:center;gap:6px;"><span style="font-size:12px;color:#757575;text-decoration:line-through;">₹' + origPrice.toLocaleString('en-IN') + '</span>' + discountBadge + '</div>'
+          : '';
+
+        return '<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:12px;' +
+          'flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">' +
+            '<div style="width:100%;aspect-ratio:1/1;background:#f5f5f5;border-radius:6px;overflow:hidden;display:flex;align-items:center;justify-content:center;">' +
+              '<img src="' + image + '" alt="' + name + '" style="width:100%;height:100%;object-fit:contain;" onerror="this.parentNode.style.background=\'#f0f0f0\'">' +
+            '</div>' +
+            '<div style="font-size:12px;line-height:1.4;font-weight:500;color:#212121;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">' + name + '</div>' +
+            '<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">' + tagBadge +
+              (rating ? '<span style="background:#388e3c;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:3px;">' + rating + ' ★</span>' : '') +
+            '</div>' +
+            '<div>' +
+              '<div style="font-size:16px;font-weight:700;color:#212121;">₹' + price.toLocaleString('en-IN') + '</div>' +
+              origPriceHtml +
+            '</div>' +
+          '</div>';
+      }).join('');
+
+      container.innerHTML =
+        '<div style="background:#fff;border:1px solid #e0e0e0;border-radius:8px;padding:16px 20px;font-family:\'Inter\',sans-serif;">' +
+          '<div style="font-size:15px;font-weight:700;color:#212121;margin-bottom:12px;">' + title + '</div>' +
+          '<div style="display:flex;gap:12px;">' + cards + '</div>' +
+        '</div>';
+
+      if (typeof clevertap !== 'undefined' && typeof clevertap.renderNotificationViewed === 'function') {
+        clevertap.renderNotificationViewed(data);
+      }
+    }
+
+    // ── CT_web_native_display listener for demo.html ──
+    document.addEventListener('CT_web_native_display', function(event) {
+      var data = event.detail;
+      if (!data || !data.kv) return;
+      var topic = data.kv.topic;
+      if (topic === 'similar_products')          { renderDemoRecCards(data, 'demo-nd-rec-similar', 'similar_products', '🔍 Similar Products'); return; }
+      if (topic === 'frequently_added_together')  { renderDemoRecCards(data, 'demo-nd-rec-fat',    'frequently_added_together', '🛒 Frequently Added Together'); return; }
+      if (topic.endsWith('_homepage'))            { renderDemoNDBannerInDiv(data, 'demo-nd-homepage',     'homepage');     return; }
+      if (topic.endsWith('_listing'))             { renderDemoNDBannerInDiv(data, 'demo-nd-listing',      'listing');      return; }
+      if (topic.endsWith('_product'))             { renderDemoNDBannerInDiv(data, 'demo-nd-product',      'product');      return; }
+      if (topic.endsWith('_confirmation'))        { renderDemoNDBannerInDiv(data, 'demo-nd-confirmation', 'confirmation'); return; }
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // PANEL RENDERERS
+    // ═══════════════════════════════════════════════════════════
+
+    function renderWebPopupsPanel() {
+      var panel = document.getElementById('sdk-panel-webpopups');
+      if (!panel) return;
+      panel.innerHTML = `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:18px">🪟</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Web Pop-ups</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Overlay campaigns triggered by user events — they appear directly on this page when fired</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+
+          <!-- Welcome Offer -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Welcome Offer — New User Discount</div>
+                <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">⚡ User Signed Up</div>
+              </div>
+              <button onclick="firePopupWelcomeOffer()" style="flex-shrink:0;background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 Fire Live</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">10% off welcome coupon displayed immediately after account creation — captures the highest-intent moment in the user journey.</div>
+            <div id="status-popup-welcome" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+          </div>
+
+          <!-- Cart Abandonment -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Cart Abandonment — Discount Nudge</div>
+                <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">⚡ Cart Viewed</div>
+              </div>
+              <button onclick="firePopupCartAbandonment()" style="flex-shrink:0;background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 Fire Live</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Shown when a user views their cart — nudges them to complete purchase with urgency messaging and a discount offer.</div>
+            <div id="status-popup-cart" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+          </div>
+
+          <!-- High Value Upsell -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">High Value Upsell — Prime Push</div>
+                <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">⚡ Product Viewed · price &gt; ₹10,000 · Is Prime = false</div>
+              </div>
+              <button onclick="firePopupHighValueUpsell()" style="flex-shrink:0;background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 Fire Live</button>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Product (price &gt; ₹10,000)</label>
+              ${buildProductSelect('popup-hv-product', HV_PRODUCTS)}
+            </div>
+            <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:6px;padding:6px 10px;font-size:11px;color:var(--warning)">
+              ⚠ Only fires if the current user has Is Prime = false
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Shown when a high-value user views a premium product — promotes EMI options or exclusive member pricing to drive conversion.</div>
+            <div id="status-popup-hv" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+          </div>
+
+          <!-- Re-engagement (URL restricted) -->
+          <div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:14px;opacity:0.6">
+            <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">Re-engagement — Welcome Back</div>
+                <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">⚡ Home Page Viewed · Dormant Users · index.html only</div>
+              </div>
+              <a href="${SITE}/index.html" target="_blank" style="flex-shrink:0;background:color-mix(in srgb,var(--v-primary) 10%,transparent);color:var(--v-primary);border:1px solid color-mix(in srgb,var(--v-primary) 25%,transparent);border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap">Open Page ↗</a>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5;margin-top:8px">URL-restricted to index.html — visit the Bazario homepage as a dormant user to trigger this campaign.</div>
+          </div>
+
+        </div>`;
+    }
+
+    function renderNativeDisplayPanel() {
+      var panel = document.getElementById('sdk-panel-nativedisplay');
+      if (!panel) return;
+      panel.innerHTML = `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:18px">📌</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Native Display</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Renders personalised content within the page — no overlay, fully integrated. Previews appear below each section.</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Category Banners (Homepage + Listing — both fire on Category Viewed) -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Category Banners</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Category Viewed — fires Homepage banner + Listing banner simultaneously</div>
+            <div class="form-group">
+              <label class="form-label">Category</label>
+              ${buildCategorySelect('nd-cat-category')}
+            </div>
+            <button onclick="fireNDCategoryBanners()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Category Viewed</button>
+            <div id="status-nd-cat" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-sec);margin-top:4px">Homepage Banner Preview:</div>
+            <div id="demo-nd-homepage" style="min-height:20px"></div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-sec);margin-top:4px">Listing Banner Preview:</div>
+            <div id="demo-nd-listing" style="min-height:20px"></div>
+          </div>
+
+          <!-- Product Banner -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Product Banner</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Product Viewed — fires product page contextual banner</div>
+            <div class="form-group">
+              <label class="form-label">Product</label>
+              ${buildProductSelect('nd-prod-product', DEMO_PRODUCTS)}
+            </div>
+            <button onclick="fireNDProductBanner()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Product Viewed</button>
+            <div id="status-nd-prod" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-sec);margin-top:4px">Product Banner Preview:</div>
+            <div id="demo-nd-product" style="min-height:20px"></div>
+          </div>
+
+          <!-- Confirmation Banner -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Post-Purchase Banner</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Order Confirmed — fires cross-sell banner after purchase</div>
+            <div class="form-group">
+              <label class="form-label">Top Category (of order)</label>
+              ${buildCategorySelect('nd-conf-category')}
+            </div>
+            <button onclick="fireNDConfirmationBanner()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Order Confirmed</button>
+            <div id="status-nd-conf" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+            <div style="font-size:11px;font-weight:600;color:var(--text-sec);margin-top:4px">Post-Purchase Banner Preview:</div>
+            <div id="demo-nd-confirmation" style="min-height:20px"></div>
+          </div>
+
+        </div>`;
+    }
+
+    function renderProductExpPanel() {
+      var panel = document.getElementById('sdk-panel-productexp');
+      if (!panel) return;
+      panel.innerHTML = `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:18px">🔬</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Product Experiences / Remote Config</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">43 RC variables that personalise UI, copy and business logic per user segment — no app release needed</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Phase A — UI & Content Variables (25 vars)</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Page load · All pages · Per user segment</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Controls hero text, banner gradients, CTA button labels, Prime badge visibility and promotional messaging — different per archetype (High Value, Regular, Dormant).</div>
+          </div>
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Phase B — Business Logic Variables (18 vars)</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Page load · All pages · Per user segment</div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Controls free shipping threshold, active coupon codes, default sort order on listing pages and cart-level conversion nudges.</div>
+          </div>
+          <div style="background:rgba(40,116,240,0.06);border:1px solid rgba(40,116,240,0.2);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--v-primary);line-height:1.6">
+            💡 <strong>How to demo:</strong> Load a dummy profile in the Profile Manager above → open any Bazario page. The UI, copy, CTAs and business logic adapt automatically based on that user's segment. Try loading a High Value user vs a Dormant user and comparing the product page experience.
+          </div>
+        </div>`;
+    }
+
+    function renderRecommendationsPanel() {
+      var panel = document.getElementById('sdk-panel-recommendations');
+      if (!panel) return;
+      panel.innerHTML = `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:18px">⭐</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Recommendations</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">CT Recommendation engine — personalised products based on co-occurrence behaviour across 15,000 users</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:16px">
+
+          <!-- Similar Products -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Similar Products</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Product Viewed — "Bazario - Similar Products" recommendation model</div>
+            <div class="form-group">
+              <label class="form-label">Select a Product</label>
+              ${buildProductSelect('rec-similar-product', DEMO_PRODUCTS)}
+            </div>
+            <button onclick="fireRecSimilar()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Product Viewed</button>
+            <div id="status-rec-similar" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+            <div id="demo-nd-rec-similar" style="min-height:20px;margin-top:4px"></div>
+          </div>
+
+          <!-- Frequently Added Together -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px">
+            <div style="font-size:13px;font-weight:700;color:var(--text)">Frequently Added Together</div>
+            <div style="font-size:11px;color:var(--v-primary);font-weight:600">⚡ Cart Viewed — "Bazario - Frequently Added Together" recommendation model</div>
+            <div class="form-group">
+              <label class="form-label">Select a Product (simulates cart)</label>
+              ${buildProductSelect('rec-fat-product', DEMO_PRODUCTS)}
+            </div>
+            <button onclick="fireRecFAT()" style="background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;align-self:flex-start">🔴 Fire Cart Viewed</button>
+            <div id="status-rec-fat" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+            <div id="demo-nd-rec-fat" style="min-height:20px;margin-top:4px"></div>
+          </div>
+
+        </div>`;
+    }
+
+    function renderWebInboxPanel() {
+      var panel = document.getElementById('sdk-panel-webinbox');
+      if (!panel) return;
+      panel.innerHTML = `
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <span style="font-size:18px">📥</span>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:var(--text)">Web Inbox</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">Persistent notification inbox — messages accumulate in the 🔔 bell icon in the Bazario navbar</div>
+          </div>
+        </div>
+        <div style="background:rgba(40,116,240,0.06);border:1px solid rgba(40,116,240,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--v-primary);margin-bottom:12px">
+          💡 After firing, click the <strong>🔔 bell icon</strong> in the top navbar of any Bazario page to see delivered messages
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+
+          <!-- Demo Offer -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">[Bazario] Web Inbox — Demo Offer</div>
+                <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">⚡ Demo Offer Triggered · Category: Offers</div>
+              </div>
+              <button onclick="fireDemoOffer()" style="flex-shrink:0;background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 Fire Live</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Personalised deal offer using Profile.Name and Preferred Category — demonstrates liquid tag personalisation in Web Inbox.</div>
+            <div id="status-inbox-offer" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+          </div>
+
+          <!-- Demo Order Update -->
+          <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:start;justify-content:space-between;gap:12px">
+              <div>
+                <div style="font-size:13px;font-weight:700;color:var(--text)">[Bazario] Web Inbox — Demo Order Update</div>
+                <div style="font-size:11px;color:var(--v-primary);margin-top:2px;font-weight:600">⚡ Demo Order Update Triggered · Category: Orders</div>
+              </div>
+              <button onclick="fireDemoOrderUpdate()" style="flex-shrink:0;background:var(--v-primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🔴 Fire Live</button>
+            </div>
+            <div style="font-size:12px;color:var(--text-muted);line-height:1.5">Order status update notification using Profile.Name — demonstrates transactional Web Inbox messaging.</div>
+            <div id="status-inbox-order" style="font-size:11px;min-height:14px;color:var(--text-muted)"></div>
+          </div>
+
+          <!-- Existing campaigns (open page) -->
+          <div style="background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:14px;opacity:0.7">
+            <div style="font-size:12px;font-weight:700;color:var(--text);margin-bottom:8px">Other Campaigns (auto-triggered on Bazario pages)</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                <span style="color:var(--text-sec)">Featured Deal of the Day · Home Page Viewed</span>
+                <a href="${SITE}/index.html" target="_blank" style="color:var(--v-primary);font-size:11px;font-weight:700;text-decoration:none">Open ↗</a>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                <span style="color:var(--text-sec)">Category Deal Alert · Category Viewed</span>
+                <a href="${SITE}/listing.html" target="_blank" style="color:var(--v-primary);font-size:11px;font-weight:700;text-decoration:none">Open ↗</a>
               </div>
             </div>
-            <a href="${SITE}/${c.page}" target="_blank" rel="noopener"
-               style="flex-shrink:0;background:color-mix(in srgb,var(--v-primary) 10%,transparent);
-                      color:var(--v-primary);border:1px solid color-mix(in srgb,var(--v-primary) 25%,transparent);
-                      border-radius:6px;padding:5px 11px;font-size:11px;font-weight:700;
-                      text-decoration:none;white-space:nowrap;transition:opacity 0.15s"
-               onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
-              Open Page ↗
-            </a>
           </div>
-          <div style="font-size:12px;color:var(--text-muted);line-height:1.5">${c.desc}</div>
-        </div>
-      `).join('');
 
-      panel.innerHTML = `
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-                    padding:12px 14px;display:flex;align-items:center;gap:10px;margin-bottom:10px">
-          <span style="font-size:18px">${ch.icon}</span>
-          <div>
-            <div style="font-size:12px;font-weight:700;color:var(--text)">${ch.name}</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:1px">${ch.desc}</div>
-          </div>
-        </div>
-        ${note}
-        <div style="display:flex;flex-direction:column;gap:8px">${cards}</div>
-      `;
+        </div>`;
     }
 
+    // ═══════════════════════════════════════════════════════════
+    // EVENT FIRE FUNCTIONS
+    // ═══════════════════════════════════════════════════════════
+
+    // ── Web Pop-ups ──
+    function firePopupWelcomeOffer() {
+      fireSDKEvent('User Signed Up', {}, 'status-popup-welcome');
+    }
+
+    function firePopupCartAbandonment() {
+      fireSDKEvent('Cart Viewed', {
+        item_count:  1,
+        cart_value:  4999,
+        top_category:'Electronics',
+        vertical:    'bazario'
+      }, 'status-popup-cart');
+    }
+
+    function firePopupHighValueUpsell() {
+      var sel = document.getElementById('popup-hv-product');
+      var pid = sel ? sel.value : 'E002';
+      var product = DEMO_PRODUCTS.find(function(p) { return p.id === pid; }) || DEMO_PRODUCTS[0];
+      fireSDKEvent('Product Viewed', {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        'Bazario',
+        price:        product.price,
+        source:       'demo',
+        vertical:     'bazario'
+      }, 'status-popup-hv');
+    }
+
+    // ── Native Display ──
+    function fireNDCategoryBanners() {
+      var cat = document.getElementById('nd-cat-category').value;
+      fireSDKEvent('Category Viewed', {
+        category_name: cat,
+        source:        'demo',
+        total_products: 13,
+        vertical:      'bazario'
+      }, 'status-nd-cat');
+    }
+
+    function fireNDProductBanner() {
+      var sel     = document.getElementById('nd-prod-product');
+      var pid     = sel ? sel.value : 'E002';
+      var product = DEMO_PRODUCTS.find(function(p) { return p.id === pid; }) || DEMO_PRODUCTS[0];
+      fireSDKEvent('Product Viewed', {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        'Bazario',
+        price:        product.price,
+        source:       'demo',
+        vertical:     'bazario'
+      }, 'status-nd-prod');
+    }
+
+    function fireNDConfirmationBanner() {
+      var cat = document.getElementById('nd-conf-category').value;
+      fireSDKEvent('Order Confirmed', {
+        order_id:     'BZ-DEMO-' + Date.now(),
+        top_category:  cat,
+        order_value:   9999,
+        payment_mode: 'UPI',
+        vertical:     'bazario'
+      }, 'status-nd-conf');
+    }
+
+    // ── Recommendations ──
+    function fireRecSimilar() {
+      var sel     = document.getElementById('rec-similar-product');
+      var pid     = sel ? sel.value : 'E002';
+      var product = DEMO_PRODUCTS.find(function(p) { return p.id === pid; }) || DEMO_PRODUCTS[0];
+      fireSDKEvent('Product Viewed', {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        'Bazario',
+        price:        product.price,
+        source:       'demo',
+        vertical:     'bazario'
+      }, 'status-rec-similar');
+    }
+
+    function fireRecFAT() {
+      var sel     = document.getElementById('rec-fat-product');
+      var pid     = sel ? sel.value : 'E002';
+      var product = DEMO_PRODUCTS.find(function(p) { return p.id === pid; }) || DEMO_PRODUCTS[0];
+      // Fire Cart Viewed simulating this product is in the cart
+      fireSDKEvent('Cart Viewed', {
+        item_count:   1,
+        cart_value:   product.price,
+        top_category: product.category,
+        vertical:     'bazario'
+      }, 'status-rec-fat');
+    }
+
+    // ── Web Inbox ──
+    function fireDemoOffer() {
+      fireSDKEvent('Demo Offer Triggered', { vertical: 'bazario' }, 'status-inbox-offer');
+      showChannelStatus('status-inbox-offer', '✓ Event fired — check the 🔔 bell icon on any Bazario page', 'success');
+    }
+
+    function fireDemoOrderUpdate() {
+      fireSDKEvent('Demo Order Update Triggered', { vertical: 'bazario' }, 'status-inbox-order');
+      showChannelStatus('status-inbox-order', '✓ Event fired — check the 🔔 bell icon on any Bazario page', 'success');
+    }
+
+    // ── Web Push (auto-triggered) ──
+    function fireWebPushAbandonedCart() {
+      var sel     = document.getElementById('awp-product');
+      var pid     = sel ? sel.value : 'E002';
+      var product = DEMO_PRODUCTS.find(function(p) { return p.id === pid; }) || DEMO_PRODUCTS[0];
+      fireSDKEvent('Added to Cart', {
+        product_id:   product.id,
+        product_name: product.name,
+        category:     product.category,
+        brand:        'Bazario',
+        price:        product.price,
+        quantity:     1,
+        cart_value:   product.price,
+        source:       'demo',
+        vertical:     'bazario'
+      }, 'status-awp-cart');
+      document.getElementById('status-awp-cart').textContent = '✓ Added to Cart fired — push notification will arrive in ~1 min (do not fire Charged)';
+      document.getElementById('status-awp-cart').style.color = 'var(--warning)';
+    }
+
+    function fireWebPushOrderConfirmation() {
+      var sel     = document.getElementById('awp-conf-product');
+      var pid     = sel ? sel.value : 'E002';
+      var product = DEMO_PRODUCTS.find(function(p) { return p.id === pid; }) || DEMO_PRODUCTS[0];
+      fireSDKEvent('Charged', {
+        'Amount':       product.price + 49,
+        'Payment mode': 'UPI',
+        'Order ID':     'BZ-DEMO-' + Date.now(),
+        'Items': [{
+          'Product name': product.name,
+          'Category':     product.category,
+          'Brand':        'Bazario',
+          'Price':        product.price,
+          'Quantity':     1
+        }],
+        vertical: 'bazario'
+      }, 'status-awp-conf');
+    }
+
+    // ── Tab switching ──
     function showSDKChannel(channelId, btn) {
-      document.querySelectorAll('.sdk-panel').forEach(p => p.style.display = 'none');
-      document.querySelectorAll('.sdk-tab-btn').forEach(b => b.classList.remove('sdk-tab-active'));
+      document.querySelectorAll('.sdk-panel').forEach(function(p) { p.style.display = 'none'; });
+      document.querySelectorAll('.sdk-tab-btn').forEach(function(b) { b.classList.remove('sdk-tab-active'); });
       document.getElementById('sdk-panel-' + channelId).style.display = 'block';
       btn.classList.add('sdk-tab-active');
     }
 
+    // ── Bulletin form ──
     function updateBulletinForm() {
       const val = document.getElementById('blEvent').value;
       document.getElementById('bl-flash-sale').style.display     = val === 'flash_sale'    ? 'flex' : 'none';
@@ -2822,6 +3269,7 @@
       document.getElementById('bl-new-collection').style.display = val === 'new_collection' ? 'flex' : 'none';
     }
 
+    // ── Countdown runner (for API channels) ──
     async function runApiCountdown(btnId, statusId, seconds, apiCall) {
       const btn    = document.getElementById(btnId);
       const status = document.getElementById(statusId);
@@ -2848,7 +3296,7 @@
         console.error('[Channel Demos]', e);
       }
 
-      setTimeout(() => {
+      setTimeout(function() {
         btn.disabled       = false;
         btn.textContent    = orig;
         status.textContent = '';
@@ -2856,6 +3304,7 @@
       }, 4000);
     }
 
+    // ── API Web Push (fire to specific user) ──
     async function fireChannelWebPush() {
       const email = document.getElementById('wpEmail').value.trim();
       const title = document.getElementById('wpTitle').value.trim();
@@ -2896,6 +3345,7 @@
       });
     }
 
+    // ── Bulletins ──
     async function fireChannelBulletin() {
       const eventType = document.getElementById('blEvent').value;
       let businessEvent, bulletinName, properties;
@@ -2906,20 +3356,29 @@
         businessEvent   = 'Flash Sale Started';
         bulletinName    = `Flash Sale — ${category}`;
         properties      = { category, discount_pct: String(discount) };
-
       } else if (eventType === 'back_in_stock') {
         const raw       = document.getElementById('blBisProduct').value;
         const [pid, pname, pcat] = raw.split('||');
         businessEvent   = 'Product Back in Stock';
         bulletinName    = `Back in Stock — ${pname}`;
         properties      = { product_id: pid, product_name: pname, category: pcat };
-
       } else {
         const category  = document.getElementById('blNcCategory').value;
         const colName   = document.getElementById('blNcName').value.trim() || 'New Arrivals';
         businessEvent   = 'New Collection Added';
         bulletinName    = `New Collection — ${category}`;
         properties      = { category, collection_name: colName };
+      }
+
+      // Fire qualifying SDK events so current user enters the interest segment
+      if (eventType === 'flash_sale') {
+        clevertap.event.push('Product Viewed', { category: document.getElementById('blFsCategory').value, source: 'demo', vertical: 'bazario' });
+      } else if (eventType === 'new_collection') {
+        clevertap.event.push('Added to Wishlist', { category: document.getElementById('blNcCategory').value, source: 'demo', vertical: 'bazario' });
+      } else if (eventType === 'back_in_stock') {
+        var bisRaw = document.getElementById('blBisProduct').value;
+        var bisParts = bisRaw.split('||');
+        clevertap.event.push('Product Viewed', { product_id: bisParts[0], product_name: bisParts[1], category: bisParts[2], source: 'demo', vertical: 'bazario' });
       }
 
       await runApiCountdown('blBtn', 'blStatus', 5, async () => {
@@ -2930,7 +3389,7 @@
             business_event: businessEvent,
             name:           bulletinName,
             properties,
-            'c-by':         'demo@ctplayground.com',
+            'c-by':         'abhay.shrawankar@gmail.com',
             when:           'now'
           })
         });
@@ -2947,7 +3406,32 @@
       });
     }
 
-    // Initialise Channel Demos section on load
+    // ── Init ──
+    function initChannelDemos() {
+      renderWebPopupsPanel();
+      renderNativeDisplayPanel();
+      renderProductExpPanel();
+      renderRecommendationsPanel();
+      renderWebInboxPanel();
+      // Pre-fill Web Push email from current logged-in user
+      try {
+        const u = JSON.parse(localStorage.getItem('bazario_user') || '{}');
+        if (u.email) document.getElementById('wpEmail').value = u.email;
+      } catch(e) {}
+
+      // Update Web Inbox unread badge
+      setTimeout(function() {
+        try {
+          var unread = clevertap.getInboxMessageUnreadCount() || 0;
+          var badge  = document.getElementById('bz-inbox-unread');
+          if (badge && unread > 0) {
+            badge.textContent   = unread > 9 ? '9+' : unread;
+            badge.style.display = 'inline-flex';
+          }
+        } catch(e) {}
+      }, 3000);
+    }
+
     initChannelDemos();
 
     // ═══════════════════════════════════════════════════════════
@@ -3045,6 +3529,25 @@
     if (sessionStorage.getItem('demo_unlocked') === 'true') {
       init();
     }
+
+    // ── CT Web Pop-up handler for demo mode ──
+    window.addEventListener('message', function(e) {
+      if (!e.data || e.data.type !== 'bz_popup') return;
+      var action = e.data.action;
+
+      if (action === 'viewed') {
+        clevertap.event.push('Web Popup Viewed', { source: 'demo', campaign: e.data.payload?.campaign_name || '' });
+      }
+      if (action === 'clicked') {
+        clevertap.event.push('Web Popup Clicked', { source: 'demo', campaign: e.data.payload?.campaign_name || '' });
+      }
+      if (action === 'nothanks' || action === 'dismissed') {
+        clevertap.event.push('Web Popup Dismissed', { source: 'demo', campaign: e.data.payload?.campaign_name || '' });
+      }
+      if (action === 'close' || action === 'clicked' || action === 'nothanks' || action === 'dismissed') {
+        setTimeout(function() { location.reload(); }, 300);
+      }
+    });
 
   </script>
 </body>
