@@ -1,5 +1,5 @@
 # CT Playground — Project Context Document
-# Last updated: April 2026
+# Last updated: May 2026
 # Purpose: Full context for Claude to assist with this project across conversations
 
 ---
@@ -56,6 +56,7 @@ ct-playground/
 ├── README.md                        # Project overview for GitHub
 ├── index.html                       # Vertical selector homepage
 ├── demo.html                        # Shared demo console (PIN protected)
+├── clevertap_sw.js                  # CT service worker for Web Push
 ├── netlify.toml                     # Netlify build config + proxy redirects
 │
 ├── ecommerce/                       # Bazario ecommerce vertical
@@ -76,12 +77,13 @@ ct-playground/
 │   └── functions/
 │       └── ct-proxy.js              # CT API proxy (passcode server-side)
 │
-└── data-scripts/                    # Python dummy data scripts
+└── dummy_users_data_scripts/        # Python dummy data scripts
     ├── README.md
-    ├── generate_and_upload.py       # Main dummy data script
-    ├── update_vertical_from_csv.py  # Push Vertical property from CSV
-    ├── create_cart_abandoners.py    # Cart abandonment events
-    └── fix_joined_at.py             # Fix date properties to $D_EPOCH
+    ├── generate_ecommerce_users_and_upload.py  # Main dummy data script
+    ├── update_vertical_from_csv.py             # Push Vertical property from CSV
+    ├── create_cart_abandoners.py               # Cart abandonment events
+    ├── fix_joined_at.py                        # Fix date properties to $D_EPOCH
+    └── seed_recommendation_events.py           # Seed Product Viewed + Added to Cart for recommendations
 ```
 
 ---
@@ -142,35 +144,23 @@ ct-playground/
 - 15 segments built in CT dashboard
 - 4 funnels built in CT dashboard
 
-### 🔄 Phase 6 — CT Channel Integration (IN PROGRESS)
-**Campaign 1 — Welcome Offer ✅ COMPLETE**
-- Trigger: User Signed Up
-- Custom HTML popup with Bazario branding
-- Events: Web Popup Viewed, Web Popup Clicked, Web Popup Dismissed
-- Profile properties: Last Popup Seen, Last Popup Clicked At, Last Popup Dismissed At
-- Working correctly on Netlify
+### ✅ Phase 6 — CT Channel Integration (COMPLETE)
+1. Web Pop-ups (4 campaigns: Welcome Offer, Cart Abandonment, Re-engagement, High Value Upsell)
+2. Exit Intent (3 campaigns: Cart, Checkout with auto-discount, Product with auto add-to-cart)
+3. Native Display (31 campaigns across Homepage/Listing/Product/Confirmation + 2 recommendation campaigns)
+4. Product Experiences / RC (43 variables, Phase A + B fully complete across all pages)
+5. Recommendations (Similar Products → product.html, Frequently Added Together → cart.html)
+6. Catalogs (covered via Web Inbox + Email in Phase 14)
+7. Web Push (3 campaigns + API fire live from demo.html)
+8. Web Inbox (4 campaigns: Featured Deal, Category Deal Alert, Demo Offer, Demo Order Update)
+9. Bulletins (3 business events: Flash Sale Started, New Collection Added, Product Back in Stock)
+10. demo.html Channel Demos section (fully built — SDK channels + API channels + fire live)
 
-**Campaign 2 — Cart Abandonment ⬅ NEXT**
-- Trigger: TBD
-- Target: Cart Abandoners segment
-
-**Campaign 3 — Re-engagement**
-- Trigger: TBD
-- Target: Dormant segment
-
-**Campaign 4 — High Value Upsell**
-- Trigger: Product Viewed where price > 10000
-- Target: High Value segment
-
-**Remaining channels after pop-ups:**
-- Exit Intent
-- Web Push (Fire Live via CT API)
-- Native Display
-- Web Inbox (Fire Live via CT API)
-- Bulletins (Fire Live via CT API)
-- Product Experiences
-- Recommendations
-- Catalogs
+**Known parked items (not blockers):**
+- Web Inbox Order Confirmed (Charged trigger) — CT issue, parked
+- Bulletins delivery to demo user — daily segment recomputation limitation
+- Segment Preview on demo.html — Phase 7
+- Email channel — Phase 14 (custom domain)
 
 ### 🔲 Phase 7 — Firebase Backend Migration
 - Move cart, wishlist, orders, addresses from localStorage → Firestore
@@ -262,10 +252,11 @@ window.bzDismiss = function() {
 </div>
 ```
 
-**account.html fix:**
-- Auth page div is hidden by default (style="display:none")
-- showAuthPage() sets display to flex explicitly
-- Prevents flash of login page on redirect
+**demo.html popup handling:**
+- auth.js is NOT loaded on demo.html — popup postMessage handler is added directly in demo.html
+- On any dismiss action (clicked/nothanks/dismissed/close) → page reloads after 300ms
+- This kills CT's overlay reliably without needing auth.js redirect mechanism
+- PIN session persists via sessionStorage so user is not asked to re-enter PIN
 
 ### Redirect destinations per campaign:
 | Campaign | CTA redirect | Dismiss redirect |
@@ -275,14 +266,44 @@ window.bzDismiss = function() {
 | Re-engagement | index.html | same page |
 | High Value Upsell | cart.html | same page |
 
-### demo.html Channel Demos Approach
-**SDK-driven channels** (Web Pop-ups, Exit Intent, Native Display, Product Experiences, Recommendations):
-- [Preview] button → inject popup HTML directly into demo.html as overlay
-- [How to Trigger] → explains what real user action fires the campaign
+### Native Display Architecture
+- **KV pair approach** (not Custom HTML) for all category banners
+- CT fires `CT_web_native_display` event with `data.kv` object
+- Page JS reads KV pairs and renders HTML itself — full styling control
+- Topic routing: each campaign sets `topic` KV → JS router dispatches to correct renderer
+- **Recommendations** also use KV pair approach — CT resolves liquid tags server-side
+  and passes resolved product data (name, image, price, etc.) as plain strings in KV pairs
 
-**API-driven channels** (Web Push, Web Inbox, Bulletins):
-- [Preview] button → same as above
-- [Fire Live] button → 10 second countdown → Netlify proxy → CT API
+### Recommendations Architecture
+- Two CT recommendation models: "Bazario - Similar Products", "Bazario - Frequently Added Together"
+- Both use 180-day window (CT maximum)
+- Seeded with 105,000 events via seed_recommendation_events.py (5 Product Viewed + 2 Added to Cart per user, last 170 days)
+- Campaign 1: [Bazario] ND Rec — Similar Products → product.html (#ct-native-display-recommendations-product)
+- Campaign 2: [Bazario] ND Rec — Frequently Added Together → cart.html (#ct-native-display-recommendations-cart)
+- 25 KV pairs per campaign: topic + 8 fields × 3 slots (id, name, image, price, original_price, discount, rating, tags)
+
+### Web Push Architecture
+- VAPID keys generated and stored in CT Dashboard (Chrome + Firefox)
+- Service worker: clevertap_sw.js at repo root (required)
+- Soft prompt (Card Popup) enabled in CT → Settings → Channels → Web Push
+- Permission prompt fires on page load (HTTPS only) with 3s delay via clevertap.js
+- Account-level Passcode required for API calls (not User Passcode)
+
+### Bulletins Architecture
+- 3 business events: Flash Sale Started, New Collection Added, Product Back in Stock
+- Interest segments pre-computed daily at midnight — not real-time
+- API endpoint: POST /ct-proxy/bulletin → CT /1/targets/trigger.json
+- c-by field MUST be actual CT admin user email (not placeholder)
+- Account-level Passcode required (Admin role)
+- Flash Sale matches on category; Back in Stock matches on product_id; New Collection matches on category (Wishlist Added)
+
+### Web Inbox Architecture
+- Element ID: bz-inbox-trigger (registered in CT Dashboard → Settings → Channels → Web Inbox)
+- Bell icon injected into navbar via auth.js initInboxTrigger() on all Bazario pages
+- Bell icon also added directly to demo.html topbar for demo console use
+- 4 campaigns: Featured Deal of the Day, Category Deal Alert, Demo Offer, Demo Order Update
+- Demo-specific events (Demo Offer Triggered, Demo Order Update Triggered) must exist in CT before campaign creation — seed by firing once from demo.html
+- Categories configured: Offers, Orders, Recommended
 
 ### Storage Keys (localStorage)
 - `bazario_user` — current logged-in user session
@@ -292,6 +313,7 @@ window.bzDismiss = function() {
 - `bazario_orders_${email}` — per-user orders
 - `bazario_addresses_${email}` — per-user addresses
 - `ct_active_vertical` — active vertical for demo.html context
+- `WZRK_PE_${email}` — per-user RC variable cache
 
 ---
 
@@ -369,6 +391,18 @@ Web Popup Clicked — (all above) + cta_text, cta_action
 Web Popup Dismissed — (all above) + dismiss_action (close_button / no_thanks_link)
 ```
 
+### Channel Demo Events (Phase 6)
+```
+Demo Offer Triggered — vertical (fires Demo Offer Web Inbox campaign)
+Demo Order Update Triggered — vertical (fires Demo Order Update Web Inbox campaign)
+Recommendation Clicked — recommendation_type, product_id, page, vertical
+Native Display Clicked — campaign_name, category_shown, cta_url, vertical
+Promo Banner Viewed — page, promo_text, vertical
+Prime Upsell Viewed — page, vertical
+Prime Upsell Clicked — page, vertical
+Urgency Message Viewed — product_id, product_name, category, urgency_text, vertical
+```
+
 ### Profile Properties
 ```
 Common: Name, Email, Phone, Gender, DOB, City, MSG-email, MSG-sms, MSG-push,
@@ -378,7 +412,8 @@ Bazario-specific: Is Prime, Preferred Category, Total Orders, Lifetime Value,
                   Last Order Date ($D_EPOCH), Last Order Value,
                   Last Popup Seen, Last Popup Seen At ($D_EPOCH),
                   Last Popup Clicked, Last Popup Clicked At ($D_EPOCH),
-                  Last Popup Dismissed, Last Popup Dismissed At ($D_EPOCH)
+                  Last Popup Dismissed, Last Popup Dismissed At ($D_EPOCH),
+                  Last Prime Upsell Seen, Last Prime Upsell Clicked
 ```
 
 ---
@@ -412,15 +447,83 @@ Bazario-specific: Is Prime, Preferred Category, Total Orders, Lifetime Value,
 
 ---
 
+## CT CHANNEL INTEGRATION — BAZARIO (Phase 6 Complete)
+
+### Web Pop-ups (4 campaigns)
+| Campaign | Trigger | Segment |
+|---|---|---|
+| Welcome Offer — New User Discount | User Signed Up | All Users |
+| Cart Abandonment — Discount Nudge | Cart Viewed | All Users |
+| Re-engagement — Welcome Back | Home Page Viewed | Dormant Users · index.html only |
+| High Value Upsell — Prime Push | Product Viewed (price > ₹10,000) | Is Prime = false |
+
+### Exit Intent (3 campaigns)
+| Campaign | Page |
+|---|---|
+| Cart Exit Recovery | cart.html |
+| Checkout Exit with Auto-Discount | checkout.html |
+| Product Exit with Auto Add-to-Cart | product.html |
+
+### Native Display (31 campaigns)
+- Homepage banners: 8 category variants — trigger: Category Viewed (last viewed category)
+- Listing banners: 8 category variants — trigger: Category Viewed
+- Product banners: 7 category variants — trigger: Product Viewed
+- Confirmation banners: 8 category variants — trigger: Order Confirmed
+- All use KV pair approach with topic routing
+
+### Recommendation Campaigns (2)
+- [Bazario] ND Rec — Similar Products → product.html (trigger: Product Viewed)
+- [Bazario] ND Rec — Frequently Added Together → cart.html (trigger: Cart Viewed)
+
+### Product Experiences / RC (43 variables)
+- Phase A: 25 UI + content variables (hero text, gradients, CTAs, badges)
+- Phase B: 18 business logic variables (free delivery threshold, coupons, sort order)
+- Per-user localStorage pattern: WZRK_PE_${email}
+
+### Web Push (3 campaigns)
+| Campaign | Trigger |
+|---|---|
+| Abandoned Cart Recovery | Added to Cart → no Charged within 1 min |
+| Re-engagement Deal Alert | One-time · Dormant Users |
+| Order Confirmation | Charged · for-loop personalisation on Items array |
+
+### Web Inbox (4 campaigns)
+| Campaign | Trigger | Category |
+|---|---|---|
+| Featured Deal of the Day | Home Page Viewed | Offers |
+| Category Deal Alert | Category Viewed | Offers |
+| Demo Offer | Demo Offer Triggered | Offers |
+| Demo Order Update | Demo Order Update Triggered | Orders |
+
+### Bulletins (3 business events)
+| Business Event | Interest Segment | Properties |
+|---|---|---|
+| Flash Sale Started | Product Viewed · category match | category, discount_pct |
+| New Collection Added | Wishlist Added · category match | category, collection_name |
+| Product Back in Stock | Product Viewed · product_id match | product_id, product_name, category |
+
+### demo.html Channel Demos
+- SDK Channels: Web Pop-ups, Native Display, Product Experiences, Recommendations, Web Inbox
+  - Each has 🔴 Fire Live buttons that fire qualifying CT SDK events directly
+  - CT campaigns respond and render on demo.html itself
+- API Channels: Web Push (event-triggered + API fire live), Bulletins (Fire Live)
+  - Web Push API: POST /ct-proxy/webpush → CT /1/send/webpush.json
+  - Bulletins API: POST /ct-proxy/bulletin → CT /1/targets/trigger.json
+- External Trigger: Phase 14 (requires Email channel + custom domain)
+
+---
+
 ## NETLIFY PROXY
 
 **Endpoints:**
 - `POST /ct-proxy/upload` → CT Upload API (write events + profiles)
 - `GET /ct-proxy/profile?email=` → CT Profile API (read any user)
+- `POST /ct-proxy/webpush` → CT Send Web Push API (/1/send/webpush.json)
+- `POST /ct-proxy/bulletin` → CT Bulletins Trigger API (/1/targets/trigger.json)
 
 **Environment variables in Netlify:**
 - `CT_ACCOUNT_ID` — Account ID
-- `CT_PASSCODE` — Passcode (NEVER in code or GitHub)
+- `CT_PASSCODE` — Account-level Passcode (NEVER in code or GitHub)
 
 **Note:** Account ID and Token are in clevertap.js (committed to GitHub) — they are public by design (visible in browser DevTools). Only the Passcode is truly secret.
 
@@ -428,7 +531,7 @@ Bazario-specific: Is Prime, Preferred Category, Total Orders, Lifetime Value,
 
 ## DUMMY DATA
 
-**Script:** data-scripts/generate_and_upload.py
+**Scripts:** dummy_users_data_scripts/
 **Result:** 15,000 profiles, 3,246,470 events, 0 errors
 
 **Archetypes:**
@@ -441,11 +544,15 @@ Bazario-specific: Is Prime, Preferred Category, Total Orders, Lifetime Value,
 **Seasonal spikes:** Diwali (Oct/Nov 3x), New Year (Jan 2x), Summer Sale (Jun/Jul 2x)
 
 **Date property format:** Always use $D_EPOCH format for CT date properties
-- Joined At: $D_EPOCH ✓ (fixed via fix_joined_at.py)
-- Last Order Date: $D_EPOCH ✓ (fixed via fix_joined_at.py)
+- Joined At: $D_EPOCH ✓
+- Last Order Date: $D_EPOCH ✓
 - DOB: $D_EPOCH ✓
 
-**Vertical property:** Vertical: Bazario pushed to all 15,000 profiles
+**Recommendation seed events:** seed_recommendation_events.py
+- 105,000 events (15,000 users × 7 events each)
+- 5 Product Viewed + 2 Added to Cart per user
+- All within last 170 days (inside CT's 180-day recommendation window)
+- Covers all 85 products from bazario_product_catalog.csv
 
 ---
 
@@ -518,53 +625,12 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 
 ---
 
-## CURRENT STATUS (as of April 2026)
+## CURRENT STATUS (as of May 2026)
 
-**Last completed:** Campaign 1 — Welcome Offer popup (Phase 6)
-**Currently working on:** Campaign 2 — Cart Abandonment popup
-**Pending after campaigns:** Wire up demo.html Channel Demos section
-
+**Last completed:** Phase 6 — CT Channel Integration
+**Currently working on:** Phase 7 — Firebase Backend Migration
 **Pending commits:** None — all committed
 **Netlify:** Live at ctplayground.netlify.app
-
----
-
-## PHASE 6 STATUS — CT Channel Integration
-
-### ✅ Completed Channels
-1. Web Pop-ups (4 campaigns: Welcome Offer, Cart Abandonment, Re-engagement, High Value Upsell)
-2. Exit Intent (3 campaigns: Cart, Checkout with auto-discount, Product with auto add-to-cart)
-3. Native Display (31 campaigns across Homepage/Listing/Product/Confirmation pages, KV pair approach)
-4. Product Experiences — RC (43 variables, Phase A + Phase B fully complete across all pages)
-
-### 🔄 In Progress — Channel 5: Recommendations
-- Bazario product catalog uploaded to CT (85 products, 8 categories)
-- Catalog mapped to Product Viewed + Added to Cart events
-- Two recommendations created and published:
-  - Bazario - Similar Products (based on Product Viewed, 30 days)
-  - Bazario - Frequently Added Together (based on Added to Cart, 30 days)
-- Added recommendation divs to product.html and cart.html:
-  - product.html: #ct-native-display-recommendations-product
-  - cart.html: #ct-native-display-recommendations-cart
-- NEXT STEP: Create CT Native Display campaigns using recommendation content
-  - Campaign 1: [Bazario] ND Rec — Similar Products → product.html
-  - Campaign 2: [Bazario] ND Rec — Frequently Added Together → cart.html
-  - Need to create 3 recommendation blocks per campaign in CT
-  - Share liquid tags screenshot → get HTML from Claude → publish
-
-### 🔲 Remaining Channels
-6. Catalogs
-7. Web Push
-8. Web Inbox
-9. Bulletins
-10. demo.html Channel Demos section (Phase B)
-
-### Key Technical Decisions Made
-- Native Display uses KV pair approach (not Custom HTML) for category banners
-- RC uses WZRK_PE_${email} per-user localStorage pattern
-- isPrime sync fix: syncPrimeFromCT awaited BEFORE ctIdentifyUser in completeLogin
-- postMessage handler in auth.js is fully payload-driven
-- clevertap.js uses new SDK from jsdelivr CDN with enablePersonalization: true
 
 ---
 
@@ -577,8 +643,16 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 5. The CT web popup pattern is confirmed working — always use postMessage approach
 6. Never suggest putting CT Passcode in frontend code or GitHub
 7. Firebase migration happens in Phase 7 — don't suggest localStorage alternatives before then
-8. demo.html channel demos: SDK channels get Preview + instructions, API channels get Preview + Fire Live
-9. All date properties in CT must use $D_EPOCH format
-10. Always check if a change affects multiple pages/files and flag them all upfront
-11. Conversation management — Use the SAME conversation throughout a phase. Start a NEW conversation only when moving to a new phase.
-12. Email channel — Skip for now. Revisit email as a CT channel in Phase 14 when custom domain is set up. Requires verified sending domain (e.g. noreply@bazario.com), DNS records (SPF, DKIM, DMARC), and ESP integration (recommend SendGrid free tier or Amazon SES). CT itself doesn't charge per email — ESP cost is negligible.
+8. All date properties in CT must use $D_EPOCH format
+9. Always check if a change affects multiple pages/files and flag them all upfront
+10. Use the SAME conversation throughout a phase. Start a NEW conversation only when moving to a new phase.
+11. Email channel — Skip for now. Revisit in Phase 14 when custom domain is set up. Requires verified sending domain, DNS records (SPF, DKIM, DMARC), and ESP integration (recommend SendGrid free tier or Amazon SES).
+12. auth.js is NOT loaded on demo.html — popup postMessage handler added directly in demo.html. Dismissing reloads the page to kill CT overlay (reliable because sessionStorage preserves PIN).
+13. Bulletins API requires c-by = actual CT admin email (not placeholder). Account-level Passcode required (not User Passcode). Admin role required on CT account.
+14. Web Inbox demo campaigns use demo-specific events (Demo Offer Triggered, Demo Order Update Triggered). These events must exist in CT before campaign creation — seed by firing once from demo.html.
+15. Recommendations use KV pair approach (not Custom HTML). CT resolves liquid tags server-side and sends plain string values. 25 KV pairs per campaign (topic + 8 fields × 3 slots).
+16. Native Display campaigns fire on destination page, not source page — prevents duplicate events.
+17. RC variables use per-user localStorage key WZRK_PE_${email} — synced after CT SDK loads via fetchVariables().
+18. clevertap.js should be committed to GitHub (Account ID and Token are public by design).
+19. Web Push requires HTTPS — only works on Netlify, not Live Server. VAPID keys stored in CT Dashboard. Account-level Passcode required for API push.
+20. demo.html Channel Demos section: SDK channels have 🔴 Fire Live buttons that fire CT SDK events directly on demo.html. CT campaigns respond and render inline. API channels (Web Push, Bulletins) call Netlify proxy → CT API.
