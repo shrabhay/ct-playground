@@ -2,13 +2,30 @@
 // Depends on fbDb and fbAuth from js/firebase.js (must load after)
 
 // ── Cart ──────────────────────────────────────────────────────────────────────
+// ── Cart item sanitizer — strips nested arrays/objects not needed for display ──
+function sanitizeCartItem(item) {
+  return {
+    id:            item.id            || '',
+    name:          item.name          || '',
+    brand:         item.brand         || '',
+    category:      item.category      || '',
+    price:         item.price         || 0,
+    originalPrice: item.originalPrice || item.price || 0,
+    discount:      item.discount      || 0,
+    rating:        item.rating        || 0,
+    emoji:         item.emoji         || '📦',
+    qty:           item.qty           || 1,
+    variant:       item.variant       || ''
+  };
+}
+
 async function fbGetCart(uid) {
   const doc = await fbDb.collection('carts').doc(uid).get();
   return doc.exists ? (doc.data().items || []) : [];
 }
 
 async function fbSetCart(uid, items) {
-  await fbDb.collection('carts').doc(uid).set({ items });
+  await fbDb.collection('carts').doc(uid).set({ items: items.map(sanitizeCartItem) });
 }
 
 // ── Wishlist ──────────────────────────────────────────────────────────────────

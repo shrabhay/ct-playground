@@ -113,3 +113,66 @@ function getWishlistKey() {
   const user = getUser();
   return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
 }
+
+// ─── CT WEB POP-UP HANDLER ────────────────────────────────────────────────────
+// Listens for postMessage from CT popup iframes on all Bazario pages
+// Fires CT events and kills overlay via navigation (CT MutationObserver
+// overrides any style-based attempts — redirect is the only reliable approach)
+
+window.addEventListener('message', function(e) {
+  if (!e.data || e.data.type !== 'bz_popup') return;
+
+  var action   = e.data.action;
+  var payload  = e.data.payload || {};
+  var campaign = payload.campaign_name || '';
+
+  // ── Fire CT events ──
+  if (action === 'viewed') {
+    clevertap.event.push('Web Popup Viewed', {
+      campaign_name: campaign,
+      vertical:      'bazario'
+    });
+  }
+
+  if (action === 'clicked') {
+    clevertap.event.push('Web Popup Clicked', {
+      campaign_name: campaign,
+      vertical:      'bazario'
+    });
+    clevertap.profile.push({ 'Site': { 'Last Popup Clicked': campaign } });
+  }
+
+  if (action === 'nothanks') {
+    clevertap.event.push('Web Popup Dismissed', {
+      campaign_name:  campaign,
+      dismiss_action: 'no_thanks_link',
+      vertical:       'bazario'
+    });
+    clevertap.profile.push({ 'Site': { 'Last Popup Dismissed': campaign } });
+  }
+
+  if (action === 'dismissed') {
+    clevertap.event.push('Web Popup Dismissed', {
+      campaign_name:  campaign,
+      dismiss_action: 'close_button',
+      vertical:       'bazario'
+    });
+    clevertap.profile.push({ 'Site': { 'Last Popup Dismissed': campaign } });
+  }
+
+  // ── Kill overlay on close ──
+  // 'close' always fires after clicked/nothanks/dismissed.
+  // Redirecting away naturally destroys CT's intentPreview div —
+  // DO NOT attempt DOM manipulation, CT's MutationObserver overrides it.
+  if (action === 'close') {
+    setTimeout(function() {
+      // Welcome Offer dismiss → account.html (encourage signup)
+      // Everything else → reload same page
+      if (campaign.toLowerCase().includes('welcome offer')) {
+        window.location.href = 'account.html';
+      } else {
+        window.location.reload();
+      }
+    }, 300);
+  }
+});

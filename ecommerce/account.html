@@ -942,17 +942,6 @@
       if (!password || password.length < 8) { showFieldError('signupPasswordError');valid = false; } else { hideFieldError('signupPasswordError'); }
       if (!valid) return;
 
-      // ─── CleverTap ───────────────────────────────────────────────────────────────
-      // Push email as an early identity hint before OTP verification.
-      // This allows CT to merge this anonymous session with the named profile
-      // created at onUserLogin — so Signup Initiated ties to the correct user.
-      // Critical for drop-off analysis: cart → place order → signup → abandoned.
-      clevertap.profile.push({
-        "Site": {
-          "Email": document.getElementById('signupEmail').value.trim()
-        }
-      });
-
       ctEvent("Signup Initiated", {
         method:           "email_phone",
         has_referral:     false,
@@ -1520,6 +1509,7 @@
 
       ctEvent("User Logged Out", {});
       await fbAuth.signOut();
+      clevertap.logout();
       localStorage.removeItem('bazario_user');
       currentUser = null;
 
