@@ -1035,10 +1035,6 @@
         <div class="nav-item" onclick="scrollToSection('s5')">
           <span class="nav-icon">🏗️</span> External Integrations
         </div>
-        <div class="nav-item" onclick="scrollToSection('s6')">
-          <span class="nav-icon">🎯</span> Segment Preview
-          <span class="nav-stub">Phase 5</span>
-        </div>
       </div>
 
       <div class="sidebar-section">
@@ -1878,29 +1874,6 @@
         </div>
       </div>
 
-      <!-- ── SECTION 6: SEGMENT PREVIEW (STUB) ── -->
-      <div class="section-card" id="s6">
-        <div class="section-header">
-          <div class="section-title">
-            <div class="icon">🎯</div>
-            Segment Preview
-          </div>
-          <span style="font-size:11px;background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.2);padding:3px 10px;border-radius:4px;font-weight:700">Phase 5</span>
-        </div>
-        <div class="section-body">
-          <div class="stub-banner">
-            <div class="stub-icon">🎯</div>
-            <div class="stub-title">Segment preview coming after dummy data is loaded</div>
-            <div class="stub-desc">
-              Once 5,000 users and 30 days of event history are pushed to CT,
-              this section will show which segments the current user falls into —
-              Cart Abandoners, High Value, Dormant, Prime Members, and more.
-            </div>
-            <span class="stub-tag">Requires Phase 5 — Dummy Data</span>
-          </div>
-        </div>
-      </div>
-
       <!-- ── EVENT LOG ── -->
       <div class="event-log" id="eventLog">
         <div class="event-log-header">
@@ -2340,23 +2313,33 @@
     // SECTION 2 — PROFILE MANAGER
     // ═══════════════════════════════════════════════════════════
 
-    function loadCurrentUser() {
-        const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-        if (!user) {
-            showToast('No user logged in — visit Bazario and sign in first', 'error');
-            return;
-        }
+    async function loadCurrentUser() {
+      const firebaseUser = fbAuth.currentUser;
 
-        document.getElementById('profileEmail').value   = user.email  || '';
-        document.getElementById('profileName').value    = user.name   || '';
-        document.getElementById('profilePhone').value   = user.phone  || '';
-        document.getElementById('profileCity').value    = user.city   || '';
-        document.getElementById('profileGender').value  = user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '';
-        document.getElementById('profileIsPrime').value = user.isPrime ? 'true' : 'false';
+      // Fallback to localStorage cache if Firebase hasn't resolved yet
+      let user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
 
-        updateProfilePreview(user);
-        updateProfilePayloadPreview();
-        showToast('Current user loaded', 'success');
+      // If Firebase Auth is active, load fresh from Firestore
+      if (firebaseUser) {
+          const profile = await fbGetProfile(firebaseUser.uid);
+          if (profile) user = profile;
+      }
+
+      if (!user) {
+          showToast('No user logged in — visit Bazario and sign in first', 'error');
+          return;
+      }
+
+      document.getElementById('profileEmail').value   = user.email  || '';
+      document.getElementById('profileName').value    = user.name   || '';
+      document.getElementById('profilePhone').value   = user.phone  || '';
+      document.getElementById('profileCity').value    = user.city   || '';
+      document.getElementById('profileGender').value  = user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '';
+      document.getElementById('profileIsPrime').value = user.isPrime ? 'true' : 'false';
+
+      updateProfilePreview(user);
+      updateProfilePayloadPreview();
+      showToast('Current user loaded', 'success');
     }
 
     async function loadProfileFromCT() {
