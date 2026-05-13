@@ -845,6 +845,12 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="js/firebase-bazario.js"></script>
   <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
@@ -854,15 +860,18 @@
     let product = null;
     let qty = 1;
     let selectedVariant = null;
-    function getCartKey() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-    }
 
-    let cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+    let cartItems = [];
 
     // ─── INIT ───
-    function init() {
+    async function init() {
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        cartItems = await fbGetCart(uid);
+      } else {
+        cartItems = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+      }
+
       const params = new URLSearchParams(window.location.search);
 
       // ── Read source from URL ──
@@ -900,7 +909,7 @@
       renderProduct(product);
       renderRelated(product);
       updateCartCount();
-      updateWishlistCount();
+      await updateWishlistCount();
 
       // ── CT: Product Viewed ──
       // source reflects where the user came from:
@@ -1145,7 +1154,7 @@
       });
     }
 
-    function handleAddToCart() {
+    async function handleAddToCart() {
       if (!product) return;
       const existing = cartItems.find(i => i.id === product.id && i.variant === selectedVariant);
       if (existing) {
@@ -1153,7 +1162,11 @@
       } else {
         cartItems.push({ ...product, qty, variant: selectedVariant });
       }
-      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
+
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetCart(uid, cartItems);
+      else localStorage.setItem('bazario_cart_guest', JSON.stringify(cartItems));
+
       updateCartCount();
 
       ctEvent("Added to Cart", {
@@ -1171,8 +1184,8 @@
       showToast(`✓ Added to cart — ${product.name.substring(0, 28)}...`);
     }
 
-    function handleBuyNow() {
-      handleAddToCart();
+    async function handleBuyNow() {
+      await handleAddToCart();
       ctEvent("Buy Now Clicked", {
         product_id:   product.id,
         product_name: product.name,
@@ -1185,16 +1198,14 @@
       setTimeout(() => window.location.href = 'cart.html', 600);
     }
 
-    function getWishlistKey() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
-    }
-
-    function handleWishlist() {
+    async function handleWishlist() {
       if (!product) return;
-      const wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
-      const exists   = wishlist.find(i => i.id === product.id);
+      const uid = fbAuth.currentUser?.uid;
+      let wishlist = uid
+        ? await fbGetWishlist(uid)
+        : JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
 
+      const exists = wishlist.find(i => i.id === product.id);
       if (exists) {
         showToast('Already in your Wishlist');
         return;
@@ -1213,8 +1224,10 @@
         addedAt:       new Date().toISOString()
       });
 
-      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
-      updateWishlistCount();
+      if (uid) await fbSetWishlist(uid, wishlist);
+      else localStorage.setItem('bazario_wishlist_guest', JSON.stringify(wishlist));
+
+      await updateWishlistCount();
 
       ctEvent("Added to Wishlist", {
         product_id:   product.id,
@@ -1243,8 +1256,11 @@
       document.getElementById('cartCount').textContent = total;
     }
 
-    function updateWishlistCount() {
-      const wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
+    async function updateWishlistCount() {
+      const uid = fbAuth.currentUser?.uid;
+      const wishlist = uid
+        ? await fbGetWishlist(uid)
+        : JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
       const el = document.getElementById('wishlistCount');
       if (el) el.textContent = wishlist.length;
     }
@@ -1504,7 +1520,9 @@
       }
     });
     
-    init();
+    fbAuth.onAuthStateChanged(async () => {
+      await init();
+    });
     document.getElementById('searchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') handleSearch();
     });

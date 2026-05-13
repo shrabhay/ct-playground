@@ -663,6 +663,12 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="js/firebase-bazario.js"></script>
   <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
@@ -676,12 +682,7 @@
     // ─── STATE ───
     let currentCategory = 'Electronics';
 
-    function getCartKey() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-    }
-
-    let cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+    let cartItems = [];
     let currentSearch = ''; // empty means no search active
 
     // ─── FILTER & PAGINATION STATE ───
@@ -701,9 +702,16 @@
     // ─── INIT ───
     let initialised = false;
 
-    function init() {
+    async function init() {
       if (initialised) return;
       initialised = true;
+
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        cartItems = await fbGetCart(uid);
+      } else {
+        cartItems = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+      }
 
       const params = new URLSearchParams(window.location.search);
 
@@ -1022,7 +1030,7 @@
     }
 
     // ─── ADD TO CART (from listing) ───
-    function handleAddToCart(e, productId) {
+    async function handleAddToCart(e, productId) {
       e.stopPropagation();
       const product = Object.values(catalogue).flat().find(p => p.id === productId);
       if (!product) return;
@@ -1033,7 +1041,11 @@
       } else {
         cartItems.push({ ...product, qty: 1 });
       }
-      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
+
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetCart(uid, cartItems);
+      else localStorage.setItem('bazario_cart_guest', JSON.stringify(cartItems));
+
       updateCartCount();
 
       ctEvent("Added to Cart", {
@@ -1050,14 +1062,17 @@
       showToast(`✓ ${product.name.substring(0, 30)}... added to cart`);
     }
 
-    function handleWishlist(e, productId) {
+    async function handleWishlist(e, productId) {
       e.stopPropagation();
-      const p        = getAllProducts().find(item => item.name === productId) || getAllProducts().find(item => item.id === productId);
+      const p = getAllProducts().find(item => item.name === productId) || getAllProducts().find(item => item.id === productId);
       if (!p) { showToast('♡ Added to Wishlist'); return; }
 
-      const wishlist = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
-      const exists   = wishlist.find(i => i.id === p.id);
+      const uid = fbAuth.currentUser?.uid;
+      let wishlist = uid
+        ? await fbGetWishlist(uid)
+        : JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
 
+      const exists = wishlist.find(i => i.id === p.id);
       if (exists) { showToast('Already in your Wishlist'); return; }
 
       wishlist.push({
@@ -1066,7 +1081,8 @@
         rating: p.rating, emoji: p.emoji, addedAt: new Date().toISOString()
       });
 
-      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+      if (uid) await fbSetWishlist(uid, wishlist);
+      else localStorage.setItem('bazario_wishlist_guest', JSON.stringify(wishlist));
 
       ctEvent("Added to Wishlist", {
         product_id:   p.id,
@@ -1081,11 +1097,6 @@
 
       const el = document.getElementById('wishlistCount');
       if (el) el.textContent = wishlist.length;
-    }
-
-    function getWishlistKey() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
     }
 
     // ─── FILTERS ───
@@ -1434,7 +1445,9 @@
     });
 
     // ─── RUN ───
-    init();
+    fbAuth.onAuthStateChanged(async () => {
+      await init();
+    });
   </script>
 </body>
 </html>

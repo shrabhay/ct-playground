@@ -709,24 +709,32 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="js/firebase-bazario.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
-    function getCartKey() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-    }
-
-    const cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+    let cartItems = [];
     let selectedPayment = 'upi';
     let selectedBank    = '';
     let selectedAddress = '42, Sector 14, Gurugram, Haryana — 122001';
     let addressConfirmed  = false;
 
     // ─── INIT ───
-    function init() {
+    async function init() {
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        cartItems = await fbGetCart(uid);
+      } else {
+        cartItems = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+      }
+
       // Show logged-in user name in the login panel
       const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
       const nameEl = document.getElementById('loggedInUser');
@@ -1143,26 +1151,34 @@
     }
 
     // ─── PLACE ORDER ───
-    function handlePlaceOrder() {
+    async function handlePlaceOrder() {
       if (cartItems.length === 0) {
         showToast('Your cart is empty');
         return;
       }
 
+      const uid        = fbAuth.currentUser?.uid;
       const loggedUser = JSON.parse(localStorage.getItem('bazario_user') || 'null');
       const orderId    = 'BZ-' + Date.now().toString().slice(-8);
       const grandTotal = getCartTotal() + 49;
 
-      // Save order details for confirmation page
       const orderData = {
         orderId,
-        items:          cartItems,
-        total:          grandTotal,
-        paymentMethod:  selectedPayment,
-        address:        selectedAddress,
-        placedAt:       new Date().toISOString()
+        items:         cartItems,
+        total:         grandTotal,
+        paymentMethod: selectedPayment,
+        address:       selectedAddress,
+        placedAt:      new Date().toISOString(),
+        date:          new Date().toISOString() // required for Firestore orderBy('date')
       };
+
+      // Keep for confirmation page display (unchanged)
       localStorage.setItem('bazario_last_order', JSON.stringify(orderData));
+
+      // ── Write order to Firestore ──
+      if (uid) {
+        await fbAddOrder(uid, orderData);
+      }
 
       // ── CT: Charged — Reserved purchase event ──────────────────────────────────
       // IMPORTANT: Title Case property names are CT reserved — do not change them.
@@ -1181,10 +1197,14 @@
       });
 
       // ── CT: Update user profile after purchase ─────────────────────────────────
-      // Calculate updated totals from order history
-      const userOrders    = JSON.parse(localStorage.getItem(`bazario_orders_${loggedUser.email}`) || '[]');
-      const totalOrders   = userOrders.length;
-      const lifetimeValue = userOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      // Read updated order history from Firestore for accurate totals
+      let totalOrders   = 1;
+      let lifetimeValue = grandTotal;
+      if (uid) {
+        const allOrders = await fbGetOrders(uid);
+        totalOrders   = allOrders.length;
+        lifetimeValue = allOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      }
 
       ctUpdateProfile({
         "Last Order Date":  new Date().toISOString(),
@@ -1193,16 +1213,12 @@
         "Lifetime Value":   lifetimeValue
       });
 
-      // Save order to user-specific orders list
-      if (loggedUser) {
-        const ordersKey = `bazario_orders_${loggedUser.email}`;
-        const existingOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
-        existingOrders.unshift(orderData);
-        localStorage.setItem(ordersKey, JSON.stringify(existingOrders));
+      // ── Clear cart ──
+      if (uid) {
+        await fbSetCart(uid, []);
+      } else {
+        localStorage.removeItem('bazario_cart_guest');
       }
-
-      // Clear cart
-      localStorage.removeItem(getCartKey());
 
       // Navigate to confirmation
       window.location.href = `confirmation.html?order=${orderId}&total=${grandTotal}&payment=${selectedPayment}`;
@@ -1232,7 +1248,9 @@
       setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    init();
+    fbAuth.onAuthStateChanged(async () => {
+      await init();
+    });
   </script>
 </body>
 </html>

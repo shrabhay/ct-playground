@@ -1,18 +1,39 @@
 // =============================================================================
 // auth.js — Shared auth state + navbar counts for all Bazario pages
+// Phase 7: Migrated to Firebase Auth + Firestore
 // =============================================================================
 
+// ─── SYNCHRONOUS HELPER (uses localStorage cache) ────────────────────────────
+// Safe to call synchronously — returns cached profile for quick access
 function getUser() {
   return JSON.parse(localStorage.getItem('bazario_user') || 'null');
 }
 
-function isLoggedIn() {
-  return !!getUser();
-}
+// ─── FIREBASE AUTH STATE LISTENER ────────────────────────────────────────────
+// Runs automatically on every page load — initialises navbar, counts, CT
+fbAuth.onAuthStateChanged(async (firebaseUser) => {
+  if (firebaseUser) {
+    // Ensure localStorage cache is fresh
+    let profile = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+    if (!profile || profile.uid !== firebaseUser.uid) {
+      profile = await fbGetProfile(firebaseUser.uid);
+      if (profile) localStorage.setItem('bazario_user', JSON.stringify(profile));
+    }
+    if (profile) {
+      initAuthNav(profile);
+      await initCartCount();
+      await initWishlistCount();
+    }
+  } else {
+    // Guest user
+    initAuthNav(null);
+    initCartCount();
+    initWishlistCount();
+  }
+});
 
-// ─── Update navbar login state ───
-function initAuthNav() {
-  const user     = getUser();
+// ─── NAVBAR LOGIN STATE ───────────────────────────────────────────────────────
+function initAuthNav(user) {
   const loginBtn = document.querySelector('.nav-btn-login');
   if (!loginBtn) return;
 
@@ -35,361 +56,60 @@ function initAuthNav() {
   }
 }
 
-// ─── Update wishlist count on every page ───
-function initWishlistCount() {
-  const el = document.getElementById('wishlistCount');
-  if (!el) return;
-  const user     = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-  const wishKey  = user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
-  const wishlist = JSON.parse(localStorage.getItem(wishKey) || '[]');
-  el.textContent = wishlist.length;
-}
-
-// ─── Update cart count on every page ───
-function initCartCount() {
+// ─── CART COUNT ───────────────────────────────────────────────────────────────
+async function initCartCount() {
   const el = document.getElementById('cartCount');
   if (!el) return;
-  const user    = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-  const cartKey = user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-  const cart    = JSON.parse(localStorage.getItem(cartKey) || '[]');
-  const total   = cart.reduce((s, i) => s + i.qty, 0);
-  el.textContent = total;
+
+  const uid = fbAuth.currentUser?.uid;
+  if (uid) {
+    const cart = await fbGetCart(uid);
+    el.textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+  } else {
+    const guestCart = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+    el.textContent = guestCart.reduce((s, i) => s + (i.qty || 1), 0);
+  }
 }
 
-// ── RC: Refresh values for current user on every page load ──
-function refreshRCForUser() {
-  var user = getUser();
-  if (!user || !user.email) return;
-  if (typeof clevertap.fetchVariables !== 'function') {
-    setTimeout(refreshRCForUser, 500);
-    return;
+// ─── WISHLIST COUNT ───────────────────────────────────────────────────────────
+async function initWishlistCount() {
+  const el = document.getElementById('wishlistCount');
+  if (!el) return;
+
+  const uid = fbAuth.currentUser?.uid;
+  if (uid) {
+    const wishlist = await fbGetWishlist(uid);
+    el.textContent = wishlist.length;
+  } else {
+    const guestWishlist = JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
+    el.textContent = guestWishlist.length;
   }
-  clevertap.fetchVariables(function() {
-    var wzrkPE = localStorage.getItem('WZRK_PE');
-    if (wzrkPE) {
-      localStorage.setItem('WZRK_PE_' + user.email, wzrkPE);
+}
+
+// ─── CT IDENTITY HELPER ───────────────────────────────────────────────────────
+// Called from account.html after login/signup
+function ctIdentifyUser(user) {
+  clevertap.onUserLogin.push({
+    "Site": {
+      "Name":     user.name    || '',
+      "Email":    user.email   || '',
+      "Phone":    user.phone   || '',
+      "Gender":   user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
+      "City":     user.city    || '',
+      "Is Prime": user.isPrime || false,
+      "Vertical": "Bazario"
     }
   });
 }
 
-// ─── CT Web Inbox — Bell Icon Trigger ───
-function initInboxTrigger() {
-  var navActions = document.querySelector('.nav-actions');
-  if (!navActions) return;
-  if (document.getElementById('bz-inbox-trigger')) return; // already added
-
-  var bell = document.createElement('button');
-  bell.id        = 'bz-inbox-trigger';
-  bell.className = 'nav-btn';
-  bell.setAttribute('style',
-    'position:relative;background:none;' +
-    'border:none;border-radius:4px;' +
-    'cursor:pointer;padding:6px 14px;'  
-  );
-  bell.innerHTML =
-    '<span style="font-size:11px;color:rgba(255,255,255,0.8);">Inbox</span>' +
-    '<span style="font-size:13px;font-weight:600;color:#fff;">🔔' +
-      '<span id="bz-inbox-unread" style="' +
-        'display:none;position:absolute;top:4px;right:8px;' +
-        'background:#ff6161;color:#fff;font-size:9px;font-weight:700;' +
-        'border-radius:50%;width:14px;height:14px;' +
-        'align-items:center;justify-content:center;' +
-      '">0</span>' +
-    '</span>';
-
-  // Insert before the Demo button (last child)
-  navActions.insertBefore(bell, navActions.lastElementChild);
-
-  // Update unread badge after a short delay for SDK to load
-  setTimeout(function() {
-    try {
-      var unread = clevertap.getInboxMessageUnreadCount() || 0;
-      var badge  = document.getElementById('bz-inbox-unread');
-      if (badge && unread > 0) {
-        badge.textContent        = unread > 9 ? '9+' : unread;
-        badge.style.display      = 'inline-flex';
-      }
-    } catch(e) {}
-  }, 3000);
+// ─── CART KEY HELPERS (used by pages that still manage cart locally) ──────────
+// Returns the Firestore uid if logged in, else 'guest'
+function getCartKey() {
+  const user = getUser();
+  return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
 }
 
-function initSharedNav() {
-  initAuthNav();
-  initWishlistCount();
-  initCartCount();
-  initInboxTrigger();
-  refreshRCForUser();
-  applyGlobalRC();
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initSharedNav);
-} else {
-  initSharedNav();
-}
-
-// ── CT Web Pop-up message handler ──────────────────────────────
-// Listens for postMessage events from CT pop-up iframes
-// and fires CT events + profile updates on the parent page
-// Redirect URLs and text are campaign-driven via payload — no hardcoding here
-
-var _bzLastProcessed = {};
-
-window.addEventListener('message', function(e) {
-  if (!e.data || e.data.type !== 'bz_popup') return;
-
-  // ── Deduplicate — ignore same action+campaign within 1 second ──
-  var dedupeKey = e.data.action + '_' + (e.data.payload?.campaign_id || '');
-  var now       = Date.now();
-  if (_bzLastProcessed[dedupeKey] && now - _bzLastProcessed[dedupeKey] < 1000) return;
-  _bzLastProcessed[dedupeKey] = now;
-
-  console.log('BZ_POPUP message received:', e.data);
-
-  var action  = e.data.action;
-  var payload = e.data.payload || {};
-  var epoch   = "$D_" + Math.floor(Date.now() / 1000);
-
-  // Strip handler-only routing fields — these are for auth.js only, not CT events
-  var ctPayload = Object.assign({}, payload);
-  delete ctPayload.cta_url;
-  delete ctPayload.cta_text;
-  delete ctPayload.cta_action;
-  delete ctPayload.dismiss_url;
-  delete ctPayload.dismiss_text;
-
-  // ── Helper: redirect only if a url is provided ──
-  function maybeRedirect(url) {
-    if (url) {
-      setTimeout(function() {
-        window.location.href = url;
-      }, 300);
-    }
-  }
-
-  if (action === 'viewed') {
-    if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Viewed", ctPayload);
-      clevertap.profile.push({
-        "Site": {
-          "Last Popup Seen":    payload.campaign_name,
-          "Last Popup Seen At": epoch
-        }
-      });
-    }
-  }
-
-  if (action === 'clicked') {
-    console.log('clicked — cta_url is:', payload.cta_url);
-    if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Clicked", Object.assign({}, ctPayload, {
-        cta_text:   payload.cta_text   || "CTA Clicked",
-        cta_action: payload.cta_action || "cta_click"
-      }));
-      clevertap.profile.push({
-        "Site": {
-          "Last Popup Clicked":    payload.campaign_name,
-          "Last Popup Clicked At": epoch
-        }
-      });
-    }
-    maybeRedirect(payload.cta_url);
-  }
-
-  if (action === 'nothanks') {
-    if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Dismissed", Object.assign({}, ctPayload, {
-        dismiss_action: "no_thanks_link",
-        dismiss_text:   payload.dismiss_text || "No thanks"
-      }));
-      clevertap.profile.push({
-        "Site": {
-          "Last Popup Dismissed":    payload.campaign_name,
-          "Last Popup Dismissed At": epoch
-        }
-      });
-    }
-    maybeRedirect(payload.dismiss_url);
-  }
-
-  if (action === 'dismissed') {
-    if (typeof clevertap !== 'undefined') {
-      clevertap.event.push("Web Popup Dismissed", Object.assign({}, ctPayload, {
-        dismiss_action: "close_button"
-      }));
-      clevertap.profile.push({
-        "Site": {
-          "Last Popup Dismissed":    payload.campaign_name,
-          "Last Popup Dismissed At": epoch
-        }
-      });
-    }
-    maybeRedirect(payload.dismiss_url);
-  }
-
-  if (action === 'close') {
-    function removeCtOverlay(attempts) {
-      var overlay = document.getElementById('intentPreview');
-      if (overlay) {
-        overlay.parentElement.removeChild(overlay);
-      } else if (attempts > 0) {
-        setTimeout(function() { removeCtOverlay(attempts - 1); }, 100);
-      }
-    }
-    removeCtOverlay(5);
-  }
-});
-
-// ─── GLOBAL RC — Apply across all pages ──────────────────────────────────────
-function applyGlobalRC() {
-  try {
-    var user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-    if (!user || !user.email) return;
-    var wzrkPE = localStorage.getItem('WZRK_PE_' + user.email);
-    if (!wzrkPE) return;
-    var vars = JSON.parse(decodeURIComponent(wzrkPE));
-
-    // 1. Maintenance mode — show full page overlay
-    if (vars['Bazario.Global.global_maintenance_mode'] === true) {
-      var overlay = document.createElement('div');
-      overlay.id  = 'maintenance-overlay';
-      overlay.style.cssText = `
-        position: fixed;
-        inset: 0;
-        background: #fff;
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-family: 'Inter', sans-serif;
-        text-align: center;
-        padding: 24px;
-      `;
-      overlay.innerHTML = `
-        <div style="font-size:64px;margin-bottom:16px;">🔧</div>
-        <div style="font-size:28px;font-weight:700;color:#1a1a2e;margin-bottom:8px;">
-          We'll be back soon!
-        </div>
-        <div style="font-size:15px;color:#666;line-height:1.7;max-width:480px;margin-bottom:24px;">
-          Bazario is currently undergoing scheduled maintenance.<br/>
-          We apologize for the inconvenience. Please check back shortly.
-        </div>
-        <div style="background:#f0fdf4;border:1px solid #22c55e;border-radius:8px;
-          padding:12px 24px;font-size:13px;color:#16a34a;font-weight:600;">
-          🕐 Expected back in 30 minutes
-        </div>
-        <div style="margin-top:24px;font-size:13px;color:#999;">
-          Need help? Contact us at 
-          <a href="tel:${vars['Bazario.Global.global_support_phone'] || '1800-123-4567'}" 
-             style="color:#2874f0;font-weight:600;">
-            ${vars['Bazario.Global.global_support_phone'] || '1800-123-4567'}
-          </a>
-        </div>
-      `;
-      document.body.appendChild(overlay);
-
-      // CT Event
-      ctEvent("Maintenance Mode Viewed", {
-        page:     window.location.pathname,
-        vertical: "bazario"
-      });
-      return; // Stop further RC processing
-    }
-
-    // 2. App download banner
-    if (vars['Bazario.Global.global_show_app_download_banner'] === true) {
-      // Don't show if already dismissed this session
-      if (sessionStorage.getItem('bz_app_banner_dismissed')) return;
-
-      var appBanner = document.createElement('div');
-      appBanner.id  = 'app-download-banner';
-      appBanner.style.cssText = `
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        background: linear-gradient(135deg, #1a237e, #1565c0);
-        color: #fff;
-        padding: 12px 20px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        z-index: 9998;
-        font-family: 'Inter', sans-serif;
-        box-shadow: 0 -4px 16px rgba(0,0,0,0.15);
-      `;
-      appBanner.innerHTML = `
-        <div style="display:flex;align-items:center;gap:12px;">
-          <span style="font-size:28px;">📱</span>
-          <div>
-            <div style="font-size:13px;font-weight:700;">Get the Bazario App</div>
-            <div style="font-size:11px;color:rgba(255,255,255,0.8);">
-              Exclusive app-only deals & faster checkout
-            </div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <button onclick="handleAppDownload('android')" style="
-            background:#ff6f00;color:#fff;border:none;border-radius:6px;
-            padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">
-            Android
-          </button>
-          <button onclick="handleAppDownload('ios')" style="
-            background:#fff;color:#1565c0;border:none;border-radius:6px;
-            padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;">
-            iOS
-          </button>
-          <button onclick="dismissAppBanner()" style="
-            background:none;border:none;color:rgba(255,255,255,0.7);
-            font-size:18px;cursor:pointer;padding:4px 8px;">
-            ✕
-          </button>
-        </div>
-      `;
-      document.body.appendChild(appBanner);
-
-      // CT Event — App Banner Viewed
-      ctEvent("App Download Banner Viewed", {
-        page:     window.location.pathname,
-        vertical: "bazario"
-      });
-    }
-
-    // 3. Support phone — update all tel links in footer
-    if (vars['Bazario.Global.global_support_phone']) {
-      var phone = vars['Bazario.Global.global_support_phone'];
-      document.querySelectorAll('a[href^="tel:"]').forEach(function(el) {
-        el.href        = 'tel:' + phone;
-        el.textContent = phone;
-      });
-      // Also update any element with class support-phone
-      document.querySelectorAll('.support-phone').forEach(function(el) {
-        el.textContent = phone;
-      });
-    }
-
-  } catch(e) {
-    console.warn('Global RC apply failed:', e);
-  }
-}
-
-// ─── APP BANNER HELPERS ───────────────────────────────────────────────────────
-function handleAppDownload(platform) {
-  ctEvent("App Download Clicked", {
-    platform: platform,
-    page:     window.location.pathname,
-    vertical: "bazario"
-  });
-  showToast('📱 Redirecting to ' + (platform === 'android' ? 'Play Store' : 'App Store') + '...');
-}
-
-function dismissAppBanner() {
-  var banner = document.getElementById('app-download-banner');
-  if (banner) banner.remove();
-  sessionStorage.setItem('bz_app_banner_dismissed', '1');
-  ctEvent("App Download Banner Dismissed", {
-    page:     window.location.pathname,
-    vertical: "bazario"
-  });
+function getWishlistKey() {
+  const user = getUser();
+  return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
 }

@@ -380,18 +380,19 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="js/firebase-bazario.js"></script>
   <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
-    function getCartKey() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-      return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-    }
-
-    let cartItems = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+    let cartItems = [];
     let couponApplied  = false;
     let couponCode     = '';
     let couponDiscount = 0;
@@ -423,7 +424,14 @@
     }
 
     // ─── INIT ───
-    function init() {
+    async function init() {
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        cartItems = await fbGetCart(uid);
+      } else {
+        cartItems = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+      }
+
       renderCart();
       renderSummary();
       updateCartCount();
@@ -627,8 +635,13 @@
     }
 
     // ─── SAVE TO STORAGE ───
-    function saveToStorage() {
-      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
+    async function saveToStorage() {
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        await fbSetCart(uid, cartItems);
+      } else {
+        localStorage.setItem('bazario_cart_guest', JSON.stringify(cartItems));
+      }
     }
 
     // ─── UPDATE NAVBAR CART COUNT ───
@@ -638,14 +651,14 @@
     }
 
     // ─── QTY CHANGE ───
-    function changeQty(idx, delta) {
+    async function changeQty(idx, delta) {
       const newQty = cartItems[idx].qty + delta;
       if (newQty < 1) { removeItem(idx); return; }
       if (newQty > 10) { showToast('Maximum 10 units per item'); return; }
 
       cartItems[idx].qty = newQty;
       document.getElementById(`qty-${idx}`).textContent = newQty;
-      saveToStorage();
+      await saveToStorage();
       renderSummary();
       updateCartCount();
 
@@ -659,7 +672,7 @@
     }
 
     // ─── REMOVE ITEM ───
-    function removeItem(idx) {
+    async function removeItem(idx) {
       const removed = cartItems[idx];
 
       ctEvent("Removed from Cart", {
@@ -673,7 +686,7 @@
       });
 
       cartItems.splice(idx, 1);
-      saveToStorage();
+      await saveToStorage();
       renderCart();
       renderSummary();
       updateCartCount();
@@ -681,7 +694,7 @@
     }
 
     // ─── SAVE FOR LATER ───
-    function saveForLater(idx) {
+    async function saveForLater(idx) {
       const item = cartItems[idx];
 
       ctEvent("Saved for Later", {
@@ -692,7 +705,7 @@
       });
 
       cartItems.splice(idx, 1);
-      saveToStorage();
+      await saveToStorage();
       renderCart();
       renderSummary();
       updateCartCount();
@@ -744,7 +757,7 @@
     function handleCheckout() {
       if (cartItems.length === 0) return;
 
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      const user = fbAuth.currentUser;
       if (!user) {
         localStorage.setItem('bazario_login_redirect', 'cart.html');
         showToast('Please login to place your order...');
@@ -933,7 +946,9 @@
       }
     });
 
-    init();
+    fbAuth.onAuthStateChanged(async () => {
+      await init();
+    });
     document.getElementById('searchInput').addEventListener('keydown', e => {
       if (e.key === 'Enter') handleSearch();
     });

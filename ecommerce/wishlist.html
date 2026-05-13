@@ -428,18 +428,33 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="js/firebase-bazario.js"></script>
   <script src="js/catalogue.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
 
     // ─── STATE ───
-    let wishlist    = JSON.parse(localStorage.getItem(getWishlistKey()) || '[]');
-    let cartItems   = JSON.parse(localStorage.getItem(getCartKey()) || '[]');
+    let wishlist    = [];
+    let cartItems   = [];
     let currentSort = 'recent';
 
     // ─── INIT ───
-    function init() {
+    async function init() {
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        wishlist  = await fbGetWishlist(uid);
+        cartItems = await fbGetCart(uid);
+      } else {
+        wishlist  = JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
+        cartItems = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
+      }
+
       updateCartCount();
       render();
       renderSuggestions();
@@ -448,11 +463,6 @@
         item_count: wishlist.length
       });
     }
-
-    function getCartKey() {
-        const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-        return user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-        }
 
     // ─── RENDER ───
     function render() {
@@ -543,19 +553,14 @@
       `).join('');
     }
 
-    function getWishlistKey() {
-        const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-        return user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
-        }
-
     // ─── REMOVE FROM WISHLIST ───
-    function removeFromWishlist(id) {
-      // Capture item details BEFORE removing from array
+    async function removeFromWishlist(id) {
       const removedItem = wishlist.find(i => i.id === id);
-
-      // Now remove from array
       wishlist = wishlist.filter(i => i.id !== id);
-      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetWishlist(uid, wishlist);
+      else localStorage.setItem('bazario_wishlist_guest', JSON.stringify(wishlist));
 
       // Fire CT event with captured details
       ctEvent("Removed from Wishlist", {
@@ -575,23 +580,29 @@
     }
 
     // ─── MOVE TO CART ───
-    function moveToCart(id) {
+    async function moveToCart(id) {
       const item = wishlist.find(i => i.id === id);
       if (!item) return;
 
+      // Add to cart
       const existing = cartItems.find(i => i.id === id);
-      if (existing) {
-        existing.qty++;
-      } else {
-        cartItems.push({ ...item, qty: 1 });
-      }
-
-      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
-      updateCartCount();
+      if (existing) existing.qty++;
+      else cartItems.push({ ...item, qty: 1 });
 
       // Remove from wishlist
       wishlist = wishlist.filter(i => i.id !== id);
-      localStorage.setItem('bazario_wishlist', JSON.stringify(wishlist));
+
+      // Save both in one pass
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        await fbSetCart(uid, cartItems);
+        await fbSetWishlist(uid, wishlist);
+      } else {
+        localStorage.setItem('bazario_cart_guest', JSON.stringify(cartItems));
+        localStorage.setItem('bazario_wishlist_guest', JSON.stringify(wishlist));
+      }
+
+      updateCartCount();
 
       ctEvent("Moved to Cart from Wishlist", {
         product_id:   item.id,
@@ -607,7 +618,7 @@
     }
 
     // ─── ADD ALL TO CART ───
-    function addAllToCart() {
+    async function addAllToCart() {
       if (wishlist.length === 0) return;
 
       // Capture values BEFORE clearing wishlist
@@ -621,11 +632,14 @@
         else cartItems.push({ ...item, qty: 1 });
       });
 
-      localStorage.setItem(getCartKey(), JSON.stringify(cartItems));
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetCart(uid, cartItems);
+      else localStorage.setItem('bazario_cart_guest', JSON.stringify(cartItems));
 
       // Now clear wishlist
       wishlist = [];
-      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+      if (uid) await fbSetWishlist(uid, wishlist);
+      else localStorage.setItem('bazario_wishlist_guest', JSON.stringify(wishlist));
 
       updateCartCount();
 
@@ -641,9 +655,11 @@
     }
 
     // ─── CLEAR WISHLIST ───
-    function clearWishlist() {
+    async function clearWishlist() {
       wishlist = [];
-      localStorage.setItem(getWishlistKey(), JSON.stringify(wishlist));
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetWishlist(uid, wishlist);
+      else localStorage.setItem('bazario_wishlist_guest', JSON.stringify(wishlist));
 
       // Update wishlist count in navbar immediately
       const el = document.getElementById('wishlistCount');
@@ -691,7 +707,9 @@
       setTimeout(() => t.classList.remove('show'), 2500);
     }
 
-    init();
+    fbAuth.onAuthStateChanged(async () => {
+      await init();
+    });
   </script>
 </body>
 </html>

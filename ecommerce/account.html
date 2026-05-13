@@ -785,6 +785,12 @@
 
   <div class="toast" id="toast"></div>
 
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="../js/firebase.js"></script>
+  <script src="js/firebase-bazario.js"></script>
   <script src="js/clevertap.js"></script>
   <script src="js/auth.js"></script>
   <script>
@@ -798,41 +804,50 @@
     // ─── INIT ───
     function init() {
       updateCartCount();
-      if (currentUser) {
-        showProfilePage();
-        // Check if a specific section was requested via URL parameter
-        // e.g. account.html?section=orders
-        const params  = new URLSearchParams(window.location.search);
-        const section = params.get('section');
-        if (section) {
-          const navItem = document.querySelector(`.profile-nav-item[data-section="${section}"]`);
-          showSection(section, navItem);
+      fbAuth.onAuthStateChanged(async (firebaseUser) => {
+        if (firebaseUser) {
+          let profile = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+          if (!profile || profile.uid !== firebaseUser.uid) {
+            profile = await fbGetProfile(firebaseUser.uid);
+            if (profile) localStorage.setItem('bazario_user', JSON.stringify(profile));
+          }
+          if (profile) {
+            currentUser = profile;
+            await showProfilePage();
+            const params  = new URLSearchParams(window.location.search);
+            const section = params.get('section');
+            if (section) {
+              const navItem = document.querySelector(`.profile-nav-item[data-section="${section}"]`);
+              showSection(section, navItem);
+            }
+          }
+        } else {
+          document.getElementById('authPage').style.display = 'flex';
         }
-      } else {
-        document.getElementById('authPage').style.display = 'flex';
-      }
+      });
     }
 
     // ─── GET USER'S ORDERS (per-user storage) ───
     // Orders are stored under bazario_orders_${email} so each
     // account only sees its own orders. New accounts start with none.
-    function getUserOrders() {
-      if (!currentUser) return [];
-      const key = `bazario_orders_${currentUser.email}`;
-      return JSON.parse(localStorage.getItem(key) || '[]');
+    async function getUserOrders() {
+      const uid = fbAuth.currentUser?.uid;
+      if (!uid) return [];
+      return await fbGetOrders(uid);
     }
 
-    // ─── GET USER'S ADDRESSES ───
-    function getUserAddresses() {
-      if (!currentUser) return [];
-      const key = `bazario_addresses_${currentUser.email}`;
-      const saved = JSON.parse(localStorage.getItem(key) || 'null');
-      if (saved) return saved;
-      // Default addresses for existing users
-      return [
-        { type: 'HOME',   name: currentUser.name || 'User', line: '42, Sector 14, Gurugram, Haryana — 122001',          phone: currentUser.phone || '' },
-        { type: 'OFFICE', name: currentUser.name || 'User', line: 'Tower B, DLF Cyber City, Gurugram, Haryana — 122002', phone: currentUser.phone || '' }
-      ];
+    async function showProfilePage() {
+      document.getElementById('authPage').style.display    = 'none';
+      document.getElementById('profilePage').style.display = 'block';
+      const cartBtn = document.getElementById('navCartBtn');
+      if (cartBtn) cartBtn.style.display = 'flex';
+
+      const uid = fbAuth.currentUser?.uid;
+      userAddresses = uid ? await fbGetAddresses(uid) : [];
+
+      renderProfile();
+      await renderOrderHistory();
+      renderAddresses();
     }
 
     // ─── PAGE SWITCH ───
@@ -841,17 +856,6 @@
       document.getElementById('profilePage').style.display = 'none';
       const cartBtn = document.getElementById('navCartBtn');
       if (cartBtn) cartBtn.style.display = 'none';
-    }
-
-    function showProfilePage() {
-      document.getElementById('authPage').style.display    = 'none';
-      document.getElementById('profilePage').style.display = 'block';
-      const cartBtn = document.getElementById('navCartBtn');
-      if (cartBtn) cartBtn.style.display = 'flex';
-      userAddresses = getUserAddresses();
-      renderProfile();
-      renderOrderHistory();
-      renderAddresses();
     }
 
     // ─── TAB SWITCH ───
@@ -870,7 +874,7 @@
     // ──────────────────────────────────────────────────────────────
     // LOGIN FLOW
     // ──────────────────────────────────────────────────────────────
-    function handleLogin() {
+    async function handleLogin() {
       const identifier = document.getElementById('loginIdentifier').value.trim();
       const password   = document.getElementById('loginPassword').value.trim();
       let valid = true;
@@ -878,25 +882,24 @@
       if (!password)   { showFieldError('loginPasswordError');   valid = false; } else { hideFieldError('loginPasswordError'); }
       if (!valid) return;
 
-      // Look up existing saved user data first — don't overwrite with hardcoded values
-      // Look up profile by email first — survives logout
-      const emailKey   = identifier.includes('@') ? identifier : null;
-      const savedUser  = emailKey
-        ? JSON.parse(localStorage.getItem(`bazario_profile_${emailKey}`) || 'null')
-        : JSON.parse(localStorage.getItem('bazario_user') || 'null');
+      // Firebase Auth requires email — phone login not supported in email/password flow
+      if (!identifier.includes('@')) {
+        showToast('Please use your email address to log in', 'error');
+        return;
+      }
 
-      const user = savedUser || {
-        name:     '',
-        email:    identifier.includes('@') ? identifier : '',
-        phone:    identifier.includes('@') ? '' : `+91${identifier}`,
-        gender:   '',
-        dob:      '',
-        city:     '',
-        joinedAt: new Date().toISOString(),
-        isPrime:  false
-      };
-
-      completeLogin(user, 'password');
+      try {
+        showToast('Signing in...');
+        const cred = await fbAuth.signInWithEmailAndPassword(identifier, password);
+        await completeLogin(cred.user);
+      } catch (err) {
+        console.error('Login error:', err);
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          showToast('Invalid email or password', 'error');
+        } else {
+          showToast('Login failed. Please try again.', 'error');
+        }
+      }
     }
 
     function showLoginOTP() {
@@ -909,27 +912,19 @@
       document.querySelector('#loginOTPInputs .otp-digit').focus();
     }
 
-    function verifyLoginOTP() {
+    async function verifyLoginOTP() {
       const digits = [...document.querySelectorAll('#loginOTPInputs .otp-digit')].map(i => i.value);
       if (digits.join('').length < 6) { showToast('Please enter the full 6-digit OTP'); return; }
 
-      const emailKey   = identifier.includes('@') ? identifier : null;
-      const savedUser  = emailKey
-        ? JSON.parse(localStorage.getItem(`bazario_profile_${emailKey}`) || 'null')
-        : JSON.parse(localStorage.getItem('bazario_user') || 'null');
       const identifier = document.getElementById('loginIdentifier').value.trim();
-      const user = savedUser || {
-        name:     '',
-        email:    identifier.includes('@') ? identifier : '',
-        phone:    identifier.includes('@') ? '' : `+91${identifier}`,
-        gender:   '',
-        dob:      '',
-        city:     '',
-        joinedAt: new Date().toISOString(),
-        isPrime:  false
-      };
+      const password   = document.getElementById('loginPassword').value.trim();
 
-      completeLogin(user, 'otp');
+      try {
+        const cred = await fbAuth.signInWithEmailAndPassword(identifier, password);
+        await completeLogin(cred.user);
+      } catch (err) {
+        showToast('Authentication failed. Please try again.');
+      }
     }
 
     // ──────────────────────────────────────────────────────────────
@@ -971,21 +966,76 @@
       document.querySelector('#signupOTPInputs .otp-digit').focus();
     }
 
-    function verifySignupOTP() {
+    async function verifySignupOTP() {
       const digits = [...document.querySelectorAll('#signupOTPInputs .otp-digit')].map(i => i.value);
       if (digits.join('').length < 6) { showToast('Please enter the full 6-digit OTP'); return; }
 
-      const user = {
-        name:     document.getElementById('signupName').value.trim(),
-        email:    document.getElementById('signupEmail').value.trim(),
-        phone:    `+91 ${document.getElementById('signupPhone').value.trim()}`,
-        gender:   selectedGender,
-        dob:      document.getElementById('signupDOB').value,
-        city:     '',
-        joinedAt: new Date().toISOString(),
-        isPrime:  false
-      };
-      completeSignup(user);
+      const name     = document.getElementById('signupName').value.trim();
+      const email    = document.getElementById('signupEmail').value.trim();
+      const phone    = document.getElementById('signupPhone').value.trim();
+      const password = document.getElementById('signupPassword').value.trim();
+      const dob      = document.getElementById('signupDOB').value;
+
+      try {
+        showToast('Creating your account...');
+        const cred     = await fbAuth.createUserWithEmailAndPassword(email, password);
+        const uid      = cred.user.uid;
+        const joinedAt = Date.now();
+
+        const profile = {
+          uid, name, email,
+          phone:    `+91 ${phone}`,
+          gender:   selectedGender || '',
+          dob:      dob || '',
+          city:     '',
+          joinedAt,
+          isPrime:  false,
+          vertical: 'bazario'
+        };
+
+        await fbSetProfile(uid, profile);
+        localStorage.setItem('bazario_user', JSON.stringify(profile));
+        currentUser = profile;
+
+        await fbMergeGuestData(uid, email);
+
+        clevertap.onUserLogin.push({
+          "Site": {
+            "Name":          name,
+            "Email":         email,
+            "Phone":         `+91${phone}`,
+            "Gender":        selectedGender === 'Male' ? 'M' : selectedGender === 'Female' ? 'F' : '',
+            "DOB":           dob ? new Date(dob) : undefined,
+            "City":          '',
+            "MSG-email":     true,
+            "MSG-sms":       true,
+            "MSG-push":      true,
+            "Vertical":      "Bazario",
+            "Vertical Type": "Ecommerce"
+          }
+        });
+
+        ctEvent("User Signed Up", {
+          method:        "email_phone",
+          gender:        selectedGender || '',
+          has_dob:       !!dob,
+          referral_used: false
+        });
+
+        syncRCForUser(email);
+        showToast(`Welcome to Bazario, ${name.split(' ')[0]}! 🎉`);
+        handlePostAuthRedirect();
+
+      } catch (err) {
+        console.error('Signup error:', err);
+        if (err.code === 'auth/email-already-in-use') {
+          showToast('An account with this email already exists. Please log in.');
+        } else if (err.code === 'auth/weak-password') {
+          showToast('Password must be at least 6 characters');
+        } else {
+          showToast('Signup failed. Please try again.');
+        }
+      }
     }
 
     // ─── SYNC IS PRIME FROM CT ───────────────────────────────────────────────────
@@ -1045,84 +1095,44 @@
     // ──────────────────────────────────────────────────────────────
     // COMPLETE LOGIN / SIGNUP — CleverTap onUserLogin goes here
     // ──────────────────────────────────────────────────────────────
-    async function completeLogin(user, method) {
-      currentUser = user;
-      console.log('completeLogin fired for:', user.email);
+    async function completeLogin(firebaseUser) {
+      const uid   = firebaseUser.uid;
+      const email = firebaseUser.email;
 
-      // Step 1 — Fetch isPrime from CT FIRST before pushing anything
-      console.log('About to call syncPrimeFromCT for:', user.email);
-      await syncPrimeFromCT(user.email);
-      console.log('syncPrimeFromCT called for:', user.email);
+      try {
+        let profile = await fbGetProfile(uid);
 
-      // Step 2 — Now identify with correct isPrime value
-      ctIdentifyUser(currentUser);
-
-      // Step 3 — Fire login event with correct isPrime
-      ctEvent("User Logged In", {
-        method:   method,
-        is_prime: currentUser.isPrime || false
-      });
-
-      // Step 4 — Sync RC values
-      syncRCForUser(currentUser.email);
-
-      // Step 5 — Persist user to localStorage
-      localStorage.setItem('bazario_user', JSON.stringify(currentUser));
-      if (currentUser.email) {
-        localStorage.setItem(`bazario_profile_${currentUser.email}`, JSON.stringify(currentUser));
-      }
-
-      // Step 6 — Existing post-login logic
-      showToast(`Welcome back, ${currentUser.name.split(' ')[0]}! 👋`);
-      mergeGuestCart(currentUser.email);
-      mergeGuestWishlist(currentUser.email);
-      refreshNavCounts();
-      renderProfile();
-      handlePostAuthRedirect();
-    }
-
-    function completeSignup(user) {
-      currentUser = user;
-      localStorage.setItem('bazario_user', JSON.stringify(user));
-      // Save profile keyed by email so it survives logout
-      if (user.email) {
-        localStorage.setItem(`bazario_profile_${user.email}`, JSON.stringify(user));
-      }
-
-      // ─── CleverTap: Identity + Signup Events ─────────────────────────────────────
-      // onUserLogin used for signup too — creates new named profile in CT.
-      // MSG-email, MSG-sms, MSG-push default to true at signup.
-      clevertap.onUserLogin.push({
-        "Site": {
-          "Name":         user.name   || '',
-          "Email":        user.email  || '',
-          "Phone":        (user.phone || '').replace(/\s+/g, ''),
-          "Gender":       user.gender === 'Male' ? 'M' : user.gender === 'Female' ? 'F' : '',
-          "DOB":          user.dob ? new Date(user.dob) : undefined,
-          "City":         user.city   || '',
-          "MSG-email":    true,
-          "MSG-sms":      true,
-          "MSG-push":     true,
-          "Vertical":     "Bazario",
-          "Vertical Type":"Ecommerce"
+        if (!profile) {
+          profile = {
+            uid, email,
+            name: '', phone: '', gender: '', dob: '', city: '',
+            joinedAt: Date.now(), isPrime: false, vertical: 'bazario'
+          };
+          await fbSetProfile(uid, profile);
         }
-      });
 
-      ctEvent("User Signed Up", {
-        method:        "email_phone",
-        gender:        user.gender  || '',
-        has_dob:       !!user.dob,
-        referral_used: false
-      });
+        // Sync isPrime from CT (non-blocking — updates UI after)
+        await syncPrimeFromCT(email);
+        // Re-read profile in case isPrime was updated by syncPrimeFromCT
+        profile = await fbGetProfile(uid) || profile;
 
-      syncRCForUser(user.email);
-      showToast(`Welcome to Bazario, ${user.name.split(' ')[0]}! 🎉`);
-      mergeGuestCart(user.email);
-      mergeGuestWishlist(user.email);
-      refreshNavCounts();
-      handlePostAuthRedirect();
+        currentUser = profile;
+        localStorage.setItem('bazario_user', JSON.stringify(profile));
 
-      syncPrimeFromCT(user.email);
+        await fbMergeGuestData(uid, email);
+
+        ctIdentifyUser(currentUser);
+        ctEvent("User Logged In", { method: 'email', is_prime: currentUser.isPrime || false });
+        syncRCForUser(email);
+
+        showToast(`Welcome back, ${(currentUser.name || 'there').split(' ')[0]}! 👋`);
+        refreshNavCounts();
+        handlePostAuthRedirect();
+
+      } catch (err) {
+        console.error('completeLogin error:', err);
+        showToast('Login succeeded but profile load failed. Please refresh.');
+      }
     }
 
     // ─── POST-AUTH REDIRECT ───
@@ -1171,18 +1181,11 @@
       document.getElementById('fieldDOBInput').value    = u.dob    || '';
 
       // Stats — based on this user's actual orders
-      const orders = getUserOrders();
-      const totalSavings = orders.reduce((s, o) => {
-        const mrp = (o.items || []).reduce((a, i) => a + ((i.originalPrice || i.price) * i.qty), 0);
-        const paid = (o.items || []).reduce((a, i) => a + (i.price * i.qty), 0);
-        return s + (mrp - paid);
-      }, 0);
-
-      document.getElementById('statOrders').textContent  = orders.length;
-      document.getElementById('statWishlist').textContent = '0';
-      document.getElementById('statSavings').textContent  = totalSavings > 0
-        ? `₹${totalSavings.toLocaleString('en-IN')}`
-        : '₹0';
+      // Stats are rendered separately in renderOrderHistory() which is async
+      // Set defaults here — renderOrderHistory will update them
+      document.getElementById('statOrders').textContent   = '…';
+      document.getElementById('statWishlist').textContent  = '0';
+      document.getElementById('statSavings').textContent   = '…';
       
       // Apply RC referral section
       applyReferralRC();
@@ -1230,9 +1233,18 @@
 
     // ─── RENDER ORDER HISTORY ───
     // Reads from user-specific orders key. New users see empty state.
-    function renderOrderHistory() {
-      const orders    = getUserOrders();
+    async function renderOrderHistory() {
+      const orders    = await getUserOrders();
       const container = document.getElementById('orderHistoryList');
+
+      // Update stats
+      const totalSavings = orders.reduce((s, o) => {
+        const mrp  = (o.items || []).reduce((a, i) => a + ((i.originalPrice || i.price) * i.qty), 0);
+        const paid = (o.items || []).reduce((a, i) => a + (i.price * i.qty), 0);
+        return s + (mrp - paid);
+      }, 0);
+      document.getElementById('statOrders').textContent  = orders.length;
+      document.getElementById('statSavings').textContent = totalSavings > 0 ? `₹${totalSavings.toLocaleString('en-IN')}` : '₹0';
 
       if (orders.length === 0) {
         container.innerHTML = `
@@ -1249,7 +1261,7 @@
       }
 
       container.innerHTML = orders.map((order, idx) => {
-        const firstItem = order.items?.[0];
+        const firstItem  = order.items?.[0];
         const extraCount = (order.items?.length || 1) - 1;
         return `
           <div class="order-history-item" onclick="openOrderModal(${idx})">
@@ -1261,23 +1273,20 @@
                 ${extraCount > 0 ? `<span style="color:var(--text-muted)"> + ${extraCount} more</span>` : ''}
               </div>
               <div class="order-date">
-                Placed on ${new Date(order.placedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                Placed on ${new Date(order.date || order.placedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
               </div>
             </div>
             <span class="order-status transit">In Transit</span>
             <div class="order-total">₹${order.total?.toLocaleString('en-IN')}</div>
-          </div>
-        `;
+          </div>`;
       }).join('');
 
-      ctEvent("Order History Viewed", {
-        order_count: orders.length
-      });
+      ctEvent("Order History Viewed", { order_count: orders.length });
     }
 
     // ─── ORDER DETAIL MODAL ───
-    function openOrderModal(idx) {
-      const orders = getUserOrders();
+    async function openOrderModal(idx) {
+      const orders = await getUserOrders();
       const order  = orders[idx];
       if (!order) return;
 
@@ -1358,7 +1367,7 @@
       document.getElementById('newAddressForm').classList.toggle('show');
     }
 
-    function saveNewAddress() {
+    async function saveNewAddress() {
       const name     = document.getElementById('addrFormName').value.trim();
       const phone    = document.getElementById('addrFormPhone').value.trim();
       const pin      = document.getElementById('addrFormPin').value.trim();
@@ -1374,17 +1383,16 @@
       }
 
       const newAddr = {
-        type:  type.toUpperCase(),
-        name,
+        type: type.toUpperCase(), name,
         phone: `+91 ${phone}`,
-        line:  `${line1}, ${locality ? locality + ', ' : ''}${city}, ${state} — ${pin}`
+        line: `${line1}, ${locality ? locality + ', ' : ''}${city}, ${state} — ${pin}`
       };
 
       userAddresses.push(newAddr);
-      const key = `bazario_addresses_${currentUser.email}`;
-      localStorage.setItem(key, JSON.stringify(userAddresses));
 
-      // Clear form and hide it
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetAddresses(uid, userAddresses);
+
       ['addrFormName','addrFormPhone','addrFormPin','addrFormLine1','addrFormLocality','addrFormCity'].forEach(id => {
         document.getElementById(id).value = '';
       });
@@ -1395,10 +1403,10 @@
       showToast(`✓ ${type} address saved successfully`);
     }
 
-    function removeAddress(idx) {
+    async function removeAddress(idx) {
       userAddresses.splice(idx, 1);
-      const key = `bazario_addresses_${currentUser.email}`;
-      localStorage.setItem(key, JSON.stringify(userAddresses));
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetAddresses(uid, userAddresses);
       renderAddresses();
       showToast('Address removed');
     }
@@ -1416,30 +1424,22 @@
 
     // ─── PRIME UPGRADE ───────────────────────────────────────────────────────────
     function upgradeToPrime() {
-      // 1. Update localStorage
+      const uid = fbAuth.currentUser?.uid;
+
+      // Update Firestore
+      if (uid) fbSetProfile(uid, { isPrime: true });
+
+      // Update localStorage cache
       currentUser.isPrime = true;
       localStorage.setItem('bazario_user', JSON.stringify(currentUser));
-      if (currentUser.email) {
-        localStorage.setItem('bazario_profile_' + currentUser.email, JSON.stringify(currentUser));
-      }
 
-      // 2. Push to CT profile
-      clevertap.profile.push({
-        "Site": { "Is Prime": true }
-      });
+      // CT (unchanged)
+      clevertap.profile.push({ "Site": { "Is Prime": true } });
+      ctEvent("Prime Upgraded", { plan: "annual", plan_value: 999 });
 
-      // 3. Fire CT event
-      ctEvent("Prime Upgraded", {
-        plan:       "annual",
-        plan_value: 999
-      });
-
-      // 4. Update UI — switch states
       document.getElementById('primeUpgradeState').style.display = 'none';
       document.getElementById('primeMemberState').style.display  = 'block';
-
-      // 5. Show Prime badge in sidebar
-      document.getElementById('profilePrime').style.display = 'inline-flex';
+      document.getElementById('profilePrime').style.display      = 'inline-flex';
 
       showToast('🎉 Welcome to Bazario Prime!');
     }
@@ -1460,11 +1460,10 @@
       toggleEditPersonal();
     }
 
-    function savePersonalInfo() {
+    async function savePersonalInfo() {
       const updated = {
         ...currentUser,
         name:   document.getElementById('fieldNameInput').value.trim()   || currentUser.name,
-        email:  document.getElementById('fieldEmailInput').value.trim()  || currentUser.email,
         phone:  document.getElementById('fieldPhoneInput').value.trim()  || currentUser.phone,
         gender: document.getElementById('fieldGenderInput').value.trim() || currentUser.gender,
         dob:    document.getElementById('fieldDOBInput').value           || currentUser.dob,
@@ -1473,25 +1472,19 @@
 
       currentUser = updated;
       localStorage.setItem('bazario_user', JSON.stringify(updated));
-      if (updated.email) {
-        localStorage.setItem(`bazario_profile_${updated.email}`, JSON.stringify(updated));
-      }
 
-      // ─── CleverTap: Profile Update ───────────────────────────────────────────────
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) await fbSetProfile(uid, updated);
+
       ctUpdateProfile({
         "Name":   updated.name   || '',
-        "Email":  updated.email  || '',
         "Phone":  (updated.phone || '').replace(/\s+/g, ''),
         "Gender": updated.gender === 'Male' ? 'M' : updated.gender === 'Female' ? 'F' : '',
         "City":   updated.city   || '',
         "DOB":    updated.dob ? new Date(updated.dob) : undefined
       });
 
-      ctEvent("Profile Updated", {
-        fields_updated: Object.keys(updated)
-          .filter(k => updated[k] !== currentUser[k])
-          .join(', ')
-      });
+      ctEvent("Profile Updated", { fields_updated: 'name,phone,gender,dob,city' });
 
       isEditingPersonal = true;
       toggleEditPersonal();
@@ -1519,21 +1512,16 @@
     }
 
     // ─── LOGOUT ───
-    function handleLogout() {
-      var user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
+    async function handleLogout() {
+      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
       if (user && user.email) {
         localStorage.removeItem('WZRK_PE_' + user.email);
       }
 
       ctEvent("User Logged Out", {});
+      await fbAuth.signOut();
       localStorage.removeItem('bazario_user');
       currentUser = null;
-
-      // Reset cart and wishlist count immediately on logout
-      const cartEl     = document.getElementById('cartCount');
-      const wishlistEl = document.getElementById('wishlistCount');
-      if (cartEl)     cartEl.textContent     = '0';
-      if (wishlistEl) wishlistEl.textContent = '0';
 
       showToast('Signed out successfully');
       setTimeout(() => showAuthPage(), 600);
@@ -1541,14 +1529,7 @@
 
     // ─── SOCIAL LOGIN ───
     function handleSocialLogin(provider) {
-      const user = {
-        name: provider === 'Google' ? 'Rahul Sharma' : 'Rahul S.',
-        email: `rahul@${provider.toLowerCase()}.com`,
-        phone: '+91 98765 43210', gender: 'Male',
-        dob: '', city: '', joinedAt: new Date().toISOString(), isPrime: false
-      };
-      showToast(`Signing in with ${provider}...`);
-      setTimeout(() => completeLogin(user, provider.toLowerCase()), 1000);
+      showToast(`${provider} sign-in coming soon!`);
     }
 
     // ─── GENDER SELECT ───
@@ -1599,57 +1580,16 @@
       document.getElementById('cartCount').textContent = total;
     }
 
-    // ─── Merge guest cart into user cart on login ───
-    function mergeGuestCart(userEmail) {
-      const guestCart = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
-      if (guestCart.length === 0) return;
-
-      const userCartKey  = `bazario_cart_${userEmail}`;
-      const userCart     = JSON.parse(localStorage.getItem(userCartKey) || '[]');
-
-      guestCart.forEach(guestItem => {
-        const existing = userCart.find(i => i.id === guestItem.id);
-        if (existing) {
-          existing.qty += guestItem.qty;
-        } else {
-          userCart.push(guestItem);
-        }
-      });
-
-      localStorage.setItem(userCartKey, JSON.stringify(userCart));
-      localStorage.removeItem('bazario_cart_guest');
-    }
-
-    function mergeGuestWishlist(userEmail) {
-      const guestWishlist = JSON.parse(localStorage.getItem('bazario_wishlist_guest') || '[]');
-      if (guestWishlist.length === 0) return;
-
-      const userWishKey  = `bazario_wishlist_${userEmail}`;
-      const userWishlist = JSON.parse(localStorage.getItem(userWishKey) || '[]');
-
-      guestWishlist.forEach(guestItem => {
-        const exists = userWishlist.find(i => i.id === guestItem.id);
-        if (!exists) userWishlist.push(guestItem);
-      });
-
-      localStorage.setItem(userWishKey, JSON.stringify(userWishlist));
-      localStorage.removeItem('bazario_wishlist_guest');
-    }
-
-    function refreshNavCounts() {
-      const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-
-      // Cart
-      const cartKey = user ? `bazario_cart_${user.email}` : 'bazario_cart_guest';
-      const cart    = JSON.parse(localStorage.getItem(cartKey) || '[]');
-      const cartEl  = document.getElementById('cartCount');
-      if (cartEl) cartEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
-
-      // Wishlist
-      const wishKey  = user ? `bazario_wishlist_${user.email}` : 'bazario_wishlist_guest';
-      const wishlist = JSON.parse(localStorage.getItem(wishKey) || '[]');
-      const wishEl   = document.getElementById('wishlistCount');
-      if (wishEl) wishEl.textContent = wishlist.length;
+    async function refreshNavCounts() {
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        const cart     = await fbGetCart(uid);
+        const wishlist = await fbGetWishlist(uid);
+        const cartEl   = document.getElementById('cartCount');
+        const wishEl   = document.getElementById('wishlistCount');
+        if (cartEl) cartEl.textContent = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        if (wishEl) wishEl.textContent = wishlist.length;
+      }
     }
 
     // ─── FORM HELPERS ───
