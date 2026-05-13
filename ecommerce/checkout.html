@@ -332,26 +332,8 @@
             <div class="panel-body" id="addressBody">
 
               <!-- Saved addresses -->
-              <div class="saved-addresses">
-
-                <label class="address-card selected" onclick="selectAddress(this)">
-                  <input type="radio" name="address" checked />
-                  <div class="address-info">
-                    <div class="address-name">Rahul Sharma <span class="address-tag">HOME</span></div>
-                    <div class="address-line">42, Sector 14, Gurugram, Haryana — 122001</div>
-                    <div class="address-phone">📞 +91 98765 43210</div>
-                  </div>
-                </label>
-
-                <label class="address-card" onclick="selectAddress(this)">
-                  <input type="radio" name="address" />
-                  <div class="address-info">
-                    <div class="address-name">Rahul Sharma <span class="address-tag">OFFICE</span></div>
-                    <div class="address-line">Tower B, DLF Cyber City, Phase 2, Gurugram, Haryana — 122002</div>
-                    <div class="address-phone">📞 +91 98765 43210</div>
-                  </div>
-                </label>
-
+              <div class="saved-addresses" id="savedAddressesList">
+                <!-- Populated from Firestore -->
               </div>
 
               <button class="add-new-btn" onclick="toggleNewAddressForm()">
@@ -723,17 +705,22 @@
     let cartItems = [];
     let selectedPayment = 'upi';
     let selectedBank    = '';
-    let selectedAddress = '42, Sector 14, Gurugram, Haryana — 122001';
+    let selectedAddress = '';
+    let userAddresses   = [];
     let addressConfirmed  = false;
 
     // ─── INIT ───
     async function init() {
       const uid = fbAuth.currentUser?.uid;
+
       if (uid) {
-        cartItems = await fbGetCart(uid);
+        cartItems     = await fbGetCart(uid);
+        userAddresses = await fbGetAddresses(uid);
       } else {
         cartItems = JSON.parse(localStorage.getItem('bazario_cart_guest') || '[]');
       }
+
+      renderSavedAddresses();
 
       // Show logged-in user name in the login panel
       const user = JSON.parse(localStorage.getItem('bazario_user') || 'null');
@@ -854,6 +841,38 @@
           console.warn('RC checkout apply failed:', e);
         }
       })();
+    }
+
+    function renderSavedAddresses() {
+      const container = document.getElementById('savedAddressesList');
+      if (!container) return;
+
+      if (userAddresses.length === 0) {
+        // No addresses — prompt user to add one and open the form automatically
+        container.innerHTML = `
+          <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;
+            padding:14px 16px;font-size:13px;color:#795548;margin-bottom:12px;">
+            📍 No saved addresses found. Please add a delivery address below.
+          </div>`;
+        document.getElementById('newAddressForm').classList.add('show');
+        return;
+      }
+
+      container.innerHTML = userAddresses.map((addr, idx) => `
+        <label class="address-card ${idx === 0 ? 'selected' : ''}"
+          onclick="selectAddress(this, ${idx})">
+          <input type="radio" name="address" ${idx === 0 ? 'checked' : ''} />
+          <div class="address-info">
+            <div class="address-name">${addr.name} <span class="address-tag">${addr.type}</span></div>
+            <div class="address-line">${addr.line}</div>
+            <div class="address-phone">📞 ${addr.phone}</div>
+          </div>
+        </label>
+      `).join('');
+
+      // Pre-select first address
+      selectedAddress = userAddresses[0].line;
+      document.getElementById('reviewAddress').textContent = selectedAddress;
     }
 
     // ─── AUTO-APPLY EXIT INTENT COUPON ───────────────────────────────────────────
@@ -1009,10 +1028,14 @@
     }
 
     // ─── ADDRESS ───
-    function selectAddress(card) {
+    function selectAddress(card, idx) {
       document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
       card.classList.add('selected');
-      selectedAddress = card.querySelector('.address-line')?.textContent || selectedAddress;
+      if (idx !== undefined && userAddresses[idx]) {
+        selectedAddress = userAddresses[idx].line;
+      } else {
+        selectedAddress = card.querySelector('.address-line')?.textContent || selectedAddress;
+      }
     }
 
     function toggleNewAddressForm() {
@@ -1060,11 +1083,22 @@
         const existing = await fbGetAddresses(uid);
         existing.push(newAddr);
         await fbSetAddresses(uid, existing);
+        userAddresses = existing;
       }
 
       // Use newly added address for this order
       selectedAddress = newAddr.line;
       document.getElementById('reviewAddress').textContent = selectedAddress;
+
+      // Re-render address list to show the new entry
+      renderSavedAddresses();
+
+      // Select the newly added card
+      const cards = document.querySelectorAll('.address-card');
+      if (cards.length > 0) {
+        document.querySelectorAll('.address-card').forEach(c => c.classList.remove('selected'));
+        cards[cards.length - 1].classList.add('selected');
+      }
 
       // CT profile update
       ctUpdateProfile({
@@ -1077,6 +1111,10 @@
     }
 
     function confirmAddress() {
+      if (!selectedAddress) {
+        showToast('Please add a delivery address to continue');
+        return;
+      }
       addressConfirmed  = true;
       selectedAddress   = document.querySelector('.address-card.selected .address-line')?.textContent || selectedAddress;
       document.getElementById('reviewAddress').textContent = selectedAddress;
