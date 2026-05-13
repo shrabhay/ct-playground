@@ -1030,34 +1030,50 @@
       }
     }
 
-    function saveNewAddress() {
-      const name = document.getElementById('fullName').value.trim();
-      const mob  = document.getElementById('mobile').value.trim();
-      const pin  = document.getElementById('pincode').value.trim();
-      const addr = document.getElementById('address1').value.trim();
+    async function saveNewAddress() {
+      const name     = document.getElementById('fullName').value.trim();
+      const mob      = document.getElementById('mobile').value.trim();
+      const pin      = document.getElementById('pincode').value.trim();
+      const addr     = document.getElementById('address1').value.trim();
+      const locality = document.getElementById('locality').value.trim();
+      const city     = document.getElementById('city').value.trim();
+      const state    = document.getElementById('state').value;
+      const type     = document.querySelector('input[name="addrType"]:checked')?.value || 'Home';
 
       let valid = true;
       if (!name) { showError('fullNameError'); valid = false; } else { hideError('fullNameError'); }
       if (!mob || mob.length < 10) { showError('mobileError'); valid = false; } else { hideError('mobileError'); }
       if (!pin || pin.length !== 6) { showError('pincodeError'); valid = false; } else { hideError('pincodeError'); }
       if (!addr) { showError('address1Error'); valid = false; } else { hideError('address1Error'); }
-
       if (!valid) return;
 
-      showToast('New address saved!');
-      toggleNewAddressForm();
+      const newAddr = {
+        type:  type.toUpperCase(),
+        name,
+        phone: `+91 ${mob}`,
+        line:  `${addr}${locality ? ', ' + locality : ''}, ${city}, ${state} — ${pin}`
+      };
 
-      // ─────────────────────────────────────────────────────────────
-      // Later: CleverTap User Property update — "Address Added"
-      // When a user saves a new address, update their profile.
-      //
-      // clevertap.onUserLogin.push({
-      //   "Site": {
-      //     "City":    document.getElementById('city').value || '',
-      //     "State":   document.getElementById('state').value || ''
-      //   }
-      // });
-      // ─────────────────────────────────────────────────────────────
+      // Save to Firestore
+      const uid = fbAuth.currentUser?.uid;
+      if (uid) {
+        const existing = await fbGetAddresses(uid);
+        existing.push(newAddr);
+        await fbSetAddresses(uid, existing);
+      }
+
+      // Use newly added address for this order
+      selectedAddress = newAddr.line;
+      document.getElementById('reviewAddress').textContent = selectedAddress;
+
+      // CT profile update
+      ctUpdateProfile({
+        "City":  city  || '',
+        "State": state || ''
+      });
+
+      showToast('New address saved! ✓');
+      toggleNewAddressForm();
     }
 
     function confirmAddress() {
