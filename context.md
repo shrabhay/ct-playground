@@ -43,7 +43,7 @@ A multi-vertical CleverTap integration sandbox for:
 | Hosting | Netlify (auto-deploy from GitHub) |
 | Serverless | Netlify Functions (Node.js) |
 | Analytics | CleverTap Web SDK |
-| Data storage | localStorage (Firebase migration planned — Phase 7) |
+| Data storage | Firestore (Firebase) + localStorage cache for session |
 | Data scripts | Python 3 + requests library |
 | Version control | GitHub → Netlify auto-deploy |
 
@@ -59,6 +59,8 @@ ct-playground/
 ├── clevertap_sw.js                  # CT service worker for Web Push
 ├── netlify.toml                     # Netlify build config + proxy redirects
 │
+├── js/                              # Shared across all verticals
+│   └── firebase.js                  # Firebase init + Auth + shared Firestore helpers
 ├── ecommerce/                       # Bazario ecommerce vertical
 │   ├── index.html                   # Homepage with carousel
 │   ├── listing.html                 # Category listing with filters + pagination
@@ -71,7 +73,8 @@ ct-playground/
 │   └── js/
 │       ├── catalogue.js             # 104 products across 8 categories
 │       ├── clevertap.js             # CT SDK init + helper functions
-│       └── auth.js                  # Shared navbar, counts, popup handler
+│       ├── auth.js                  # Shared navbar, counts, popup handler
+│       └── firebase-bazario.js      # Bazario-specific Firestore helpers
 │
 ├── netlify/
 │   └── functions/
@@ -159,13 +162,22 @@ ct-playground/
 **Known parked items (not blockers):**
 - Web Inbox Order Confirmed (Charged trigger) — CT issue, parked
 - Bulletins delivery to demo user — daily segment recomputation limitation
-- Segment Preview on demo.html — Phase 7
+- Segment Preview — REMOVED from demo.html. CT has no "get segments for user" API. CT dashboard shows segment membership directly.
 - Email channel — Phase 14 (custom domain)
 
-### 🔲 Phase 7 — Firebase Backend Migration
-- Move cart, wishlist, orders, addresses from localStorage → Firestore
-- Firebase Auth replaces simulated login (email/password — no OTP simulation)
-- Multi-device sync enabled
+### ✅ Phase 7 — Firebase Backend Migration (COMPLETE)
+- Firebase project: ct-playground-0323 (shared across all verticals)
+- Firebase Auth (email/password) replaces simulated login
+- Firestore replaces localStorage for cart, wishlist, orders, addresses
+- js/firebase.js — shared init + Auth + profile helpers (all verticals)
+- ecommerce/js/firebase-bazario.js — Bazario-specific collection helpers
+- Guest cart/wishlist preserved in localStorage, merged to Firestore on login
+- localStorage retained as session cache for UI display (bazario_user key)
+- sanitizeCartItem() strips nested arrays before Firestore writes
+- clevertap.logout() called on Firebase signOut to prevent CT identity bleed
+- Checkout page loads addresses from Firestore dynamically (no hardcoded addresses)
+- Segment Preview removed from demo.html (CT has no "get segments for user" API)
+- CT web popup postMessage handler restored in auth.js (was lost during rewrite)
 
 ### 🔲 Phase 8 — Bazario Android App (Kotlin)
 ### 🔲 Phase 9 — Bazario iOS App (Swift)
@@ -586,23 +598,50 @@ Seeds: Fintech=100, Subscription=200, Foodtech=300.
 
 ---
 
-## FIREBASE MIGRATION PLAN (Phase 7)
+## FIREBASE — COMPLETED (Phase 7)
 
-**What moves to Firestore:**
-- User profiles → users collection
-- Cart → carts collection (keyed by user ID)
-- Wishlist → wishlists collection
-- Orders → orders collection
-- Addresses → addresses collection
+**Firebase project:** ct-playground-0323
+**Region:** asia-south1 (Mumbai)
+**Console:** console.firebase.google.com
 
-**What stays the same:**
-- All CT event calls — completely unchanged
-- All CT channel integrations — completely unchanged
+**Firestore collections:**
+- users/{uid} — profile data (all verticals share this)
+- carts/{uid} — cart items (bazario)
+- wishlists/{uid} — wishlist items (bazario)
+- orders/{uid}/items/{orderId} — order history (bazario)
+- addresses/{uid} — saved addresses (bazario)
 
-**Authentication:**
-- Email/password via Firebase Auth (no OTP simulation)
-- Google Sign-In optional
-- Same CT onUserLogin call after Firebase auth succeeds
+**File structure:**
+- js/firebase.js — shared: config, init, fbAuth, fbDb, fbGetProfile, fbSetProfile
+- ecommerce/js/firebase-bazario.js — bazario: cart, wishlist, orders, addresses, merge
+- Future verticals: fintech/js/firebase-fintech.js etc.
+
+**Auth pattern:**
+- Firebase Auth (email/password) — passwords never stored in Firestore
+- onAuthStateChanged is the source of truth for auth state on all pages
+- localStorage bazario_user = session cache (uid + display fields only)
+- clevertap.onUserLogin fires immediately after Firebase auth succeeds
+- clevertap.logout() called on signOut to reset CT session
+
+**Guest users:**
+- Guest cart → localStorage key: bazario_cart_guest
+- Guest wishlist → localStorage key: bazario_wishlist_guest
+- On login → fbMergeGuestData() merges into Firestore and clears localStorage
+
+**Cart item sanitization:**
+- sanitizeCartItem() strips specs/highlights/tags/variants before Firestore write
+- Firestore does not support nested arrays — specs field was the culprit
+- Applied inside fbSetCart() in firebase-bazario.js
+
+**Security rules:**
+- Users can only read/write their own documents (uid match enforced)
+- API key is safe to commit — security enforced via Firestore Rules
+- API key restricted to ctplayground.netlify.app and localhost domains
+
+**Android/iOS apps (Phases 8-9):**
+- Register as separate apps in same Firebase project (CT Playground Android/iOS)
+- Same Firestore database and Auth pool shared
+- Each gets own google-services.json / GoogleService-Info.plist
 
 ---
 
@@ -627,8 +666,8 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 
 ## CURRENT STATUS (as of May 2026)
 
-**Last completed:** Phase 6 — CT Channel Integration
-**Currently working on:** Phase 7 — Firebase Backend Migration
+**Last completed:** Phase 7 — Firebase Backend Migration
+**Currently working on:** Phase 8 — Bazario Android App (Kotlin)
 **Pending commits:** None — all committed
 **Netlify:** Live at ctplayground.netlify.app
 
@@ -642,7 +681,7 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 4. When building new verticals, follow the multi-vertical architecture standard exactly
 5. The CT web popup pattern is confirmed working — always use postMessage approach
 6. Never suggest putting CT Passcode in frontend code or GitHub
-7. Firebase migration happens in Phase 7 — don't suggest localStorage alternatives before then
+7. Firebase migration is COMPLETE (Phase 7). localStorage is only used as session cache (bazario_user). All data reads/writes go to Firestore. Guest users use localStorage with _guest suffix keys.
 8. All date properties in CT must use $D_EPOCH format
 9. Always check if a change affects multiple pages/files and flag them all upfront
 10. Use the SAME conversation throughout a phase. Start a NEW conversation only when moving to a new phase.
@@ -656,3 +695,7 @@ Same user logs into web + Android + iOS → single CT profile with events from a
 18. clevertap.js should be committed to GitHub (Account ID and Token are public by design).
 19. Web Push requires HTTPS — only works on Netlify, not Live Server. VAPID keys stored in CT Dashboard. Account-level Passcode required for API push.
 20. demo.html Channel Demos section: SDK channels have 🔴 Fire Live buttons that fire CT SDK events directly on demo.html. CT campaigns respond and render inline. API channels (Web Push, Bulletins) call Netlify proxy → CT API.
+21. Firebase API key is safe to commit to GitHub — security enforced via Firestore Rules and domain restrictions set in Google Cloud Console. Same principle as CT Account ID.
+22. Always call clevertap.logout() alongside fbAuth.signOut() — without it, CT session persists and can corrupt the next user's profile via identity stitching.
+23. Cart items must be sanitized before Firestore writes via sanitizeCartItem() — product objects contain nested arrays (specs field) which Firestore forbids.
+24. For future verticals, create vertical-specific firebase-{vertical}.js files. Never add vertical-specific helpers to js/firebase.js — it must stay lean and shared.
