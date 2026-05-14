@@ -4,6 +4,7 @@
 
 [build]
   # Functions directory
+  publish = "web"
   functions = "netlify/functions"
 
 # ─── Function-specific settings ───────────────────────────────────────────────
