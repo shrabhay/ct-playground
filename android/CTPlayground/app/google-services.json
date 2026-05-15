@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "636004903254",
+    "project_id": "ct-playground-0323",
+    "storage_bucket": "ct-playground-0323.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:636004903254:android:55ec4cfba63862e15c4ef7",
+        "android_client_info": {
+          "package_name": "com.ctplayground"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0DQWZUP-v1_8HhfiHuDeKWdtFjD6goOA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
