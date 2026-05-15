@@ -17,12 +17,12 @@ public class BazarioHomeActivity extends AppCompatActivity {
     private final List<String[]> CATEGORIES = Arrays.asList(
             new String[]{"📱", "Electronics"},
             new String[]{"👗", "Fashion"},
-            new String[]{"🏠", "Home & Kitchen"},
-            new String[]{"📚", "Books"},
-            new String[]{"⚽", "Sports"},
+            new String[]{"🛒", "Grocery"},
+            new String[]{"🏠", "Home & Furniture"},
+            new String[]{"🔌", "Appliances"},
             new String[]{"💄", "Beauty"},
-            new String[]{"🧸", "Toys"},
-            new String[]{"🛒", "Groceries"}
+            new String[]{"⚽", "Sports"},
+            new String[]{"📚", "Books"}
     );
 
     @Override

@@ -34,6 +34,7 @@
         <activity android:name=".CartActivity" />
         <activity android:name=".WishlistActivity" />
         <activity android:name=".AccountActivity" />
+        <activity android:name=".ProductActivity" />
     </application>
 
 </manifest>
