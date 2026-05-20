@@ -31,4 +31,7 @@ public class Product {
         if (reviews >= 1000)   return String.format("%.1fK", reviews / 1000.0);
         return String.valueOf(reviews);
     }
+    public String getFormattedSaving() {
+        return "₹" + String.format("%,d", (originalPrice - price));
+    }
 }

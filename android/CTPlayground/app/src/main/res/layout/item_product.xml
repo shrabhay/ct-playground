@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Image area with overlays -->
+        <!-- Image area -->
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="120dp"
@@ -30,7 +30,6 @@
                 android:layout_gravity="center"
                 android:textSize="52sp" />
 
-            <!-- Discount badge — top left -->
             <TextView
                 android:id="@+id/tvDiscount"
                 android:layout_width="wrap_content"
@@ -45,7 +44,6 @@
                 android:textSize="11sp"
                 android:textStyle="bold" />
 
-            <!-- Wishlist heart — top right -->
             <TextView
                 android:id="@+id/btnWishlist"
                 android:layout_width="32dp"
@@ -63,7 +61,7 @@
 
         </FrameLayout>
 
-        <!-- Product info -->
+        <!-- Info -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -141,15 +139,67 @@
 
             </LinearLayout>
 
-            <Button
-                android:id="@+id/btnAddToCart"
+            <!-- Cart button / qty selector toggle -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="34dp"
-                android:layout_marginTop="8dp"
-                android:backgroundTint="@color/bazario_orange"
-                android:text="Add to Cart"
-                android:textColor="#FFFFFF"
-                android:textSize="11sp" />
+                android:layout_marginTop="8dp">
+
+                <Button
+                    android:id="@+id/btnAddToCart"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:backgroundTint="@color/bazario_orange"
+                    android:text="Add to Cart"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:visibility="visible" />
+
+                <LinearLayout
+                    android:id="@+id/layoutQty"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/bazario_orange"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/btnDecrease"
+                        android:layout_width="34dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="−"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless" />
+
+                    <TextView
+                        android:id="@+id/tvQty"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:gravity="center"
+                        android:textColor="#FFFFFF"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnIncrease"
+                        android:layout_width="34dp"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="+"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20sp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:background="?attr/selectableItemBackgroundBorderless" />
+
+                </LinearLayout>
+
+            </FrameLayout>
 
         </LinearLayout>
     </LinearLayout>
