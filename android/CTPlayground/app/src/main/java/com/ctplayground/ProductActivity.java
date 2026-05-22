@@ -175,9 +175,32 @@ public class ProductActivity extends AppCompatActivity {
     }
 
     private void handleBuyNow() {
-        if (cartQty == 0) handleAddToCart();
         fireCTCartEvent("Buy Now Clicked", cartQty);
-        startActivity(new Intent(this, CartActivity.class));
+
+        if (cartQty == 0) {
+            // Not in cart yet — add first, then navigate after write completes
+            cartQty = 1;
+            updateCartUI();
+            fireCTCartEvent("Added to Cart", 1);
+
+            if (currentUid != null) {
+                FirebaseHelper.addToCart(currentUid, product,
+                        new FirebaseHelper.ProfileCallback() {
+                            @Override public void onSuccess(Map<String, Object> p) {
+                                startActivity(new Intent(ProductActivity.this, CartActivity.class));
+                            }
+                            @Override public void onFailure(String e) {
+                                // Navigate anyway even if write failed
+                                startActivity(new Intent(ProductActivity.this, CartActivity.class));
+                            }
+                        });
+            } else {
+                startActivity(new Intent(this, CartActivity.class));
+            }
+        } else {
+            // Already in cart — navigate immediately
+            startActivity(new Intent(this, CartActivity.class));
+        }
     }
 
     private void handleWishlist() {

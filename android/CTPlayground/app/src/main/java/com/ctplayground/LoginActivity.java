@@ -16,6 +16,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -35,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvError;
     private FirebaseAuth mAuth;
 
-    private int dobYear, dobMonth, dobDay;  // stores selected DOB
+    private int dobYear, dobMonth, dobDay;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,9 +65,7 @@ public class LoginActivity extends AppCompatActivity {
         btnSubmit    = findViewById(R.id.btnSubmit);
         tvError      = findViewById(R.id.tvError);
 
-        // DOB field opens date picker on tap
         etDob.setOnClickListener(v -> showDatePicker());
-
         btnLoginTab.setOnClickListener(v -> switchMode(true));
         btnSignupTab.setOnClickListener(v -> switchMode(false));
         btnSubmit.setOnClickListener(v -> handleSubmit());
@@ -74,14 +73,12 @@ public class LoginActivity extends AppCompatActivity {
 
     private void switchMode(boolean loginMode) {
         isLoginMode = loginMode;
-
         int signupVisibility = loginMode ? View.GONE : View.VISIBLE;
         tilName.setVisibility(signupVisibility);
         tilPhone.setVisibility(signupVisibility);
         layoutGender.setVisibility(signupVisibility);
         tilDob.setVisibility(signupVisibility);
         tilCity.setVisibility(signupVisibility);
-
         btnSubmit.setText(loginMode ? "Login" : "Sign Up");
         tvError.setVisibility(View.GONE);
 
@@ -97,10 +94,11 @@ public class LoginActivity extends AppCompatActivity {
         Calendar cal = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, day) -> {
             dobYear = year; dobMonth = month; dobDay = day;
-            String formatted = String.format(Locale.getDefault(), "%02d/%02d/%04d", day, month + 1, year);
+            String formatted = String.format(Locale.getDefault(),
+                    "%02d/%02d/%04d", day, month + 1, year);
             etDob.setText(formatted);
         },
-                cal.get(Calendar.YEAR) - 25,  // default: 25 years ago
+                cal.get(Calendar.YEAR) - 25,
                 cal.get(Calendar.MONTH),
                 cal.get(Calendar.DAY_OF_MONTH)).show();
     }
@@ -136,15 +134,21 @@ public class LoginActivity extends AppCompatActivity {
                     });
 
         } else {
-            // Signup validation
             String name  = etName.getText().toString().trim();
             String phone = etPhone.getText().toString().trim();
             String city  = etCity.getText().toString().trim();
 
-            if (name.isEmpty()) { showError("Please enter your name"); btnSubmit.setEnabled(true); return; }
-            if (password.length() < 6) { showError("Password must be at least 6 characters"); btnSubmit.setEnabled(true); return; }
+            if (name.isEmpty()) {
+                showError("Please enter your name");
+                btnSubmit.setEnabled(true);
+                return;
+            }
+            if (password.length() < 6) {
+                showError("Password must be at least 6 characters");
+                btnSubmit.setEnabled(true);
+                return;
+            }
 
-            // Gender
             String gender = "";
             int selectedId = rgGender.getCheckedRadioButtonId();
             if (selectedId != -1) {
@@ -152,23 +156,21 @@ public class LoginActivity extends AppCompatActivity {
                 gender = rb.getText().toString();
             }
 
-            // DOB as Date (null if not selected)
-            Date dob = null;
+            // Store dob as ISO string (yyyy-MM-dd)
+            String dobString = "";
             if (dobYear > 0) {
-                Calendar cal = Calendar.getInstance();
-                cal.set(dobYear, dobMonth, dobDay, 0, 0, 0);
-                cal.set(Calendar.MILLISECOND, 0);
-                dob = cal.getTime();
+                dobString = String.format(Locale.getDefault(),
+                        "%04d-%02d-%02d", dobYear, dobMonth + 1, dobDay);
             }
 
             String finalGender = gender;
-            Date finalDob = dob;
+            String finalDobString = dobString;
 
             mAuth.createUserWithEmailAndPassword(email, password)
                     .addOnSuccessListener(result -> {
                         String uid = result.getUser().getUid();
                         FirebaseHelper.createUserProfile(uid, name, email, phone,
-                                finalGender, finalDob, city,
+                                finalGender, finalDobString, city,
                                 new FirebaseHelper.ProfileCallback() {
                                     @Override public void onSuccess(Map<String, Object> profile) {
                                         onAuthSuccess(result.getUser(), true, profile);
@@ -186,15 +188,17 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     private void onAuthSuccess(FirebaseUser user, boolean isNewUser, Map<String, Object> profile) {
-        String name   = profile.containsKey("name")   ? (String) profile.get("name")   : "";
-        String phone  = profile.containsKey("phone")  ? (String) profile.get("phone")  : "";
-        String gender = profile.containsKey("gender") ? (String) profile.get("gender") : "";
-        String city   = profile.containsKey("city")   ? (String) profile.get("city")   : "";
-        Date dob      = profile.containsKey("dob")    ? (Date)   profile.get("dob")    : null;
+        // Read fields as Strings — dob is stored as ISO string, not Date
+        String name   = getString(profile, "name");
+        String phone  = getString(profile, "phone");
+        String gender = getString(profile, "gender");
+        String city   = getString(profile, "city");
+        String dobStr = getString(profile, "dob");
 
         CleverTapAPI ct = CleverTapAPI.getDefaultInstance(this);
         if (ct != null) {
             HashMap<String, Object> ctProfile = new HashMap<>();
+            ctProfile.put("Identity",      user.getEmail()); // ← primary CT identifier
             ctProfile.put("Email",         user.getEmail());
             ctProfile.put("Vertical",      "Bazario");
             ctProfile.put("Vertical Type", "Ecommerce");
@@ -203,16 +207,16 @@ public class LoginActivity extends AppCompatActivity {
             if (!gender.isEmpty()) ctProfile.put("Gender",
                     gender.equals("Male") ? "M" : gender.equals("Female") ? "F" : "O");
             if (!city.isEmpty())   ctProfile.put("City",   city);
-            if (dob != null)       ctProfile.put("DOB",    dob);
-            Object joinedAt = profile.get("joinedAt");
-            if (joinedAt instanceof Date) {
-                ctProfile.put("Joined At", joinedAt);
+
+            // Parse dob ISO string → Date for CT
+            if (!dobStr.isEmpty()) {
+                try {
+                    Date dob = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            .parse(dobStr);
+                    if (dob != null) ctProfile.put("DOB", dob);
+                } catch (ParseException e) { /* skip invalid date */ }
             }
 
-            Object isPrime = profile.get("isPrime");
-            if (isPrime != null) {
-                ctProfile.put("Is Prime", isPrime);
-            }
             ct.onUserLogin(ctProfile);
 
             HashMap<String, Object> props = new HashMap<>();
@@ -222,6 +226,12 @@ public class LoginActivity extends AppCompatActivity {
 
         startActivity(new Intent(this, BazarioHomeActivity.class));
         finish();
+    }
+
+    // Safe string reader from profile map
+    private String getString(Map<String, Object> profile, String key) {
+        Object val = profile.get(key);
+        return (val != null) ? val.toString() : "";
     }
 
     private void showError(String message) {

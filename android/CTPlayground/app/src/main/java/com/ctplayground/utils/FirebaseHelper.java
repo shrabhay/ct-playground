@@ -30,23 +30,34 @@ public class FirebaseHelper {
     }
 
     public interface CartStateCallback {
-        void onSuccess(Map<String, Integer> cartState); // productId → qty
+        void onSuccess(Map<String, Integer> cartState);
+        void onFailure(String error);
+    }
+
+    public interface CartItemsCallback {
+        void onSuccess(List<Map<String, Object>> items);
+        void onFailure(String error);
+    }
+
+    public interface OrderCallback {
+        void onSuccess(String orderId);
         void onFailure(String error);
     }
 
     // ── User Profile ──────────────────────────────────────────────────────────
 
     public static void createUserProfile(String uid, String name, String email,
-                                         String phone, String gender, Date dob,
+                                         String phone, String gender, String dob,
                                          String city, ProfileCallback callback) {
         Map<String, Object> profile = new HashMap<>();
+        profile.put("uid",               uid);
         profile.put("name",              name);
         profile.put("email",             email);
         profile.put("phone",             phone);
         profile.put("gender",            gender);
-        profile.put("dob",               dob);
+        profile.put("dob",               dob != null ? dob : "");
         profile.put("city",              city);
-        profile.put("joinedAt",          new Date());
+        profile.put("joinedAt",          new Date().getTime());
         profile.put("isPrime",           false);
         profile.put("totalOrders",       0);
         profile.put("lifetimeValue",     0);
@@ -69,6 +80,35 @@ public class FirebaseHelper {
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 
+    public static void updateUserOrderStats(String uid, long orderValue,
+                                            ProfileCallback callback) {
+        db.collection("users").document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    long totalOrders   = 0;
+                    long lifetimeValue = 0;
+                    if (doc.exists()) {
+                        Object to = doc.get("totalOrders");
+                        Object lv = doc.get("lifetimeValue");
+                        if (to instanceof Long)    totalOrders   = (Long) to;
+                        if (lv instanceof Long)    lifetimeValue = (Long) lv;
+                        if (to instanceof Integer) totalOrders   = ((Integer) to).longValue();
+                        if (lv instanceof Integer) lifetimeValue = ((Integer) lv).longValue();
+                    }
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("totalOrders",   totalOrders + 1);
+                    updates.put("lifetimeValue", lifetimeValue + orderValue);
+                    updates.put("lastOrderDate",  new Date().getTime());
+                    updates.put("lastOrderValue", orderValue);
+
+                    db.collection("users").document(uid)
+                            .update(updates)
+                            .addOnSuccessListener(unused -> callback.onSuccess(updates))
+                            .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
     // ── Wishlist ──────────────────────────────────────────────────────────────
 
     public static void getWishlistIds(String uid, WishlistCallback callback) {
@@ -79,11 +119,9 @@ public class FirebaseHelper {
                     if (doc.exists()) {
                         List<Map<String, Object>> items =
                                 (List<Map<String, Object>>) doc.get("items");
-                        if (items != null) {
-                            for (Map<String, Object> item : items) {
+                        if (items != null)
+                            for (Map<String, Object> item : items)
                                 if (item.containsKey("id")) ids.add((String) item.get("id"));
-                            }
-                        }
                     }
                     callback.onSuccess(ids);
                 })
@@ -134,9 +172,9 @@ public class FirebaseHelper {
             if (items == null) { callback.onSuccess(new HashMap<>()); return; }
 
             List<Map<String, Object>> filtered = new ArrayList<>();
-            for (Map<String, Object> item : items) {
+            for (Map<String, Object> item : items)
                 if (!productId.equals(item.get("id"))) filtered.add(item);
-            }
+
             Map<String, Object> data = new HashMap<>();
             data.put("items", filtered);
             ref.set(data)
@@ -169,6 +207,20 @@ public class FirebaseHelper {
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 
+    public static void getCartItems(String uid, CartItemsCallback callback) {
+        db.collection("carts").document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    final List<Map<String, Object>> items;
+                    if (doc.exists() && doc.get("items") != null)
+                        items = new ArrayList<>((List<Map<String, Object>>) doc.get("items"));
+                    else
+                        items = new ArrayList<>();
+                    callback.onSuccess(items);
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
     public static void addToCart(String uid, Product product, ProfileCallback callback) {
         DocumentReference ref = db.collection("carts").document(uid);
         ref.get().addOnSuccessListener(doc -> {
@@ -177,7 +229,6 @@ public class FirebaseHelper {
                 items = new ArrayList<>((List<Map<String, Object>>) doc.get("items"));
                 for (Map<String, Object> item : items) {
                     if (product.id.equals(item.get("id"))) {
-                        // Already in cart — increment qty
                         Object qtyObj = item.get("qty");
                         int qty = 1;
                         if (qtyObj instanceof Long)    qty = ((Long) qtyObj).intValue();
@@ -192,7 +243,6 @@ public class FirebaseHelper {
                     }
                 }
             }
-            // New item
             Map<String, Object> newItem = new HashMap<>();
             newItem.put("id",            product.id);
             newItem.put("name",          product.name);
@@ -233,11 +283,7 @@ public class FirebaseHelper {
             List<Map<String, Object>> updated = new ArrayList<>();
             for (Map<String, Object> item : items) {
                 if (productId.equals(item.get("id"))) {
-                    if (newQty > 0) {
-                        item.put("qty", newQty);
-                        updated.add(item);
-                    }
-                    // qty == 0: skip (removes item)
+                    if (newQty > 0) { item.put("qty", newQty); updated.add(item); }
                 } else {
                     updated.add(item);
                 }
@@ -249,4 +295,59 @@ public class FirebaseHelper {
                     .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
         }).addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
+
+    public static void clearCart(String uid, ProfileCallback callback) {
+        Map<String, Object> empty = new HashMap<>();
+        empty.put("items", new ArrayList<>());
+        db.collection("carts").document(uid)
+                .set(empty)
+                .addOnSuccessListener(unused -> callback.onSuccess(new HashMap<>()))
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    // ── Addresses ─────────────────────────────────────────────────────────────
+
+    public static void getAddresses(String uid, CartItemsCallback callback) {
+        db.collection("addresses").document(uid)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    final List<Map<String, Object>> items;
+                    if (doc.exists() && doc.get("items") != null)
+                        items = new ArrayList<>((List<Map<String, Object>>) doc.get("items"));
+                    else
+                        items = new ArrayList<>();
+                    callback.onSuccess(items);
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    public static void saveAddress(String uid, Map<String, Object> address,
+                                   CartItemsCallback callback) {
+        DocumentReference ref = db.collection("addresses").document(uid);
+        ref.get().addOnSuccessListener(doc -> {
+            final List<Map<String, Object>> items;
+            if (doc.exists() && doc.get("items") != null)
+                items = new ArrayList<>((List<Map<String, Object>>) doc.get("items"));
+            else
+                items = new ArrayList<>();
+            items.add(address);
+            Map<String, Object> data = new HashMap<>();
+            data.put("items", items);
+            ref.set(data)
+                    .addOnSuccessListener(unused -> callback.onSuccess(items))
+                    .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+        }).addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    // ── Orders ────────────────────────────────────────────────────────────────
+
+    public static void placeOrder(String uid, String orderId,
+                                  Map<String, Object> order, OrderCallback callback) {
+        db.collection("orders").document(uid)
+                .collection("items").document(orderId)
+                .set(order)
+                .addOnSuccessListener(unused -> callback.onSuccess(orderId))
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
 }

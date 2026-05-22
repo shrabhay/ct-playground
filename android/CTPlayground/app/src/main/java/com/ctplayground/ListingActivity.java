@@ -55,14 +55,19 @@ public class ListingActivity extends AppCompatActivity {
         setupSortButtons();
         loadProducts();
         fireCTEvents();
-        loadWishlistState();
-        loadCartState();
 
         findViewById(R.id.btnBack).setOnClickListener(v -> finish());
         findViewById(R.id.btnCart).setOnClickListener(v ->
                 startActivity(new Intent(this, CartActivity.class)));
         findViewById(R.id.btnAccount).setOnClickListener(v ->
                 startActivity(new Intent(this, AccountActivity.class)));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadWishlistState();
+        loadCartState();
     }
 
     private void loadWishlistState() {
