@@ -31,6 +31,8 @@ public class AccountActivity extends AppCompatActivity {
         setupMenuItems();
         loadProfile();
         loadStats();
+
+        fireCTEvent("Account Page Viewed", new HashMap<>());
     }
 
     private void setupNavbar() {
@@ -38,18 +40,14 @@ public class AccountActivity extends AppCompatActivity {
     }
 
     private void setupMenuItems() {
-        findViewById(R.id.menuMyOrders).setOnClickListener(v -> {
-            fireCTEvent("Order History Viewed", new HashMap<>());
-            Toast.makeText(this, "My Orders — coming in a future update",
-                    Toast.LENGTH_SHORT).show();
-        });
+        findViewById(R.id.menuMyOrders).setOnClickListener(v ->
+                startActivity(new Intent(this, MyOrdersActivity.class)));
 
         findViewById(R.id.menuWishlist).setOnClickListener(v ->
                 startActivity(new Intent(this, WishlistActivity.class)));
 
         findViewById(R.id.menuPersonalInfo).setOnClickListener(v ->
-                Toast.makeText(this, "Personal Information — coming in a future update",
-                        Toast.LENGTH_SHORT).show());
+                startActivity(new Intent(this, PersonalInfoActivity.class)));
 
         findViewById(R.id.menuAddresses).setOnClickListener(v ->
                 Toast.makeText(this, "Manage Addresses — coming in a future update",

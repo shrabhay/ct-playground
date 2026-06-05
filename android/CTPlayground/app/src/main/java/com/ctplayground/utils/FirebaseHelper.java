@@ -350,4 +350,26 @@ public class FirebaseHelper {
                 .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
     }
 
+    public static void getOrders(String uid, CartItemsCallback callback) {
+        db.collection("orders").document(uid)
+                .collection("items")
+                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(snapshot -> {
+                    List<Map<String, Object>> orders = new ArrayList<>();
+                    for (DocumentSnapshot doc : snapshot.getDocuments())
+                        if (doc.getData() != null) orders.add(doc.getData());
+                    callback.onSuccess(orders);
+                })
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
+    public static void updateUserProfile(String uid, Map<String, Object> updates,
+                                         ProfileCallback callback) {
+        db.collection("users").document(uid)
+                .update(updates)
+                .addOnSuccessListener(unused -> callback.onSuccess(updates))
+                .addOnFailureListener(e -> callback.onFailure(e.getMessage()));
+    }
+
 }

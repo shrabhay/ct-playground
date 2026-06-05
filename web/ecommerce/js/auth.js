@@ -13,11 +13,14 @@ function getUser() {
 // Runs automatically on every page load — initialises navbar, counts, CT
 fbAuth.onAuthStateChanged(async (firebaseUser) => {
   if (firebaseUser) {
-    // Ensure localStorage cache is fresh
-    let profile = JSON.parse(localStorage.getItem('bazario_user') || 'null');
-    if (!profile || profile.uid !== firebaseUser.uid) {
-      profile = await fbGetProfile(firebaseUser.uid);
-      if (profile) localStorage.setItem('bazario_user', JSON.stringify(profile));
+    // Always re-read from Firestore — ensures cross-platform updates
+    // (Android, iOS) are immediately reflected on web.
+    let profile = await fbGetProfile(firebaseUser.uid);
+    if (profile) {
+      localStorage.setItem('bazario_user', JSON.stringify(profile));
+    } else {
+      // Firestore failed — fall back to localStorage cache
+      profile = JSON.parse(localStorage.getItem('bazario_user') || 'null');
     }
     if (profile) {
       initAuthNav(profile);
@@ -25,7 +28,6 @@ fbAuth.onAuthStateChanged(async (firebaseUser) => {
       await initWishlistCount();
     }
   } else {
-    // Guest user
     initAuthNav(null);
     initCartCount();
     initWishlistCount();

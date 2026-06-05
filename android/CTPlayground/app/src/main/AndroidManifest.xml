@@ -37,6 +37,8 @@
         <activity android:name=".ProductActivity" />
         <activity android:name=".CheckoutActivity" />
         <activity android:name=".OrderConfirmationActivity" />
+        <activity android:name=".MyOrdersActivity" />
+        <activity android:name=".PersonalInfoActivity" />
     </application>
 
 </manifest>
